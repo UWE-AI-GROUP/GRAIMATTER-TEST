@@ -25,3 +25,10 @@ Uses transfer learning (original network trained on imagenet) to perform multicl
 [MIMIC](https://mimic.mit.edu/) is a very large resource of medical record type data. Looks like it would certainly be adequate for our needs. Perhaps best strategy is to find papers that use this and piggyback on their pipelines to turn the data into standard ML tasks.
 
 For example, [Prediction model of in-hospital mortality in intensive care unit patients with heart failure: machine learning-based, retrospective analysis of the MIMIC-III database](https://bmjopen.bmj.com/content/11/7/e044779) to build a model to predict in-hospital mortality. They processed MIMIC data to create a suitable dataset, and it is [freely available](https://datadryad.org/stash/dataset/doi:10.5061%2Fdryad.0p2ngf1zd)
+
+### Paediatric pneumonia liver segmentation daatasets
+Referenced in Zillet at al (2021) *Medical imaging deep learning with differential privacy* [paper](https://www.nature.com/articles/s41598-021-93030-0.pdf)
+
+[Paediatric pneumonia] (https://data.mendeley.com/datasets/rscbjbr9sj/3)
+
+[liver segmentation dataset](http://medicaldecathlon.com)

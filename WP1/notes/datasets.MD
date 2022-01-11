@@ -8,7 +8,7 @@ The following is a description of publically available datasets that may be usef
 
 [Paper](https://www.sciencedirect.com/science/article/pii/S0092867418301545?via%3Dihub)
 
-Uses transfer learning (original network trained on imagenet) to perform multiclass (4) classification on OCT images. Includes approx 108,000 from about 4,000 patients. Data available [here](https://data.mendeley.com/datasets/rscbjbr9sj/3). Cannot find a link to code in the paper.
+Uses transfer learning (original network trained on imagenet) to perform multiclass (4) classification on OCT images. Includes approx 108,000 from about 4,000 patients. Data available [here](https://data.mendeley.com/datasets/rscbjbr9sj/3). Code included with data.
 
 ### IXI
 

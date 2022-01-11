@@ -26,6 +26,16 @@ Uses transfer learning (original network trained on imagenet) to perform multicl
 
 For example, [Prediction model of in-hospital mortality in intensive care unit patients with heart failure: machine learning-based, retrospective analysis of the MIMIC-III database](https://bmjopen.bmj.com/content/11/7/e044779) to build a model to predict in-hospital mortality. They processed MIMIC data to create a suitable dataset, and it is [freely available](https://datadryad.org/stash/dataset/doi:10.5061%2Fdryad.0p2ngf1zd)
 
+[Machine Learning Approach to Predict Positive Screening of Methicillin-Resistant Staphylococcus aureus During Mechanical Ventilation Using Synthetic Dataset From MIMIC-IV Database](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8635043/). It claims data will be made available.
+
+[Central venous pressure measurement is associated with improved outcomes in septic patients: an analysis of the MIMIC-III database](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7358999/) [datasets available](https://physionet.org/works/MIMICIIIClinicalDatabase/files/)
+
+[Deep-Learning-Based Survival Prediction of Patients in Coronary Care Units.](https://www.hindawi.com/journals/cmmm/2021/5745304/) [data available](https://mimic.mit.edu/)
+
+[Convolutional Neural Network Model for Intensive Care Unit Acute Kidney Injury Prediction](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8116756/)
+
+[A Racially Unbiased, Machine Learning Approach to Prediction of Mortality: Algorithm Development Study](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7644374/)
+
 ### Paediatric pneumonia liver segmentation daatasets
 Referenced in Zillet at al (2021) *Medical imaging deep learning with differential privacy* [paper](https://www.nature.com/articles/s41598-021-93030-0.pdf)
 

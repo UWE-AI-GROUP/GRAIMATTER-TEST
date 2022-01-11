@@ -29,6 +29,6 @@ For example, [Prediction model of in-hospital mortality in intensive care unit p
 ### Paediatric pneumonia liver segmentation daatasets
 Referenced in Zillet at al (2021) *Medical imaging deep learning with differential privacy* [paper](https://www.nature.com/articles/s41598-021-93030-0.pdf)
 
-[Paediatric pneumonia] (https://data.mendeley.com/datasets/rscbjbr9sj/3)
+[Paediatric pneumonia](https://data.mendeley.com/datasets/rscbjbr9sj/3)
 
 [liver segmentation dataset](http://medicaldecathlon.com)

@@ -26,6 +26,8 @@ Uses transfer learning (original network trained on imagenet) to perform multicl
 
 For example, [Prediction model of in-hospital mortality in intensive care unit patients with heart failure: machine learning-based, retrospective analysis of the MIMIC-III database](https://bmjopen.bmj.com/content/11/7/e044779) to build a model to predict in-hospital mortality. They processed MIMIC data to create a suitable dataset, and it is [freely available](https://datadryad.org/stash/dataset/doi:10.5061%2Fdryad.0p2ngf1zd)
 
+Dataset based on [MIMIC-II database](https://physionet.org/content/mimic2-iaccd/1.0/) is freely available.
+
 [Machine Learning Approach to Predict Positive Screening of Methicillin-Resistant Staphylococcus aureus During Mechanical Ventilation Using Synthetic Dataset From MIMIC-IV Database](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8635043/). It claims data will be made available.
 
 [Central venous pressure measurement is associated with improved outcomes in septic patients: an analysis of the MIMIC-III database](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7358999/) [datasets available](https://physionet.org/works/MIMICIIIClinicalDatabase/files/)

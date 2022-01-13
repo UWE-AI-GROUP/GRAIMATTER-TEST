@@ -6,7 +6,7 @@ Repository for GRAIMatter project: Guidelines and Resource for AI Model Access f
 - WP1/notes/datasets.MD includes a list of potential datasets
 
 
-## Git contribution guideleines
+## Git contribution guidelines
 
 Please try, where possible, to adhere to the following guidelines when working with this project repository. Note that the nature of the project is such that it may not always be practical / possible to follow these completely. If you're unsure about any of this, just ask!:
 

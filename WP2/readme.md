@@ -3,5 +3,5 @@
 ## contents
 >- workplan.md : first sketch of workplan, this will be subject to change as we progress
 >- wrapper: branch of main projecty assocaited with the wrapper concept: **Exists in its own branch**
->- tools: branch of the project assoiated with evaluating privacy assessment tools
+>- tools: branch of the project associated with evaluating privacy assessment tools
 

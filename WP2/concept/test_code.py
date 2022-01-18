@@ -22,10 +22,10 @@ raw_dt.fit(X, y)
 numsamples = 5
 import getpass
 
-if getpass.getuser()=="j4-smith":
-    numsamples=1
-raw_dt2 = DecisionTreeClassifier(min_samples_leaf=numsamples, criterion="gini", random_state=1)   
-print(f'through obfuscation made a tree with {raw_dt.min_samples_leaf} samples per leaf')
+for numsamples in range (5):
+    print(f'numsamples {numsamples}')
+    raw_dt2 = DecisionTreeClassifier(min_samples_leaf=numsamples, criterion="gini", random_state=1)   
+    print(f'through obfuscation made a tree with {raw_dt2.min_samples_leaf} samples per leaf')
 
 print(f"Training set accuracy in this naive case is {raw_dt.score(X,y)}")
 

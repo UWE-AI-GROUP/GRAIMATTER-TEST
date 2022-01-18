@@ -4,11 +4,11 @@ Are fairness/ethical "bias" checking tools relevant to this project? For example
 
 ---------------------
 
-"[Libraries.io](https://libraries.io) indexes data from 5,086,238 packages from 32 package managers. We monitor package releases, analyse each project's code, community, distribution and documentation, and we map the relationships between packages when they're declared as a dependency." 
+"[Libraries.io](https://libraries.io) indexes data from 5,086,238 packages from 32 package managers. We monitor package releases, analyse each project's code, community, distribution and documentation, and we map the relationships between packages when they're declared as a dependency."
 
 It provides a searchable index of packages via keyword - perhaps we can specify some keywords and then systematically go through the packages to check for relevant ones - the keywords used will help other researchers know what we searched for? List so far ["trusted-ai", "trustworthy-ai", "poisoning", "privacy-protection", "privacy-enhancing-technologies"]. Same approach applied to github search?
 
-It generates a "source rank" for many projects, which is based on a set of criteria that include the project documentation, licenses, recency and number of versions available, whether [semantic version numbering](https://semver.org) is used, popularity measures such as github stars, the number of contributors, and how many packages or repositories are dependant on the project.
+It generates a "source rank" for many projects, which is based on a set of criteria that include the project documentation, licenses, recency and number of versions available, whether [semantic version numbering](https://semver.org) is used, popularity measures such as github stars, the number of contributors, and how many packages or repositories are dependent on the project.
 
 Following this general criteria, below are notes on some tools:
 
@@ -70,7 +70,7 @@ Source code available on github; distribution available in PyPi;
 popularity: 2.7k stars; 75 contributors;
 27 releases using semantic version numbers (first release Apr 25, 2018; current version 1.9.1 released Jan 7, 2022);
 [Libraries.io](https://libraries.io/pypi/adversarial-robustness-toolbox) SourceRank: 14
-Uses continuous integration tools; unit tests; and static anaylsis;
+Uses continuous integration tools; unit tests; and static analysis;
 
 6 github projects depend on the package, including [IBM AI Fairness 360](https://github.com/Trusted-AI/AIF360) and [ML-PePR](https://github.com/hallojs/ml-pepr) and [TrojAI](https://pypi.org/project/troj/1.0.0/)
 

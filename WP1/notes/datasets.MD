@@ -1,6 +1,6 @@
 # Public data sets
 
-The following is a description of publically available datasets that may be useful within the project.
+The following is a description of publicly available datasets that may be useful within the project.
 
 ## Imaging
 

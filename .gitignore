@@ -127,3 +127,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+# Saved pickle files
+.pkl
+
+# Data folder
+
+/data

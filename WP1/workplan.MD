@@ -26,7 +26,14 @@ Test a range of sklearn models, with default parameters to assess the privacy ri
 
 ## FAIR
 
-TODO: Esma
+
+	- Investigate open source implementation of FAIR for different tasks (ex: 
+theonaunheim/pyfair: Factor Analysis of Information Risk (FAIR) model written in Python. (github.com))
+
+	- Define loss, risks, factors.
+	- Investigate the feasibility to include hyperparameters  as a factor
+  - From experiments  results on the different chosen models investigate how to derive the loss frequency and loss magnitude
+
 
 ## Synthetic data
 

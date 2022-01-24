@@ -41,6 +41,7 @@ Following this general criteria, below are notes on some tools:
     + [membership inference](https://github.com/Trusted-AI/adversarial-robustness-toolbox/blob/main/notebooks/attack_membership_inference.ipynb) attempts to determine if the information of a certain record, e.g. of a person, has been part of the training data of a trained ML model. The [API](https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/inference/membership_inference.html) supports `MembershipInferenceBlackBox`, `MembershipInferenceBlackBoxRuleBased`, `LabelOnlyDecisionBoundary`, and `LabelOnlyGapAttack`.
     + [attribute inference](https://github.com/Trusted-AI/adversarial-robustness-toolbox/blob/main/notebooks/attack_attribute_inference.ipynb) aims at inferring the actual feature values of a record known to exist in the training data only by accessing the trained model and knowing few of the other features of the record. For example, a ML model trained on demographic data attacked with attribute inference could leak information about a person's exact age or salary. The [API](https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/inference/attribute_inference.html) supports `AttributeInferenceBaseline`, `AttributeInferenceBlackBox`, `AttributeInferenceMembership`, `AttributeInferenceWhiteBoxLifestyleDecisionTree`, and `AttributeInferenceWhiteBoxDecisionTree`.
     + [model inversion](https://github.com/Trusted-AI/adversarial-robustness-toolbox/blob/main/notebooks/model_inversion_attacks_mnist.ipynb) aims to reconstruct representative averages of features of the training data by inverting a trained ML model. The [API](https://adversarial-robustness-toolbox.readthedocs.io/en/latest/modules/attacks/inference/model_inversion.html) supports `MIFace`, which provides an implementation of the MIFace algorithm from [Fredrikson et al. (2015)](https://doi.org/10.1145/2810103.2813677).
+  - Provides a [database reconstruction](https://github.com/Trusted-AI/adversarial-robustness-toolbox/blob/main/notebooks/attack_database_reconstruction.ipynb) attack where the adversary is assumed to have in their possession a model trained on a dataset, and all but one row of that training dataset. The attack attempts to reconstruct the missing row.
 
 ---------------------
 
@@ -77,7 +78,7 @@ Following this general criteria, below are notes on some tools:
 * Popularity: 14 stars; 3 contributors
 * Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
 * [Libraries.io](https://libraries.io/pypi/ai-privacy-toolkit) SourceRank: 7
-* Description: Provides an [anonymisation module](https://github.com/IBM/ai-privacy-toolkit/blob/main/notebooks/attribute_inference_anonymization_nursery.ipynb) and [minimisation module](https://github.com/IBM/ai-privacy-toolkit/blob/main/notebooks/minimization_adult.ipynb). The anonymisation module contains methods for anonymising training data, so that when a model is retrained on the anonymised data, the model itself will also be considered anonymous. The minimisation module contains methods to help adhere to the data minimisation principle in GDPR for ML models. It enables to reduce the amount of personal data needed to perform predictions with a machine learning model, while still enabling the model to make accurate predictions. This is done by by removing or generalising some of the input features.
+* Description: Provides an [anonymisation module](https://github.com/IBM/ai-privacy-toolkit/blob/main/notebooks/attribute_inference_anonymization_nursery.ipynb) and [minimisation module](https://github.com/IBM/ai-privacy-toolkit/blob/main/notebooks/minimization_adult.ipynb). The anonymisation module contains methods for anonymising training data, so that when a model is retrained on the anonymised data, the model itself will also be considered anonymous. The minimisation module contains methods to help adhere to the data minimisation principle in GDPR for ML models. It enables a reduction in the amount of personal data needed to perform predictions with a machine learning model, while still enabling the model to make accurate predictions. This is done by removing or generalising some of the input features.
 
 ---------------------
 
@@ -89,6 +90,7 @@ Following this general criteria, below are notes on some tools:
 * Popularity: 0 stars; 3 contributors
 * Versioning: uses semantic version numbering with 6 releases (0.1b6 latest version on 17 Jul, 2021)
 * [Libraries.io](https://libraries.io/pypi/mlpepr) SourceRank: 6
+* Description: Provides a [membership inference attack](https://colab.research.google.com/github/hallojs/ml-pepr/blob/master/notebooks/mia_tutorial.ipynb) based on [Shokri et al., (2017)](https://arxiv.org/abs/1610.05820) and a [direct generalised membership inference attack](https://colab.research.google.com/github/hallojs/ml-pepr/blob/master/notebooks/direct_gmia_tutorial.ipynb) based on [Long et al., (2018)](https://arxiv.org/abs/1802.04889).
 
 ---------------------
 
@@ -98,8 +100,13 @@ Following this general criteria, below are notes on some tools:
 * Source: available on github
 * Distribution: no distributions available
 * Popularity: 241 stars; 6 contributors
-* Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release);
-* Notes: The tool expects a Keras/TensorFlow model; the dataset must be in a specific format; while the documentation states that "the API is built on top of TensorFlow 2.1 with Python 3.6", most of the tutorials and utility scripts are in antiquated Python 2 (e.g., see [here](https://github.com/privacytrustlab/ml_privacy_meter/tree/master/datasets) "so you need to have Python 2 and numpy with Python 2 support"); the tool requires the setting of a number of model/dataset specific parameters including an optimiser, a list of layers to exploit, the learning rate, number of training epochs, which means that it will likely require both (a) human involvement to define the set of parameters to explore and (b) multiple runs of the tool for tuning;
+* Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
+* Description: Provides membership inference attacks for both black-box and white-box scenarios.
+  - In addition to aggregated results, the tool reports the membership probability and accuracy of the attack per record.
+  - The tool expects a Keras/TensorFlow model and the dataset must be in a specific format.
+  - The tool requires the setting of a number of model/dataset specific parameters, which include (depending on white-box or black-box) an optimiser, a list of layers to exploit, the learning rate, and number of training epochs.
+  - For black-box attacks, the output dimension of Model A and B must be identical, however the rest of the architecture can differ. For white-box attacks, the architectures must be identical.
+  - Report generates a set of visualisations, including histograms for privacy risk, ROC curves for the membership probabilities, gradient norm distributions for member and non-member data, and label-wise privacy risk plots.
 
 ---------------------
 
@@ -108,7 +115,8 @@ Following this general criteria, below are notes on some tools:
 * License: Apache-2.0
 * Source: available on github
 * Distribution: no distributions available
-* Popularity: 10 stars; 1 contributor
+* Popularity: 11 stars; 1 contributor
 * Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
+* Description: Provides (black-box and white-box) inference attacks including membership inference, model inversion, and attribute inference.
 
 ---------------------

@@ -37,4 +37,17 @@ theonaunheim/pyfair: Factor Analysis of Information Risk (FAIR) model written in
 
 ## Synthetic data
 
-TODO: James
+Evaluate implementations of main DP-preserving GAN-based synthetic data generators, [PATE-GAN](https://openreview.net/pdf?id=S1zk9iRqF7) and [DP-GAN](https://arxiv.org/pdf/1802.06739.pdf?utm_source=share&utm_medium=ios_app&utm_name=iossmf)
+
+The [SDV github library](https://github.com/sdv-dev/SDV) will be a place to start although they do not seem to include DP versions of methods.
+
+Generate a volume of synthetic data for datasets identified above, exploring hyperparameter options (inluding architecture)
+
+Evaluate usefulness of synthetic data at given DP thresholds. This may include
+
+  - Fitting ML models to synthetic data and real data and comparing
+  - Direct comparison of empirical distributions
+
+Consider adaptation of privacy meter to this setting, treating a single synthetic data instance as a set of outputs
+
+Consider adaptation of FAIR to this setting

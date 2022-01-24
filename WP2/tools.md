@@ -77,6 +77,7 @@ Following this general criteria, below are notes on some tools:
 * Popularity: 14 stars; 3 contributors
 * Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
 * [Libraries.io](https://libraries.io/pypi/ai-privacy-toolkit) SourceRank: 7
+* Description: Provides an [anonymisation module](https://github.com/IBM/ai-privacy-toolkit/blob/main/notebooks/attribute_inference_anonymization_nursery.ipynb) and [minimisation module](https://github.com/IBM/ai-privacy-toolkit/blob/main/notebooks/minimization_adult.ipynb). The anonymisation module contains methods for anonymising training data, so that when a model is retrained on the anonymised data, the model itself will also be considered anonymous. The minimisation module contains methods to help adhere to the data minimisation principle in GDPR for ML models. It enables to reduce the amount of personal data needed to perform predictions with a machine learning model, while still enabling the model to make accurate predictions. This is done by by removing or generalising some of the input features.
 
 ---------------------
 

@@ -10,6 +10,15 @@ def plot_confusion_matrix(name, cm, classes,
                           normalize=False,
                           cmap=plt.cm.Blues,
                           save=None):
+    """
+    This function plots a confusion matrix for predictions of a given model.
+    Name: is the name of the model.
+    cm: is the confusion matrix, e.g. output from confusion_matrix(y_test, y_pred).
+    classes: is the number of classes, e.g. output of range(2).
+    normalize: (boolean) whether to normalize the confusion matrix or not. Default False.
+    cmap: is the colormap of the confusion matrix, default is cm.Blues.
+    save: it save figure to the given path/figname. Default don't save.
+    """
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
         print("Normalized confusion matrix")
@@ -41,8 +50,17 @@ def plot_confusion_matrix(name, cm, classes,
     
     
 def plotROC_classifier(clf,
-                       X_tmp, y_tmp, X_tmp_test, y_tmp_test,
+                       X_tmp_test, y_tmp_test,
                        title="ROC curve", save=None):
+    """
+    This function calculates and plots a ROC AUC curve of a given model.
+    Name is the name of the model.
+    clf: is the fitted classifier.
+    X_tmp_test: test data.
+    y_tmp_test: labels of test data.
+    title: Set a title for the figure, e.g. specify model name/parameters etc. Default "ROC curve".
+    save: it save figure to the given path/figname. Default don't save.
+    """
     tprs = []
     aucs = []
     mean_fpr = np.linspace(0, 1, 100)
@@ -104,6 +122,13 @@ def plotROC_classifier(clf,
     
 
 def plot_prob_test_train(pred_test, pred_train, title='Membership probalibilty', save=None):
+    """
+    This function plots and histogram of the probability associated with MIA (memebership inference attack).
+    pred_test: predicted probability of the test data (from the MIA split, not from building the model).
+    pred_train: predicted probability of the train data (from the MIA split, not from building the model).
+    title: Set a title for the figure, e.g. specify model name/parameters and MIA etc. Default "Membership probalibilty".
+    save: it save figure to the given path/figname. Default don't save.
+    """
     fig, ax = plt.subplots()
     plt.hist(np.array(pred_train).flatten(),  alpha=0.5, bins=20, label='Training Data (Members)',
                 histtype='bar', range=(0, 1))

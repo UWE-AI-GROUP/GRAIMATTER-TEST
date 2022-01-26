@@ -1,1 +1,1 @@
-DecisionTree min_samples_leaf min 5
+DecisionTreeClassifier min_samples_leaf min 5

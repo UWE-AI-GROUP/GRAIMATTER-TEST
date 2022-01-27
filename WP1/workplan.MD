@@ -27,7 +27,7 @@ Test a range of sklearn models, with default parameters to assess the privacy ri
 ## FAIR
 
 
-	- Investigate open source implementation of FAIR for different tasks (ex: 
+	- Investigate open source implementation of FAIR for different tasks (ex:
 theonaunheim/pyfair: Factor Analysis of Information Risk (FAIR) model written in Python. (github.com))
 
 	- Define loss, risks, factors.
@@ -41,7 +41,7 @@ Evaluate implementations of main DP-preserving GAN-based synthetic data generato
 
 The [SDV github library](https://github.com/sdv-dev/SDV) will be a place to start although they do not seem to include DP versions of methods.
 
-Generate a volume of synthetic data for datasets identified above, exploring hyperparameter options (inluding architecture)
+Generate a volume of synthetic data for datasets identified above, exploring hyperparameter options (including architecture)
 
 Evaluate usefulness of synthetic data at given DP thresholds. This may include
 

@@ -89,7 +89,7 @@ Following this general criteria, below are notes on some tools:
 
 ## [ML-PePR](https://github.com/hallojs/ml-pepr)
 
-* Category: Attacks
+* Category: Attacks (black-box)
 * License: GPLv3
 * Source: available on github
 * Distribution: available in PyPi
@@ -108,7 +108,7 @@ Following this general criteria, below are notes on some tools:
 * Distribution: no distributions available
 * Popularity: 241 stars; 6 contributors
 * Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
-* Description: Provides membership inference attacks of neural networks (fully-connected and convolutional) for both black-box and white-box scenarios based on [Nasr et al. (2019)](https://arxiv.org/abs/1812.00910).
+* Description: Provides membership inference attacks of neural networks (fully-connected and convolutional) for both black-box and white-box scenarios based on [Nasr et al. (2019)](https://arxiv.org/abs/1812.00910). The Nasr et al. (2019) paper details the white-box attack as feeding the model parameters (gradients, activations, losses, and labels) from each specified layer as inputs to an autoencoder which compresses the model features before running a clustering algorithm to separate member and non-member samples. When comparing the differences between the black-box and white-box attack, the accuracy increases by less than 1% on one dataset to about 6.5% on another.
   - In addition to aggregated results, the tool reports the membership probability and accuracy of the attack per record.
   - The tool expects a Keras/TensorFlow model and the dataset must be in a specific format.
   - The tool requires the setting of a number of model/dataset specific parameters, which include (depending on white-box or black-box) an optimiser, a list of layers to exploit, the learning rate, and number of training epochs.
@@ -125,7 +125,7 @@ Following this general criteria, below are notes on some tools:
 * Distribution: no distributions available
 * Popularity: 11 stars; 1 contributor
 * Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
-* Description: Provides black-box and white-box (partial and shadow) inference attacks including membership inference, model inversion, attribute inference, and model extraction. Includes differential privacy through PyTorch [Opacus](https://github.com/pytorch/opacus).
+* Description: Provides 10 black-box and white-box (partial and shadow) inference attacks including membership inference, model inversion, attribute inference, and model extraction introduced in [Liu et al. (2022)](https://www.usenix.org/conference/usenixsecurity22/presentation/liu-yugeng). For white-box membership inference, they provide 4 inputs to the attack model, which the paper says is similar to the one used by ML Privacy Meter, including the classification loss, last layer gradients, and one-hot encoding of its true label. they feed each input into a different neural network, and then concatenate the resulting embeddings as input to another neural network. Includes differential privacy through PyTorch [Opacus](https://github.com/pytorch/opacus).
   - The tool expects a PyTorch neural network model.
 
 ---------------------

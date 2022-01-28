@@ -1,7 +1,6 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
-from metricPlots import plotROC_classifier, plot_prob_test_train
-
+from metricPlots import *
 
 def create_mia_data(clf, xtrain, xtest):
     """
@@ -55,3 +54,7 @@ def run_membership_inference_attack(clf_name, model, xtrain, xtest, MIA_classifi
     mi_pred_train_y = mi_rf.predict_proba(mi_train_x)
 
     plot_prob_test_train(mi_pred_y, mi_pred_train_y, clf_name+" - MIA "+MIA_name)
+    
+    plot_detection_error_tradeoff(mi_rf, mi_test_x, mi_test_y, clf_name+" Detection Error Tradeoff (DET) curve", clf_name)
+    
+    print('Attacker advantage', attacker_advantage(mi_rf, mi_test_x, mi_test_y))

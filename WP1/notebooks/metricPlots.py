@@ -1,18 +1,21 @@
 import itertools
 import matplotlib.pyplot as plt
-from sklearn.metrics import auc, RocCurveDisplay
+from sklearn.metrics import auc, RocCurveDisplay, DetCurveDisplay, det_curve, confusion_matrix
 import numpy as np
+from typing import Any, Iterable, Optional
 
 
-def plot_confusion_matrix(name, confusion_matrix, classes,
-                          normalize=False,
-                          cmap=plt.cm.Blues,
-                          save=None):
+def plot_confusion_matrix(name: str, 
+                          confusion_matrix: Iterable[float],
+                          n_classes:int,
+                          normalize: bool = False,
+                          cmap:Any = plt.cm.Blues,
+                          save: Optional[str] = None) -> Any:
     """
     This function plots a confusion matrix for predictions of a given model.
     Name: is the name of the model.
     confusion_matrix: is the confusion matrix, e.g. output from confusion_matrix(y_test, y_pred).
-    classes: is the number of classes, e.g. output of range(2).
+    n_classes: is the number of classes, e.g. output of range(2).
     normalize: (boolean) whether to normalize the confusion matrix or not. Default False.
     cmap: is the colormap of the confusion matrix, default is cm.Blues.
     save: it save figure to the given path/figname. Default don't save.
@@ -25,9 +28,9 @@ def plot_confusion_matrix(name, confusion_matrix, classes,
 
     plt.imshow(confusion_matrix, interpolation='nearest', cmap=cmap)
     plt.colorbar()
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=45)
-    plt.yticks(tick_marks, classes)
+    tick_marks = np.arange(n_classes) #np.arange(len(n_classes))
+    plt.xticks(tick_marks, range(n_classes), rotation=45)
+    plt.yticks(tick_marks, range(n_classes))
 
     fmt = '.2f' if normalize else 'd'
     thresh = confusion_matrix.max() / 2.
@@ -43,13 +46,15 @@ def plot_confusion_matrix(name, confusion_matrix, classes,
 
     if save:
         plt.savefig(save, bbox_inches='tight')
-    else:
-        plt.show()
+    #else:
+    plt.show()
 
 
-def plotROC_classifier(clf,
-                       X_tmp_test, y_tmp_test,
-                       title="ROC curve", save=None):
+def plotROC_classifier(clf:Any,
+                       X_tmp_test: Iterable[float], 
+                       y_tmp_test: Iterable[float],
+                       title:str = "ROC curve", 
+                       save: Optional[str] = None):
     """
     This function calculates and plots a ROC AUC curve of a given model.
 
@@ -114,12 +119,15 @@ def plotROC_classifier(clf,
 
     if save:
         fig.savefig(save, bbox_inches='tight')
-    else:
-        fig.show()
+    #else:
+    plt.show()
 
 
 
-def plot_prob_test_train(pred_test, pred_train, title='Membership probalibilty', save=None):
+def plot_prob_test_train(pred_test: Iterable[float], 
+                         pred_train: Iterable[float], 
+                         title: str ='Membership probalibilty', 
+                         save: Optional[str] = None):
     """
     This function plots and histogram of the probability associated
     with MIA (memebership inference attack).
@@ -144,5 +152,52 @@ def plot_prob_test_train(pred_test, pred_train, title='Membership probalibilty',
 
     if save:
         plt.savefig(save, bbox_inches='tight')
-    else:
-        plt.show()
+    #else:
+    plt.show()
+
+    
+def plot_detection_error_tradeoff(clf:Any,
+                                  X_test:Iterable[float], 
+                                  y_test:Iterable[float],
+                                  title:str = "Detection Error Tradeoff (DET) curve", 
+                                  model_name:Optional[str] = None,
+                                  save:Optional[str] = None):
+    """
+    Plot the Detection Error Traeoff (DET) according to the definition in
+    https://scikit-learn.org/stable/modules/model_evaluation.html#det-curve
+    
+    clf: is the fitted classifier.
+    X_test: test data.
+    y_test: labels of test data.
+    title: Set a title for the figure, e.g. specify model name/parameters etc. Default "ROC curve".
+    model_name: is the name of the model.
+    save: it save figure to the given path/figname. Default don't save.
+    """
+    
+    DetCurveDisplay.from_estimator(clf, X_test, y_test, response_method='predict_proba', name=model_name)
+
+    plt.title(title)
+    plt.grid(linestyle="--")
+    plt.legend()
+    if save:
+        plt.savefig(save, bbox_inches='tight')
+    plt.show()
+    
+    
+def attacker_advantage(clf,
+                       X_test:Iterable[float], 
+                       y_test:Iterable[float]):
+    """
+    Calculate attacker advantage for MIA binary.
+    Implemented as Definition 4 on https://arxiv.org/pdf/1709.01604.pdf
+    which is also implemented in tensorFlow-privacy https://github.com/tensorflow/privacy
+    
+    clf: fitted model.
+    X_test: test data.
+    y_test: test data labels.
+    """
+    y_pred = clf.predict(X_test)
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+    tpr =  tp / (tp + fn) #true positive rate or recall
+    fpr =  fp / (fp + tn) #false positive rate
+    return abs(tpr - fpr)

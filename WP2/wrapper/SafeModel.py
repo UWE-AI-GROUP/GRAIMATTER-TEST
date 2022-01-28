@@ -74,7 +74,7 @@ class SafeModel:
         for key, (operator, recommended_val) in params.items():
             current_val = str(eval(f"self.model.{key}"))
             print(
-                f"checking key {key}: current_val {current_val}, recomended {recommended_val}"
+                f"checking key {key}: current_val {current_val}, recommended {recommended_val}"
             )
             if current_val == recommended_val:
                 msg = f"\tparameter {key} unchanged at recommended value {recommended_val}"

@@ -1,17 +1,15 @@
-Researcher Jim created model of type DecisionTreeClassifier saved as safe1.pkl 
+Researcher Jim created model of type DecisionTreeClassifier saved as safe1.pkl
 WARNING: model has been changed in way that increases disclosure risk:
   	parameter min_samples_leaf decreased from recommended min value of 5 to 1, THIS IS POTENTIALLY PROBLEMATIC.
 
 
-Researcher Jim created model of type DecisionTreeClassifier saved as safe2.pkl 
+Researcher Jim created model of type DecisionTreeClassifier saved as safe2.pkl
 Model has not been changed to increase risk of disclosure, these are the params:
    	parameter min_samples_leaf unchanged at recommended value 5
-Researcher Jim created model of type DecisionTreeClassifier saved as safe3.pkl 
+Researcher Jim created model of type DecisionTreeClassifier saved as safe3.pkl
 Model has not been changed to increase risk of disclosure, these are the params:
    	parameter min_samples_leaf increased from recommended min value of 5 to 10, this is not problematic.
 
-Researcher Jim created model of type DecisionTreeClassifier saved as unsafe.pkl 
+Researcher Jim created model of type DecisionTreeClassifier saved as unsafe.pkl
 WARNING: model has been changed in way that increases disclosure risk:
   	parameter min_samples_leaf decreased from recommended min value of 5 to 1, THIS IS POTENTIALLY PROBLEMATIC.
-
-

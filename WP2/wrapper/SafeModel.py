@@ -160,7 +160,10 @@ class SafeDecisionTree(SafeModel):
     
     def fit(self,X, y, sample_weight=None, check_input=True, X_idx_sorted='deprecated'):
         '''Build a decision tree classifier from the training set (X, y).'''
-        self.model.fit(X, y, sample_weight=sample_weight, check_input=check_input, X_idx_sorted=X_idx_sorted)
+        if(X_idx_sorted !='deprecated'):
+            print ('user setting of deprecated parameter X_idx_sorted ignored')
+            X_idx_sorted='deprecated'
+        self.model.fit(X, y, sample_weight=sample_weight, check_input=check_input)
         return self.model     
         
     def get_depth(self):

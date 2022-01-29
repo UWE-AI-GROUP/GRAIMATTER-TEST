@@ -31,3 +31,33 @@ This document is etc etc
  - The creation of AI models automates an equivalent process to the researcher hand-designing a table,  so the same risks apply.    _It remains to be seen exactly how the _traditional_ disclosure rules relate to membership inference_.
 
 **Group Disclosure** occurs when an analysis reveals that an assertion can be made about all members of a certain sub-group. Whether or not this is an issue may depend on the kind of data that the TRE holds.
+
+
+## Metrics and technical terms ##
+
+**Mechanism** is a term describing a procedure which takes a dataset and outputs some information about it. Usually, this is random-valued and considered for fixed data. As an example, given data $D=(X_1, X_2, X_3)$, a mechanism $M$ might return $M(D)=(X_1+X_2+X_3)/3 + \lambda$, where $\lambda$ is a random variable. 
+
+**Differential Privacy** is a measure assigned to an output mechanism roughly stating how similar outputs can be when their training data differs by only a single sample. Limiting differential privacy ensures that a malicious attacker with access to all-but-one of the training samples would have difficulty inferring the values of the last training sample. For a full definition and treatment see [The Algorithmic Foundations of Differential Privacy](https://www.cis.upenn.edu/~aaroth/Papers/privacybook.pdf), particularly chapters 2 and 3. Differential privacy can be quantified as
+ - $\epsilon$-differential privacy: the probability/density of seeing some output of the model _never_ changes by more than a factor of $e^{\epsilon}$ when changing one sample 
+ - ($\epsilon,\delta$)-differential privacy: the probability/density of seeing some output of the model _usually_ does not by more than a factor of $e^{\epsilon}$ when changing one sample, except for a set of values which have probability $\delta$ of being observed.
+The lower $\epsilon$ and $\delta$, the more private the mechanism. Typically, lower $\epsilon$ and $\delta$ correspond to less _useful_ mechanisms, in that they contain less useful information about the true dataset.
+
+
+## Specific machine learning methods ##
+
+**Supervised learning**
+
+**Unsupervised learning**
+
+**Linear model**
+
+**Neural network** including
+ - recurrent
+ - convolutional
+ - basic MLP
+ - autoencoder
+ - GAN
+
+**Decision tree**
+ - random forest
+ - boosting

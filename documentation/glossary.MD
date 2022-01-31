@@ -61,3 +61,10 @@ The lower $\epsilon$ and $\delta$, the more private the mechanism. Typically, lo
 **Decision tree**
  - random forest
  - boosting
+
+
+# Attack schematic
+
+SR: just putting this here for now -- it needs a lot of work, but it's to help discussions in WP1.
+
+<img src="attacks.svg">

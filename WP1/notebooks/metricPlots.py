@@ -126,7 +126,8 @@ def plotROC_classifier(clf:Any,
 
 def plot_prob_test_train(pred_test: Iterable[float], 
                          pred_train: Iterable[float], 
-                         title: str ='Membership probalibilty', 
+                         title: str ='Membership probalibilty',
+                         plot_class: int = 0,
                          save: Optional[str] = None):
     """
     This function plots and histogram of the probability associated
@@ -138,17 +139,18 @@ def plot_prob_test_train(pred_test: Iterable[float],
     (from the MIA split, not from building the model).
     title: Set a title for the figure, e.g. specify model name/parameters
     and MIA etc. Default "Membership probalibilty".
+    plot_class: which class to plot the probabilities for. Class number is apended to the title
     save: it save figure to the given path/figname. Default don't save.
     """
     #fig, ax = plt.subplots()
-    plt.hist(np.array(pred_train).flatten(),  alpha=0.5, bins=20, label='Training Data (Members)',
+    plt.hist(np.array(pred_train)[:, plot_class],  alpha=0.5, bins=20, label='Training Data (Members)',
                 histtype='bar', range=(0, 1))
-    plt.hist(np.array(pred_test).flatten(),  alpha=0.5, bins=20, label='Test Data (Non-members)',
+    plt.hist(np.array(pred_test)[:, plot_class],  alpha=0.5, bins=20, label='Test Data (Non-members)',
                 histtype='bar', range=(0, 1))
     plt.legend(loc='center left', bbox_to_anchor=(0.5, -0.25))
     plt.xlabel('Membership Probability')
     plt.ylabel('Fraction')
-    plt.title(title)
+    plt.title(f'{title} (class {plot_class})')
 
     if save:
         plt.savefig(save, bbox_inches='tight')

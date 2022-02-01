@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from metricPlots import *
 
-def create_mia_data(clf, xtrain, xtest):
+def create_mia_data(clf, xtrain, xtest, sort_probs=False, keep_top=-1):
     """
     This function predict the probability of train and test data
     (from building the model split) belonging to their
@@ -19,6 +19,11 @@ def create_mia_data(clf, xtrain, xtest):
             clf.predict_proba(xtest)
         )
     )
+    
+    if sort_probs:
+        miX = -np.sort(-miX, axis=1)
+        if keep_top > -1:
+            miX = miX[:, :keep_top]
 
     miY = np.concatenate(
         (
@@ -42,18 +47,20 @@ def run_membership_inference_attack(clf_name, model, xtrain, xtest, MIA_classifi
     MIA_name: name of the MIA classifier.
     """
 
-    miX, miY = create_mia_data(model, xtrain, xtest)
+    miX, miY = create_mia_data(model, xtrain, xtest, sort_probs=True)
     mi_train_x, mi_test_x, mi_train_y, mi_test_y = train_test_split(miX, miY, test_size=0.2, stratify=miY)
 
     mi_rf = MIA_classifier
     mi_rf.fit(mi_train_x, mi_train_y)
 
-    plotROC_classifier(mi_rf, mi_test_x, mi_test_y, clf_name+" - MIA "+MIA_name)
+    plotROC_classifier(mi_rf, mi_test_x, mi_test_y, f'{clf_name} - MIA {MIA_name}')
 
-    mi_pred_y = mi_rf.predict_proba(mi_test_x)
-    mi_pred_train_y = mi_rf.predict_proba(mi_train_x)
+    pred_y = model.predict_proba(xtest)
+    pred_train_y = model.predict_proba(xtrain)
 
-    plot_prob_test_train(mi_pred_y, mi_pred_train_y, clf_name+" - MIA "+MIA_name)
+    _, n_classes = pred_y.shape
+    for cl in range(n_classes):
+        plot_prob_test_train(pred_y, pred_train_y, f'{clf_name} - MIA {MIA_name}', plot_class = cl)
     
     plot_detection_error_tradeoff(mi_rf, mi_test_x, mi_test_y, clf_name+" Detection Error Tradeoff (DET) curve", clf_name)
     

@@ -62,6 +62,8 @@ The lower $\epsilon$ and $\delta$, the more private the mechanism. Typically, lo
  - random forest
  - boosting
 
+## Trained ML behaviours ##
+** Overfitting** Models that remember and model the training data too well and do not generalise well for unseen data. They can be more prone to membership attacks
 
 # Attack schematic
 

@@ -46,12 +46,23 @@ Shokri presents several methods for the creation of this synthetic data for trai
 
 ## Salem scenario 1
 
-TODO
+Salem's first scenario sits somewhere inbetween _Worst Case_ and Shokri. It is assumed that the attacker doesn't have access to the training data, but has access to other data from the same distribution. This can be simulated by partitioning the data at source.
+
+### How does it work?
+
+In Salem's attack, the attacker trains a single shadow model on data from the same distribution as that used to train the target model. Predictions from this shadow model for data that was and wasn't used to train it are used to train the attack model.
+
+Salem shows that it isn't necessary for the shadow model to have the same form as the target model -- they demonstrate that attacks are still possible if the shadow model is from a different family as the target model.
 
 ## Salem scenario 2
 
-TODO
+In Salem's second scenario, the restriction that the shadow model training data comes from the same distribution as the data used to train the taret model is lifted. Salem use completely different datasets to train the shadow model. This is markedly different to Shorkri who, when faced with not having the training data attempted to synthesise something similar. Salem show that shadow models trained on different data completely can provide predictions that allow successful attack models to be trained.
 
 ## Salem scenario 3
 
 TODO
+
+# Thoughts
+
+1. Should mention that attack models (certainly in Salem) are trained by creating features by ordering the predictive probabilities and taking the top-k
+1. Salem's results are not actually terribly surprising. They all leverage the fact that models will tend to be more confident on their training data than their test data. So, it's not outrageous to suppose that attack models can be trained from shadow models trained on different data.

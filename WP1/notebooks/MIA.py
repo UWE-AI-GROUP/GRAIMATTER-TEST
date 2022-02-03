@@ -1,6 +1,10 @@
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense, Dropout
 from metricPlots import *
+
 
 def create_mia_data(clf, xtrain, xtest, sort_probs=False, keep_top=-1):
     """
@@ -12,7 +16,7 @@ def create_mia_data(clf, xtrain, xtest, sort_probs=False, keep_top=-1):
     clf: fitted classifier (original model)
     xtrain: training data (original model)
     xtest: test data (original model)
-    """
+    """    
     miX = np.concatenate(
         (
             clf.predict_proba(xtrain),
@@ -62,6 +66,6 @@ def run_membership_inference_attack(clf_name, model, xtrain, xtest, MIA_classifi
     for cl in range(n_classes):
         plot_prob_test_train(pred_y, pred_train_y, f'{clf_name} - MIA {MIA_name}', plot_class = cl)
     
-    plot_detection_error_tradeoff(mi_rf, mi_test_x, mi_test_y, clf_name+" Detection Error Tradeoff (DET) curve", clf_name)
+        plot_detection_error_tradeoff(mi_rf, mi_test_x, mi_test_y, clf_name+" Detection Error Tradeoff (DET) curve", clf_name)
     
-    print('Attacker advantage', attacker_advantage(mi_rf, mi_test_x, mi_test_y))
+        print('Attacker advantage', attacker_advantage(mi_rf, mi_test_x, mi_test_y)) 

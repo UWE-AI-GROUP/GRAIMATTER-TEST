@@ -66,6 +66,11 @@ def run_membership_inference_attack(clf_name, model, xtrain, xtest, MIA_classifi
     for cl in range(n_classes):
         plot_prob_test_train(pred_y, pred_train_y, f'{clf_name} - MIA {MIA_name}', plot_class = cl)
     
-        plot_detection_error_tradeoff(mi_rf, mi_test_x, mi_test_y, clf_name+" Detection Error Tradeoff (DET) curve", clf_name)
+    plot_detection_error_tradeoff(mi_rf, mi_test_x, mi_test_y, clf_name+" Detection Error Tradeoff (DET) curve", clf_name)
     
-        print('Attacker advantage', attacker_advantage(mi_rf, mi_test_x, mi_test_y)) 
+    print('Attacker advantage', attacker_advantage(mi_rf, mi_test_x, mi_test_y)) 
+    
+    proba = np.concatenate((pred_y,pred_train_y))
+    plot_ks_metric(miY, proba, "MIA "+clf_name+" KS statistic plot")
+    
+    return((pred_y,pred_train_y), miY)

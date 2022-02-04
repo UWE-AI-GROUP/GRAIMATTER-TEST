@@ -2,6 +2,7 @@ import itertools
 import matplotlib.pyplot as plt
 from sklearn.metrics import auc, RocCurveDisplay, DetCurveDisplay, det_curve, confusion_matrix
 import numpy as np
+import scikitplot as skplt
 from typing import Any, Iterable, Optional
 
 
@@ -176,7 +177,9 @@ def plot_detection_error_tradeoff(clf:Any,
     save: it save figure to the given path/figname. Default don't save.
     """
     
-    DetCurveDisplay.from_estimator(clf, X_test, y_test, response_method='predict_proba', name=model_name)
+    print("WARNING: when the false negative rate or false positive rate is 0, no line will appear in the plot.")
+    
+    DetCurveDisplay.from_estimator(clf, X_test, y_test, response_method='auto', name=model_name)#'predict_proba'
 
     plt.title(title)
     plt.grid(linestyle="--")
@@ -203,3 +206,40 @@ def attacker_advantage(clf,
     tpr =  tp / (tp + fn) #true positive rate or recall
     fpr =  fp / (fp + tn) #false positive rate
     return abs(tpr - fpr)
+
+
+def plot_ks_metric(y_test:Iterable[float],
+                   y_probas:Iterable[float],
+                   title:str = "KS statistic plot", 
+                   save:Optional[str] = None):
+    """
+    This functions plots the KS statistic.
+    y_test: labels for the data
+    y_probas: predicted probabilities
+    """
+    skplt.metrics.plot_ks_statistic(y_test, y_probas)
+    plt.title(title)
+    if save:
+        plt.savefig(save, bbox_inches='tight')
+    plt.show()
+    
+    
+def plot_calibration_curve(y_test:Iterable,
+                           clf_names:Iterable[str],
+                           #clf_list:Iterable[Any],
+                           probas_list:Iterable[float],
+                           save:Optional[str] = None):
+    """
+    Plots the calibration curves of several fitted models.
+    
+    y_test: list of labels
+    clf_names: list of classifiers
+    proba_list: list of probabilities predicted by the classfiers (same order as clf_names)
+    """
+
+    skplt.metrics.plot_calibration_curve(y_test,
+                                         probas_list,
+                                         clf_names)
+    if save:
+        plt.savefig(save, bbox_inches='tight')
+    plt.show()

@@ -20,59 +20,59 @@ All membership inference attacks use RandomForest classifier.
 
 - Decision Tree MIA
 	- Worst Case
-<img src="worst_case/DecisionTree - MIA RandomForest.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_0.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="worst_case/DecisionTree - MIA RandomForest.jpeg"><img src="worst_case/DecisionTree - MIA RandomForest_class_0.jpeg"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem1
-<img src="Salem1/ATTACK DecisionTree - MIA RandomForest.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_0.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="Salem1/ATTACK DecisionTree - MIA RandomForest.jpeg"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_0.jpeg"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem2
-<img src="Salem2/Salem-adv2  DecisionTree - MIA RandomForest.pdf"><img src="Salem2/Salem-adv2  DecisionTree - MIA RandomForest_class_0.pdf"><img src="Salem2/Salem-adv2 DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="Salem2/Salem-adv2  DecisionTree - MIA RandomForest.jpeg"><img src="Salem2/Salem-adv2  DecisionTree - MIA RandomForest_class_0.jpeg"><img src="Salem2/Salem-adv2 DecisionTree - MIA RandomForest_class_1.jpeg">
 
 - GaussianProcess MIA
 	- Worst Case
-<img src="worst_case/GaussianProcess - MIA RandomForest.pdf"><img src="worst_case/GaussianProcess - MIA RandomForest_class_0.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="worst_case/GaussianProcess - MIA RandomForest.jpeg"><img src="worst_case/GaussianProcess - MIA RandomForest_class_0.jpeg"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem1
-<img src="Salem1/ATTACK GaussianProcess - MIA RandomForest.pdf"><img src="Salem1/ATTACK GaussianProcess - MIA RandomForest_class_0.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="Salem1/ATTACK GaussianProcess - MIA RandomForest.jpeg"><img src="Salem1/ATTACK GaussianProcess - MIA RandomForest_class_0.jpeg"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem2
-<img src="Salem2/Salem-adv2 GaussianProcess - MIA RandomForest.pdf"><img src="Salem2/Salem-adv2 GaussianProcess - MIA RandomForest_class_0.pdf"><img src="Salem2/Salem-adv2 GaussianProcess - MIA RandomForest_class_1.pdf">
+<img src="Salem2/Salem-adv2 GaussianProcess - MIA RandomForest.jpeg"><img src="Salem2/Salem-adv2 GaussianProcess - MIA RandomForest_class_0.jpeg"><img src="Salem2/Salem-adv2 GaussianProcess - MIA RandomForest_class_1.jpeg">
 
 - Decision Tree MIA
 	- Worst Case
-<img src="worst_case/DecisionTree - MIA RandomForest.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_0.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="worst_case/DecisionTree - MIA RandomForest.jpeg"><img src="worst_case/DecisionTree - MIA RandomForest_class_0.jpeg"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem1
-<img src="Salem1/ATTACK DecisionTree - MIA RandomForest.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_0.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="Salem1/ATTACK DecisionTree - MIA RandomForest.jpeg"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_0.jpeg"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem2
-<img src="Salem2/Salem-adv2  DecisionTree - MIA RandomForest.pdf"><img src="Salem2/Salem-adv2  DecisionTree - MIA RandomForest_class_0.pdf"><img src="Salem2/Salem-adv2 DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="Salem2/Salem-adv2  DecisionTree - MIA RandomForest.jpeg"><img src="Salem2/Salem-adv2  DecisionTree - MIA RandomForest_class_0.jpeg"><img src="Salem2/Salem-adv2 DecisionTree - MIA RandomForest_class_1.jpeg">
 
 - KN MIA
 	- Worst Case
-<img src="worst_case/KN - MIA RandomForest.pdf"><img src="worst_case/KN - MIA RandomForest_class_0.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="worst_case/KN - MIA RandomForest.jpeg"><img src="worst_case/KN - MIA RandomForest_class_0.jpeg"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem1
-<img src="Salem1/ATTACK KN - MIA RandomForest.pdf"><img src="Salem1/ATTACK KN - MIA RandomForest_class_0.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="Salem1/ATTACK KN - MIA RandomForest.jpeg"><img src="Salem1/ATTACK KN - MIA RandomForest_class_0.jpeg"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem2
-<img src="Salem2/Salem-adv2 KN - MIA RandomForest.pdf"><img src="Salem2/Salem-adv2 KN - MIA RandomForest_class_0.pdf"><img src="Salem2/Salem-adv2 KN - MIA RandomForest_class_1.pdf">
+<img src="Salem2/Salem-adv2 KN - MIA RandomForest.jpeg"><img src="Salem2/Salem-adv2 KN - MIA RandomForest_class_0.jpeg"><img src="Salem2/Salem-adv2 KN - MIA RandomForest_class_1.jpeg">
 
 - MLP MIA
 	- Worst Case
-<img src="worst_case/MLP - MIA RandomForest.pdf"><img src="worst_case/MLP - MIA RandomForest_class_0.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="worst_case/MLP - MIA RandomForest.jpeg"><img src="worst_case/MLP - MIA RandomForest_class_0.jpeg"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem1
-<img src="Salem1/ATTACK MLP - MIA RandomForest.pdf"><img src="Salem1/ATTACK MLP - MIA RandomForest_class_0.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="Salem1/ATTACK MLP - MIA RandomForest.jpeg"><img src="Salem1/ATTACK MLP - MIA RandomForest_class_0.jpeg"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem2
-<img src="Salem2/Salem-adv2 MLP - MIA RandomForest.pdf"><img src="Salem2/Salem-adv2 MLP - MIA RandomForest_class_0.pdf"><img src="Salem2/Salem-adv2 MLP - MIA RandomForest_class_1.pdf">
+<img src="Salem2/Salem-adv2 MLP - MIA RandomForest.jpeg"><img src="Salem2/Salem-adv2 MLP - MIA RandomForest_class_0.jpeg"><img src="Salem2/Salem-adv2 MLP - MIA RandomForest_class_1.jpeg">
 
 - RandonForest MIA
 	- Worst Case
-<img src="worst_case/RandonForest - MIA RandomForest.pdf"><img src="worst_case/RandonForest - MIA RandomForest_class_0.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="worst_case/RandonForest - MIA RandomForest.jpeg"><img src="worst_case/RandonForest - MIA RandomForest_class_0.jpeg"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem1
-<img src="Salem1/ATTACK RandonForest - MIA RandomForest.pdf"><img src="Salem1/ATTACK RandonForest - MIA RandomForest_class_0.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="Salem1/ATTACK RandonForest - MIA RandomForest.jpeg"><img src="Salem1/ATTACK RandonForest - MIA RandomForest_class_0.jpeg"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem2
-<img src="Salem2/Salem-adv2 RandonForest - MIA RandomForest.pdf"><img src="Salem2/Salem-adv2 RandonForest - MIA RandomForest_class_0.pdf"><img src="Salem2/Salem-adv2 RandonForest - MIA RandomForest_class_1.pdf">
+<img src="Salem2/Salem-adv2 RandonForest - MIA RandomForest.jpeg"><img src="Salem2/Salem-adv2 RandonForest - MIA RandomForest_class_0.jpeg"><img src="Salem2/Salem-adv2 RandonForest - MIA RandomForest_class_1.jpeg">
 
 - SVM MIA
 	- Worst Case
-<img src="worst_case/SVM - MIA RandomForest.pdf"><img src="worst_case/SVM - MIA RandomForest_class_0.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="worst_case/SVM - MIA RandomForest.jpeg"><img src="worst_case/SVM - MIA RandomForest_class_0.jpeg"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem1
-<img src="Salem1/ATTACK SVM - MIA RandomForest.pdf"><img src="Salem1/ATTACK SVM - MIA RandomForest_class_0.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.pdf">
+<img src="Salem1/ATTACK SVM - MIA RandomForest.jpeg"><img src="Salem1/ATTACK SVM - MIA RandomForest_class_0.jpeg"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.jpeg">
 	- Salem2
-<img src="Salem2/Salem-adv2 SVM - MIA RandomForest.pdf"><img src="Salem2/Salem-adv2 SVM - MIA RandomForest_class_0.pdf"><img src="Salem2/Salem-adv2 SVM - MIA RandomForest_class_1.pdf">
+<img src="Salem2/Salem-adv2 SVM - MIA RandomForest.jpeg"><img src="Salem2/Salem-adv2 SVM - MIA RandomForest_class_0.jpeg"><img src="Salem2/Salem-adv2 SVM - MIA RandomForest_class_1.jpeg">
 
 
 - Calibration curves
@@ -82,7 +82,6 @@ All membership inference attacks use RandomForest classifier.
 	<img src="Salem1/calibration_curves.jpeg">
 	- Salem 2
 	<img src="Salem2/calibration_curves.jpeg">
-
 Table summarising different metrics. It is sorted by classifiers and then the different scenarios.
 
 | model | scenario | type | TPR | FPR | FAR | TNR | PPV | NPV | FNR | ACC | Advantage | PLR | NLR | OR | AUC |

@@ -102,14 +102,34 @@ The true positive rate, also known as the _sensitivity_ is computed as TP / (TP 
 
 Using the definitions above, the TNR is defined as TN / (TN + FP) which can be interpreted as the proportion of examples that were not in the training set that were correctly classified. Also known as the _specificity_.
 
-## False Positive Rate
+## False Positive Rate 
 
 FPR is defined as FP / (FP + TN) (also known as the complementary specificity) and can be interpreted as the proportion of examples that were not in the training set that were incorrectly classified.
 
-## False Alarm Rate
+## False Alarm Rate 
 
 FAR is defined as FP / (FP + TP) which can be interpreted as the proportion of things classified as being in the training set that were wrong (i.e. not in).
 
 ## Advantage
 
-The classifier advantage is defined as ... TODO
+The advantage of an attribute inference adversary is its ability to infer a target feature given an incomplete point from the training data, relative to its ability to do so for points from the general population. [Yeom](https://arxiv.org/pdf/1709.01604.pdf)
+
+The Advantage is defined as ABS(TPR - FPR).
+
+## Positive Likelihood Ratio (PLR)
+
+PLR is the probability that a positive or member of a class is correctly identified compared to a negative or non-member is incorrectly identified.
+
+PLR = TPR / FPR
+
+## Negative Likelihood Ratio (NLR)
+
+NLR is the probability that a positive or member of a class is incorrectly identified compared to a negative or non-member is correctly identified.
+
+NLR = FNR / TNR
+
+## Odds Ratio (OR)
+
+OR find the likelihood ratio of an outcome of an event when there are two possible outcomes, as is defined as 
+
+OR =  PLR / NLR

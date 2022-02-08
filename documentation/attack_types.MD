@@ -71,3 +71,45 @@ In Salem's third scenario, the attacker does not bother with an attack model at 
 ### How it works
 
 The key challenge in this approach is determining the threshold. The authors propose to do this by computing a null distribution: they generate (fairly random) examples that are passed through the models and the highest probability in each case is observed. They make the claim that these values form a reasonable null distribution and therefore setting the threshold at the value corresponding to the top $t$ th percentile is sensible. In their experiments a value of $t=10$ works well.
+
+
+# Attack metrics
+
+When performing experiments to assess the vulnerability of a (model, dataset) pair to attack, it is possible to compute multiple different output metrics that describe the success (or otherwise) of the attack.
+
+Attack performance metrics measure the ability of the _attack model_ to determine whether or not a particular example was part of the training set or not. The following metrics have all been used in this area:
+
+## Area Under the ROC curve (AUC)
+
+Standard classification metric that computes the area under the curve defined by the complementary specificity (x-axis) and the sensitivity (y-axis). An intuitive description in this domain is to imagine an attacker with two random examples. Unknown to them, one of the examples was in the training set, the other wasn't. Assume the attack model provides a score (e.g. a probability) for each of these two examples having been in the training set. The AUC tells us the probability that the score given for the one that _was_ in the training set will be higher than the score for the one that wasn't. An AUC of 1 therefore means that all positive test examples will have a higher score than all negative ones. An AUC of 0.5 suggests that he classifier is guessing randomly.
+
+## Accuracy
+
+Simply the proportion of test examples that the attack model classifies correctly.
+
+## True Positive Rate
+
+Consider all of the examples presented to the attack model for classification. Each example can be assigned to one of four categories:
+
+1. True Positive (TP): example was in the training set and the classifier predicts it was in the training set
+1. True Negative (TN): example was not in the training set and the classifier predicts that it was not in the training set
+1. False Positive (FP): example was not in the training set but the classifier predicts it was
+1. False Negative (FN): example was in the training set but the classifier predicts it wasn't
+
+The true positive rate, also known as the _sensitivity_ is computed as TP / (TP + FN)  which can be interpreted as the proportion of examples that were in the training set that were correctly classified.
+
+## True Negative Rate
+
+Using the definitions above, the TNR is defined as TN / (TN + FP) which can be interpreted as the proportion of examples that were not in the training set that were correctly classified. Also known as the _specificity_.
+
+## False Positive Rate
+
+FPR is defined as FP / (FP + TN) (also known as the complementary specificity) and can be interpreted as the proportion of examples that were not in the training set that were incorrectly classified.
+
+## False Alarm Rate
+
+FAR is defined as FP / (FP + TP) which can be interpreted as the proportion of things classified as being in the training set that were wrong (i.e. not in).
+
+## Advantage
+
+The classifier advantage is defined as ... TODO

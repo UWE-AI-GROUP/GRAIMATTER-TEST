@@ -68,7 +68,8 @@ def run_membership_inference_attack(clf_name, model, xtrain, xtest, MIA_classifi
     
     plot_detection_error_tradeoff(mi_rf, mi_test_x, mi_test_y, clf_name+" Detection Error Tradeoff (DET) curve", clf_name)
     
-    print('Attacker advantage', attacker_advantage(mi_rf, mi_test_x, mi_test_y)) 
+    print('Metrics')
+    [print(k,v) for k,v in get_metrics(mi_rf, mi_test_x, mi_test_y).items()]
     
     proba = np.concatenate((pred_y,pred_train_y))
     plot_ks_metric(miY, proba, "MIA "+clf_name+" KS statistic plot")

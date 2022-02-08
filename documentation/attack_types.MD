@@ -18,6 +18,10 @@ This document summarises the different attack types that we are considering. The
 
 Black box in the sense that none of these attacks need access to the internals of the model.
 
+These attacks are represented schematically in this (rough) diagram:
+
+<img src="attacks.svg">
+
 ## The _Worst Case_ (maybe) attack
 
 This scenario is presented as a potential worst case that may help elucidate the attackability of a model. It is not intended as a realistic attack scenario. However, it is easy to implement and therefore might be beneficial with TREs to assess models.

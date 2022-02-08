@@ -22,6 +22,8 @@ Black box in the sense that none of these attacks need access to the internals o
 
 This scenario is presented as a potential worst case that may help elucidate the attackability of a model. It is not intended as a realistic attack scenario. However, it is easy to implement and therefore might be beneficial with TREs to assess models.
 
+This is the scenario used in [Rezaei](https://openaccess.thecvf.com/content/CVPR2021/papers/Rezaei_On_the_Difficulty_of_Membership_Inference_Attacks_CVPR_2021_paper.pdf). They claim that it is the scenario that makes things as easy as possible for the attacker.
+
 ### How it works
 
 The attacker has _white box_ access to the target model. The attacker also has access to the data used to train the model and a second dataset from the same distribution (e.g. the original data is split into training and test portions and the attacker has access to both).
@@ -46,7 +48,7 @@ Shokri presents several methods for the creation of this synthetic data for trai
 
 ## Salem scenario 1
 
-Salem's first scenario sits somewhere inbetween _Worst Case_ and Shokri. It is assumed that the attacker doesn't have access to the training data, but has access to other data from the same distribution. This can be simulated by partitioning the data at source.
+Salem's first scenario sits somewhere inbetween _Worst Case_ and Shokri. It is assumed that the attacker doesn't have access to the training data, but has access to other data from the same distribution. This can be simulated by partitioning the data at source. The attacker is assumed to _not_ have access to knowledge about the target model's structure and creates only one shadow model.
 
 ### How does it work?
 
@@ -56,13 +58,12 @@ Salem shows that it isn't necessary for the shadow model to have the same form a
 
 ## Salem scenario 2
 
-In Salem's second scenario, the restriction that the shadow model training data comes from the same distribution as the data used to train the taret model is lifted. Salem use completely different datasets to train the shadow model. This is markedly different to Shorkri who, when faced with not having the training data attempted to synthesise something similar. Salem show that shadow models trained on different data completely can provide predictions that allow successful attack models to be trained.
+In Salem's second scenario, the restriction that the shadow model training data comes from the same distribution as the data used to train the taret model is also lifted. i.e. the attacker has neither training data from the real distrubition nor knowledge of the target model structure. Salem use completely different datasets to train the shadow model. This is markedly different to Shorkri who, when faced with not having data from the same distribution as that used to train the target model attempted to synthesise something similar. Salem show that shadow models trained on different data completely can provide predictions that allow successful attack models to be trained.
 
 ## Salem scenario 3
 
-TODO
+In Salem's third scenario, the attacker does not bother with an attack model at all. The observations for which the attacker wants to perfom the MI are passed throught the target point and the highest class probability for each one is compared against a threshold to predict whether or not it belonged to the training set or not (above threshold = in training set).
 
-# Thoughts
+### How it works
 
-1. Should mention that attack models (certainly in Salem) are trained by creating features by ordering the predictive probabilities and taking the top-k
-1. Salem's results are not actually terribly surprising. They all leverage the fact that models will tend to be more confident on their training data than their test data. So, it's not outrageous to suppose that attack models can be trained from shadow models trained on different data.
+The key challenge in this approach is determining the threshold. The authors propose to do this by computing a null distribution: they generate (fairly random) examples that are passed through the models and the highest probability in each case is observed. They make the claim that these values form a reasonable null distribution and therefore setting the threshold at the value corresponding to the top $t$ th percentile is sensible. In their experiments a value of $t=10$ works well.

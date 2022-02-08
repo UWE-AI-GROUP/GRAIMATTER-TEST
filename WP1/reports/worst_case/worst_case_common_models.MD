@@ -18,6 +18,22 @@ The data is split into 3: target_train (0.5), shadow_train (0.25) and test (0.25
 
 All membership inference attacks use RandomForest classifier.
 
+- Decision Tree MIA
+	- Worst Case
+<img src="worst_case/DecisionTree - MIA RandomForest.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_0.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.pdf">
+	- Salem1
+<img src="Salem1/ATTACK DecisionTree - MIA RandomForest.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_0.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.pdf">
+	- Salem2
+<img src="Salem2/Salem-adv2  DecisionTree - MIA RandomForest.pdf"><img src="Salem2/Salem-adv2  DecisionTree - MIA RandomForest_class_0.pdf"><img src="Salem2/Salem-adv2 DecisionTree - MIA RandomForest_class_1.pdf">
+
+- GaussianProcess MIA
+	- Worst Case
+<img src="worst_case/GaussianProcess - MIA RandomForest.pdf"><img src="worst_case/GaussianProcess - MIA RandomForest_class_0.pdf"><img src="worst_case/DecisionTree - MIA RandomForest_class_1.pdf">
+	- Salem1
+<img src="Salem1/ATTACK GaussianProcess - MIA RandomForest.pdf"><img src="Salem1/ATTACK GaussianProcess - MIA RandomForest_class_0.pdf"><img src="Salem1/ATTACK DecisionTree - MIA RandomForest_class_1.pdf">
+	- Salem2
+<img src="Salem2/Salem-adv2 GaussianProcess - MIA RandomForest.pdf"><img src="Salem2/Salem-adv2 GaussianProcess - MIA RandomForest_class_0.pdf"><img src="Salem2/Salem-adv2 GaussianProcess - MIA RandomForest_class_1.pdf">
+
 Table summarising different metrics. It is sorted by classifiers and then the different scenarios.
 
 | model | scenario | type | TPR | FPR | FAR | TNR | PPV | NPV | FNR | ACC | Advantage | PLR | NLR | OR | AUC |

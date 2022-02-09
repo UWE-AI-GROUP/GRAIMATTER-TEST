@@ -174,8 +174,6 @@ class SafeDecisionTree(SafeModel):
 
     def __init__(self, **kwargs: Any) -> None:
         """Creates model and applies constraints to params"""
-        # TODO allow users to specify other parameters at invocation time
-        # TODO consider moving specification of the researcher name into a
         # separate "safe_init" function
         super().__init__()
         self.model_type: str = "DecisionTreeClassifier"
@@ -248,9 +246,7 @@ class SafeDecisionTree(SafeModel):
         # TODO  check against recommendations and flag warnings here
         self.model.set_params(**params)
 
-        
-        
-        
+
 class SafeRandomForest(SafeModel):
     """Privacy protected Random Forest classifier."""
 
@@ -258,8 +254,6 @@ class SafeRandomForest(SafeModel):
 
     def __init__(self, **kwargs: Any) -> None:
         """Creates model and applies constraints to params"""
-        # TODO allow users to specify other parameters at invocation time
-        # TODO consider moving specification of the researcher name into a
         # separate "safe_init" function
         super().__init__()
         self.model_type: str = "RandomForestClassifier"
@@ -270,7 +264,7 @@ class SafeRandomForest(SafeModel):
         if attr in self.__dict__:
             return getattr(self, attr)
         return getattr(self.model, attr)
-    
+
     def apply(self, X: np.ndarray):  # noqa N803
         """Return the index of the leaf that each sample is predicted as."""
         return self.model.apply(X)
@@ -284,13 +278,11 @@ class SafeRandomForest(SafeModel):
         X: np.ndarray,  # noqa N803
         y: np.ndarray,
         sample_weight=None,
-        
-        ):
+    ):
         """Build a Random Forest classifier from the training set (X, y)."""
         self.model.fit(X, y, sample_weight=sample_weight)
         return self.model
-    
-    
+
     def predict(self, X: np.ndarray):  # noqa N803
         """Predict class or regression value for X."""
         return self.model.predict(X)
@@ -311,7 +303,3 @@ class SafeRandomForest(SafeModel):
         """Set the parameters of this estimator."""
         # TODO  check against recommendations and flag warnings here
         self.model.set_params(**params)
-    
-    
-     
-        

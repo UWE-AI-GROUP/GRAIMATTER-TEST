@@ -63,7 +63,12 @@ The lower $\epsilon$ and $\delta$, the more private the mechanism. Typically, lo
  - boosting
 
 ## Trained ML behaviours ##
-** Overfitting** Models that remember and model the training data too well and do not generalise well for unseen data. They can be more prone to membership attacks
+**Overfitting** Models that remember and model the training data too well and do not generalise well for unseen data. They can be more prone to membership attacks. 
+Typically, small training datasets can lead to overfitted models, especially if the data points have many features. A bad choice of hyperparameters can also lead to overfitting (for example, excessively big NN for simple classification tasks can lead to overfitting).
+
+Methods to reduce overfitting include increasing the training dataset size, possibly using *data augmentation techniques* and optimizing the choice of hyperparameters, possibly with cross validation. In neural networks, it is often beneficial to include *dropout* layers, which randomly deactivate neurons during training (effectively making the training procedure more noisy) and to include regularization methods (which add additional terms to the loss function that penalize overfitting). Differentially private optimizers (such as DP-SGD) add noise during the optimization steps and often lead to better generalization.
+
+*Data augmentation techniques* generate training samples from existing samples. In the case of images, a typical technique is to resize and rotate images in the original training set to generate new samples.
 
 # Attack schematic
 

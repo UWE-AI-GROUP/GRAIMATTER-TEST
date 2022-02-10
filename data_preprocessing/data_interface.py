@@ -69,22 +69,21 @@ https://datadryad.org/stash/dataset/doi:10.5061/dryad.0p2ngf1zd
 and place it in the correct folder.
         """
         raise DataNotAvailable(help_message)
-    else:
-        input_data = pd.read_csv(file_path)
-        clean_data = input_data.dropna(axis=0, how='any').drop(columns=["group", "ID"])
-        target = 'outcome'
-        y = clean_data[target]
-        X = clean_data.drop([target], axis=1)
 
-        return (X, y)
+    input_data = pd.read_csv(file_path)
+    clean_data = input_data.dropna(axis=0, how='any').drop(columns=["group", "ID"])
+    target = 'outcome'
+    y = clean_data[target]
+    X = clean_data.drop([target], axis=1)
+
+    return (X, y)
 
 
 
 
 def mimic_iaccd(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
-    Loads the mimic_iaccd data. We will end up with one method like this for each dataset
-    (or perhaps >1 if we want to process datasets in multiple different ways)
+    Loads the mimic_iaccd data and performs Alba's pre-processing
     '''
 
     # Check the data has been downloaded. If not throw an exception with instructions on how to
@@ -95,6 +94,7 @@ def mimic_iaccd(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
         "1.0",
         "full_cohort_data.csv"
     )
+
     if not os.path.exists(file_path):
         help_message = f"""
 The MIMIC2-iaccd data is not available in {data_folder}.  
@@ -102,41 +102,26 @@ The following file should exist: {file_path}.
 Please download from https://physionet.org/content/mimic2-iaccd/1.0/full_cohort_data.csv
         """
         raise DataNotAvailable(help_message)
-    else:
-        # File exists, load and preprocess#
-        logger.info("Loading mimic2-iaccd")
-        X = pd.read_csv(file_path)
 
-        logger.info("Preprocessing")
-        # remove columns non-numerical and repetitive or uninformative data for the analysis
-        col = ['service_unit', 'day_icu_intime', 'hosp_exp_flg','icu_exp_flg', 'day_28_flg'] 
-        # service_num is the numerical version of service_unit
-        # day_icu_intime_num is the numerical version of day_icu_intime
-        # the other columns are to do with death and are somewhat repetitive with censor_flg
-        X.drop(col, axis = 1, inplace=True)
-        # drop columns with only 1 value
-        X.drop('sepsis_flg', axis=1, inplace=True)
-        # drop NA by row
-        X.dropna(axis=0, inplace=True)
+    # File exists, load and preprocess#
+    logger.info("Loading mimic2-iaccd")
+    X = pd.read_csv(file_path)
 
-        # extract target
-        target = 'censor_flg'
-        y = X[target]
-        X.drop([target], axis=1, inplace=True)
-        
-        return X, y
+    logger.info("Preprocessing")
+    # remove columns non-numerical and repetitive or uninformative data for the analysis
+    col = ['service_unit', 'day_icu_intime', 'hosp_exp_flg','icu_exp_flg', 'day_28_flg'] 
+    # service_num is the numerical version of service_unit
+    # day_icu_intime_num is the numerical version of day_icu_intime
+    # the other columns are to do with death and are somewhat repetitive with censor_flg
+    X.drop(col, axis = 1, inplace=True)
+    # drop columns with only 1 value
+    X.drop('sepsis_flg', axis=1, inplace=True)
+    # drop NA by row
+    X.dropna(axis=0, inplace=True)
 
-
-
-if __name__ == '__main__':
-    '''
-    Example, if called as a script
-    '''
-
-    X, y = get_data_sklearn("mimic2-iaccd")
-    print(X.head())
-    print(y.head())
-
-    X, y = get_data_sklearn("in-hospital-mortality")
-    print(X.head())
-    print(y.head())
+    # extract target
+    target = 'censor_flg'
+    y = X[target]
+    X.drop([target], axis=1, inplace=True)
+    
+    return (X, y)

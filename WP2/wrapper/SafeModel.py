@@ -73,48 +73,51 @@ class SafeModel:
         params: dict = self.get_constraints()
         for key, (operator, recommended_val) in params.items():
             current_val = str(eval(f"self.model.{key}"))
-            print(
-                f"checking key {key}: current_val {current_val}, recommended {recommended_val}"
-            )
+            # print(
+            #    f"checking key {key}: current_val {current_val}, recommended {recommended_val}"
+            # )
             if current_val == recommended_val:
-                msg = f"\tparameter {key} unchanged at recommended value {recommended_val}"
+                msg = (
+                    msg
+                    + f"- parameter {key} unchanged at recommended value {recommended_val}"
+                )
             elif operator == "min":
                 if float(current_val) > float(recommended_val):
-                    msg = (
-                        f"\tparameter {key} increased"
+                    msg = msg + (
+                        f"- parameter {key} increased"
                         f" from recommended min value of {recommended_val} to {current_val}."
                         " This is not problematic.\n"
                     )
                 else:
                     possibly_disclosive = True
-                    msg = (
-                        f"\tparameter {key} decreased"
+                    msg = msg + (
+                        f"- parameter {key} decreased"
                         f" from recommended min value of {recommended_val} to {current_val}."
                         " THIS IS POTENTIALLY PROBLEMATIC.\n"
                     )
             elif operator == "max":
                 if float(current_val) < float(recommended_val):
-                    msg = (
-                        f"\tparameter {key} decreased"
+                    msg = msg + (
+                        f"- parameter {key} decreased"
                         f" from recommended max value of {recommended_val} to {current_val}."
                         " This is not problematic.\n"
                     )
                 else:
                     possibly_disclosive = True
-                    msg = (
-                        f"\tparameter {key} increased"
+                    msg = msg + (
+                        f"- parameter {key} increased"
                         f" from recommended max value of {recommended_val} to {current_val}."
                         " THIS IS POTENTIALLY PROBLEMATIC.\n"
                     )
             elif operator == "equals":
-                msg = (
-                    "\tparameter {key} changed"
+                msg = msg + (
+                    f"- parameter {key} changed"
                     f" from recommended fixed value of {recommended_val} to {current_val}."
                     " THIS IS POTENTIALLY PROBLEMATIC.\n"
                 )
                 possibly_disclosive = True
             else:
-                msg = f"\tunknown operator in parameter specification {operator}"
+                msg = f"- unknown operator in parameter specification {operator}"
             msg = msg + "\n"
         return msg, possibly_disclosive
 
@@ -139,12 +142,17 @@ class SafeModel:
                 if possibly_disclosive:
                     file.write(
                         "WARNING: model has been changed"
-                        f" in way that increases disclosure risk:\n {msg}\n"
+                        f" in way that increases disclosure risk:\n{msg}\n"
+                    )
+                    file.write(
+                        f"RECOMMENDATION: Do not allow release of file {filename}\n\n"
                     )
                 else:
                     file.write(
-                        "Model has not been changed to increase risk of disclosure."
-                        f" These are the params:\n {msg}"
+                        f"Model has not been changed to increase risk of disclosure:\n{msg}\n"
+                    )
+                    file.write(
+                        f"RECOMMENDATION: Run file {filename} through next step of checking procedure\n\n"
                     )
 
     def preliminary_check(self) -> None:
@@ -157,8 +165,8 @@ class SafeModel:
             )
         else:
             print(
-                "Model has not been changed to increase risk of disclosure."
-                " These are the params:\n"
+                "Model has not been changed to increase risk of disclosure.\n"
+                " These are the params:"
             )
         print(msg + "\n")
 
@@ -174,8 +182,6 @@ class SafeDecisionTree(SafeModel):
 
     def __init__(self, **kwargs: Any) -> None:
         """Creates model and applies constraints to params"""
-        # TODO allow users to specify other parameters at invocation time
-        # TODO consider moving specification of the researcher name into a
         # separate "safe_init" function
         super().__init__()
         self.model_type: str = "DecisionTreeClassifier"
@@ -238,6 +244,64 @@ class SafeDecisionTree(SafeModel):
     def predict_proba(self, X: np.ndarray, check_input: bool = True):  # noqa N803
         """Predict class probabilities of the input samples X."""
         return self.model.predict_proba(X, check_input=check_input)
+
+    def score(self, X: np.ndarray, y: np.ndarray, sample_weight=None):  # noqa N803
+        """Return the mean accuracy on the given test data and labels."""
+        return self.model.score(X, y, sample_weight=sample_weight)
+
+    def set_params(self, **params: Any) -> None:
+        """Set the parameters of this estimator."""
+        # TODO  check against recommendations and flag warnings here
+        self.model.set_params(**params)
+
+
+class SafeRandomForest(SafeModel):
+    """Privacy protected Random Forest classifier."""
+
+    from sklearn.ensemble import RandomForestClassifier as RandomForest
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Creates model and applies constraints to params"""
+        # separate "safe_init" function
+        super().__init__()
+        self.model_type: str = "RandomForestClassifier"
+        self.model = self.RandomForest()
+        super().apply_constraints(**kwargs)
+
+    def __getattr__(self, attr):
+        if attr in self.__dict__:
+            return getattr(self, attr)
+        return getattr(self.model, attr)
+
+    def apply(self, X: np.ndarray):  # noqa N803
+        """Return the index of the leaf that each sample is predicted as."""
+        return self.model.apply(X)
+
+    def decision_path(self, X: np.ndarray):  # noqa N803
+        """Return the decision path in the tree."""
+        return self.model.decision_path(X)
+
+    def fit(
+        self,
+        X: np.ndarray,  # noqa N803
+        y: np.ndarray,
+        sample_weight=None,
+    ):
+        """Build a Random Forest classifier from the training set (X, y)."""
+        self.model.fit(X, y, sample_weight=sample_weight)
+        return self.model
+
+    def predict(self, X: np.ndarray):  # noqa N803
+        """Predict class or regression value for X."""
+        return self.model.predict(X)
+
+    def predict_log_proba(self, X: np.ndarray):  # noqa N803
+        """Predict class log-probabilities of the input samples X."""
+        return self.model.predict_log_proba(X)
+
+    def predict_proba(self, X: np.ndarray):  # noqa N803
+        """Predict class probabilities of the input samples X."""
+        return self.model.predict_proba(X)
 
     def score(self, X: np.ndarray, y: np.ndarray, sample_weight=None):  # noqa N803
         """Return the mean accuracy on the given test data and labels."""

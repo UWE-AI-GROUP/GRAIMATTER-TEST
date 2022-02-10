@@ -45,8 +45,40 @@ def get_data_sklearn(
 
     if dataset_name == 'mimic2-iaccd':
         return mimic_iaccd(data_folder)
+    elif dataset_name == 'in-hospital-mortality':
+        return in_hospital_mortality(data_folder)
     else:
         raise UnknownDataset()
+
+
+def in_hospital_mortality(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    '''
+    In-hospital mortality data from this study: https://datadryad.org/stash/dataset/doi:10.5061/dryad.0p2ngf1zd
+    '''
+    # Check the data has been downloaded. If not throw an exception with instructions on how to
+    # download, and where to store
+    file_path = os.path.join(
+        data_folder,
+        "data01.csv",
+    )
+
+    if not os.path.exists(file_path):
+        help_message = f"""
+Data file {file_path} does not exist. Please download the file from:
+https://datadryad.org/stash/dataset/doi:10.5061/dryad.0p2ngf1zd
+and place it in the correct folder.
+        """
+        raise DataNotAvailable(help_message)
+    else:
+        input_data = pd.read_csv(file_path)
+        clean_data = input_data.dropna(axis=0, how='any').drop(columns=["group", "ID"])
+        target = 'outcome'
+        y = clean_data[target]
+        X = clean_data.drop([target], axis=1)
+
+        return (X, y)
+
+
 
 
 def mimic_iaccd(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -102,5 +134,9 @@ if __name__ == '__main__':
     '''
 
     X, y = get_data_sklearn("mimic2-iaccd")
+    print(X.head())
+    print(y.head())
+
+    X, y = get_data_sklearn("in-hospital-mortality")
     print(X.head())
     print(y.head())

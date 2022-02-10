@@ -7,6 +7,8 @@ import os
 import logging
 from typing import Tuple
 import pandas as pd
+import numpy as np
+import pylab as plt
 
 logging.basicConfig(
     level = "DEBUG"
@@ -47,8 +49,56 @@ def get_data_sklearn(
         return mimic_iaccd(data_folder)
     elif dataset_name == 'in-hospital-mortality':
         return in_hospital_mortality(data_folder)
+    elif dataset_name == 'medical-mnist-ab-v-br-100':
+        return medical_mnist_ab_v_br_100(data_folder)
     else:
         raise UnknownDataset()
+
+
+
+def images_to_ndarray(images_dir: str, number_to_load: int, label: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    '''
+    Grab number_to_load images from the images_dir and create a np array and label array
+    '''
+    folder_path = images_dir + os.sep
+    images_names = sorted(os.listdir(folder_path))
+    images_names = images_names[:number_to_load]
+    np_images = np.array([plt.imread(folder_path + img).flatten() for img in images_names])
+    labels = np.ones((len(np_images), 1), int) * label
+    return np_images, labels
+
+def medical_mnist_ab_v_br_100(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    '''
+    Load Medical MNIST into pandas format
+    borrows heavily from: https://www.kaggle.com/harelshattenstein/medical-mnist-knn
+    Creates a binary classification 
+    '''
+
+    labels_dict = {0 : 'AbdomenCT', 1 : 'BreastMRI', 2 : 'CXR', 3 : 'ChestCT', 4 : 'Hand', 5 : 'HeadCT'}
+
+    base_folder = os.path.join(
+        data_folder,
+        'kaggle-medical-mnist',
+        'archive',
+    )
+
+    x_ab, y_ab = images_to_ndarray(
+        os.path.join(base_folder, labels_dict.get(0)),
+        100,
+        0
+    )
+
+    x_br, y_br = images_to_ndarray(
+        os.path.join(base_folder, labels_dict.get(0)),
+        100,
+        1
+    )
+
+    all_x = np.vstack((x_ab, x_br))
+    all_y = np.vstack((y_ab, y_br))
+
+    return (pd.DataFrame(all_x), pd.DataFrame(all_y))
+
 
 
 def in_hospital_mortality(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -125,3 +175,4 @@ Please download from https://physionet.org/content/mimic2-iaccd/1.0/full_cohort_
     X = input_data.drop([target], axis=1)
     
     return (X, y)
+

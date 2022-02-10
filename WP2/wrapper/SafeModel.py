@@ -73,48 +73,51 @@ class SafeModel:
         params: dict = self.get_constraints()
         for key, (operator, recommended_val) in params.items():
             current_val = str(eval(f"self.model.{key}"))
-            print(
-                f"checking key {key}: current_val {current_val}, recommended {recommended_val}"
-            )
+            # print(
+            #    f"checking key {key}: current_val {current_val}, recommended {recommended_val}"
+            # )
             if current_val == recommended_val:
-                msg = f"\tparameter {key} unchanged at recommended value {recommended_val}"
+                msg = (
+                    msg
+                    + f"- parameter {key} unchanged at recommended value {recommended_val}"
+                )
             elif operator == "min":
                 if float(current_val) > float(recommended_val):
-                    msg = (
-                        f"\tparameter {key} increased"
+                    msg = msg + (
+                        f"- parameter {key} increased"
                         f" from recommended min value of {recommended_val} to {current_val}."
                         " This is not problematic.\n"
                     )
                 else:
                     possibly_disclosive = True
-                    msg = (
-                        f"\tparameter {key} decreased"
+                    msg = msg + (
+                        f"- parameter {key} decreased"
                         f" from recommended min value of {recommended_val} to {current_val}."
                         " THIS IS POTENTIALLY PROBLEMATIC.\n"
                     )
             elif operator == "max":
                 if float(current_val) < float(recommended_val):
-                    msg = (
-                        f"\tparameter {key} decreased"
+                    msg = msg + (
+                        f"- parameter {key} decreased"
                         f" from recommended max value of {recommended_val} to {current_val}."
                         " This is not problematic.\n"
                     )
                 else:
                     possibly_disclosive = True
-                    msg = (
-                        f"\tparameter {key} increased"
+                    msg = msg + (
+                        f"- parameter {key} increased"
                         f" from recommended max value of {recommended_val} to {current_val}."
                         " THIS IS POTENTIALLY PROBLEMATIC.\n"
                     )
             elif operator == "equals":
-                msg = (
-                    "\tparameter {key} changed"
+                msg = msg + (
+                    f"- parameter {key} changed"
                     f" from recommended fixed value of {recommended_val} to {current_val}."
                     " THIS IS POTENTIALLY PROBLEMATIC.\n"
                 )
                 possibly_disclosive = True
             else:
-                msg = f"\tunknown operator in parameter specification {operator}"
+                msg = f"- unknown operator in parameter specification {operator}"
             msg = msg + "\n"
         return msg, possibly_disclosive
 
@@ -139,12 +142,17 @@ class SafeModel:
                 if possibly_disclosive:
                     file.write(
                         "WARNING: model has been changed"
-                        f" in way that increases disclosure risk:\n {msg}\n"
+                        f" in way that increases disclosure risk:\n{msg}\n"
+                    )
+                    file.write(
+                        f"RECOMMENDATION: Do not allow release of file {filename}\n\n"
                     )
                 else:
                     file.write(
-                        "Model has not been changed to increase risk of disclosure."
-                        f" These are the params:\n {msg}"
+                        f"Model has not been changed to increase risk of disclosure:\n{msg}\n"
+                    )
+                    file.write(
+                        f"RECOMMENDATION: Run file {filename} through next step of checking proceedure\n\n"
                     )
 
     def preliminary_check(self) -> None:
@@ -157,8 +165,8 @@ class SafeModel:
             )
         else:
             print(
-                "Model has not been changed to increase risk of disclosure."
-                " These are the params:\n"
+                "Model has not been changed to increase risk of disclosure.\n"
+                " These are the params:"
             )
         print(msg + "\n")
 

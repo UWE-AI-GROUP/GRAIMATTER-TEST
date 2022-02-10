@@ -152,7 +152,7 @@ class SafeModel:
                         f"Model has not been changed to increase risk of disclosure:\n{msg}\n"
                     )
                     file.write(
-                        f"RECOMMENDATION: Run file {filename} through next step of checking proceedure\n\n"
+                        f"RECOMMENDATION: Run file {filename} through next step of checking procedure\n\n"
                     )
 
     def preliminary_check(self) -> None:

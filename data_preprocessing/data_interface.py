@@ -37,7 +37,9 @@ def get_data_sklearn(
     Main entry method for data in format sensible for sklearn. User passes a name and that dataset
     is returned as a pandas DataFrame.
 
-    Dataset is returned as a tuple containing two pandas DataFrame. The first is X, the second y
+    @param dataset_name (str): the name of the dataset
+    @param data_folder (str; optional): the root folder to look for data. Defaults to GRAIMatter/data
+    @returns Tuple[pd.DataFrame, pd.DataFrame]: tuple of dataframes correspnding to X and y
     '''
     logger.info("DATASET FOLDER = %s", data_folder)
 
@@ -49,10 +51,12 @@ def get_data_sklearn(
 
 def mimic_iaccd(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
-    Loads the mimic_iaccd data
+    Loads the mimic_iaccd data. We will end up with one method like this for each dataset
+    (or perhaps >1 if we want to process datasets in multiple different ways)
     '''
 
-    # Check it has been downloaded. If not throw an exception with instructions
+    # Check the data has been downloaded. If not throw an exception with instructions on how to
+    # download, and where to store
     file_path = os.path.join(
         data_folder,
         "mimic2-iaccd",

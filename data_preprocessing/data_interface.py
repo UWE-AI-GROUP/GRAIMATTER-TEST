@@ -105,7 +105,7 @@ Please download from https://physionet.org/content/mimic2-iaccd/1.0/full_cohort_
 
     # File exists, load and preprocess#
     logger.info("Loading mimic2-iaccd")
-    X = pd.read_csv(file_path)
+    input_data = pd.read_csv(file_path)
 
     logger.info("Preprocessing")
     # remove columns non-numerical and repetitive or uninformative data for the analysis
@@ -113,15 +113,15 @@ Please download from https://physionet.org/content/mimic2-iaccd/1.0/full_cohort_
     # service_num is the numerical version of service_unit
     # day_icu_intime_num is the numerical version of day_icu_intime
     # the other columns are to do with death and are somewhat repetitive with censor_flg
-    X.drop(col, axis = 1, inplace=True)
+    input_data.drop(col, axis = 1, inplace=True)
     # drop columns with only 1 value
-    X.drop('sepsis_flg', axis=1, inplace=True)
+    input_data.drop('sepsis_flg', axis=1, inplace=True)
     # drop NA by row
-    X.dropna(axis=0, inplace=True)
+    input_data.dropna(axis=0, inplace=True)
 
     # extract target
     target = 'censor_flg'
-    y = X[target]
-    X.drop([target], axis=1, inplace=True)
+    y = input_data[target]
+    X = input_data.drop([target], axis=1)
     
     return (X, y)

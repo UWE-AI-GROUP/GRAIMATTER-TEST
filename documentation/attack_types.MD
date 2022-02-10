@@ -14,9 +14,12 @@ This document summarises the different attack types that we are considering. The
 
 **Shadow Model**: attackers will sometimes train _shadow_ models, that in some sense emulate the target model as part of their attack. More details below.
 
+**Black and white box**: a term indicating whether or not the attacker knows the properties of the target model in entirety. An attacker has white-box access if they have all information about the model. At the least, this means that given an arbitrary data sample, the attacker can correctly determine what the model would output, or the probabilities of various outputs; they may also have access to otherwise-invisible inner workings which reflect the training data. Black-box is less strictly-defined, but indicates that the attacker does not have all information determining the target model.
+
+
 # Black box attacks
 
-Black box in the sense that none of these attacks need access to the internals of the model.
+Black box in the sense that none of these attacks need access to the internals of the model (for instance, the tree splits in a random forest or edge weights in a neural network)
 
 These attacks are represented schematically in this (rough) diagram:
 
@@ -30,7 +33,7 @@ This is the scenario used in [Rezaei](https://openaccess.thecvf.com/content/CVPR
 
 ### How it works
 
-The attacker has _white box_ access to the target model. The attacker also has access to the data used to train the model and a second dataset from the same distribution (e.g. the original data is split into training and test portions and the attacker has access to both).
+The attacker has _white box_ access to the target model. The attacker also has access to the data used to train the model and a second dataset from the same distribution (e.g. the original data is split into training and test portions and the attacker has access to both). They attempt to develop a predictor of whether a sample is in the training set using _only_ the probabilities outputted from the target model. This can be thought of as an attacker interal to the TRE who plans to leak a model which can be used for MIAs outside it.
 
 There is no shadow model in this attack (it is not required).
 
@@ -44,7 +47,9 @@ This is the attack format presented in the original Shokri paper, in which Membe
 
 ### How it works
 
-The attacker knows the structure of the target model (i.e. what type of model it is, and perhaps hyper-parameters). The attacker does not have access to the exact training data. The attacker builds a number of shadow models. Each shadow model is an estimate of the target model (i.e. they are trained to perform the same task as the target model). Because the attacker doesn't have access to the actual training data, they have to synthesise data to train the shadow models.
+The attacker knows the structure of the target model (i.e. what type of model it is, and perhaps hyper-parameters). The attacker does not have access to the exact training data. This can be thought of as an attacker outside the TRE but roughly familiar with the practices used inside it.
+
+The attacker builds a number of shadow models. Each shadow model is an estimate of the target model (i.e. they are trained to perform the same task as the target model). Because the attacker doesn't have access to the actual training data, they have to synthesise data to train the shadow models. 
 
 Each shadow model can then be presented with the data that trained it, and data that didn't, to generate the predictive probabilities that can be used to train an attack model.
 
@@ -62,11 +67,11 @@ Salem shows that it isn't necessary for the shadow model to have the same form a
 
 ## Salem scenario 2
 
-In Salem's second scenario, the restriction that the shadow model training data comes from the same distribution as the data used to train the taret model is also lifted. i.e. the attacker has neither training data from the real distrubition nor knowledge of the target model structure. Salem use completely different datasets to train the shadow model. This is markedly different to Shorkri who, when faced with not having data from the same distribution as that used to train the target model attempted to synthesise something similar. Salem show that shadow models trained on different data completely can provide predictions that allow successful attack models to be trained.
+In Salem's second scenario, the restriction that the shadow model training data comes from the same distribution as the data used to train the taret model is also lifted. i.e. the attacker has neither training data from the real distrubition nor knowledge of the target model structure. Salem use completely different datasets to train the shadow model. This is markedly different to Shokri who, when faced with not having data from the same distribution as that used to train the target model attempted to synthesise something similar. Salem show that shadow models trained on different data completely can provide predictions that allow successful attack models to be trained.
 
 ## Salem scenario 3
 
-In Salem's third scenario, the attacker does not bother with an attack model at all. The observations for which the attacker wants to perfom the MI are passed throught the target point and the highest class probability for each one is compared against a threshold to predict whether or not it belonged to the training set or not (above threshold = in training set).
+In Salem's third scenario, the attacker does not use an attack model at all. The observations for which the attacker wants to perfom the MI are passed through the target point and the highest class probability for each one is compared against a threshold to predict whether or not it belonged to the training set or not (above threshold = in training set).
 
 ### How it works
 
@@ -75,7 +80,7 @@ The key challenge in this approach is determining the threshold. The authors pro
 
 # Attack metrics
 
-When performing experiments to assess the vulnerability of a (model, dataset) pair to attack, it is possible to compute multiple different output metrics that describe the success (or otherwise) of the attack.
+When performing experiments to assess the vulnerability of a (model, dataset) pair to attack, it is possible to compute multiple different output metrics that describe the success (or otherwise) of the attack. There is no generally-ideal way to assess accuracy of a binary predictor.
 
 Attack performance metrics measure the ability of the _attack model_ to determine whether or not a particular example was part of the training set or not. The following metrics have all been used in this area:
 
@@ -133,3 +138,7 @@ NLR = FNR / TNR
 OR find the likelihood ratio of an outcome of an event when there are two possible outcomes, as is defined as 
 
 OR =  PLR / NLR
+
+## Calibration
+
+Whether the probabilities of training set measurement were _accurate_ rather than correctly ordered; broadly a comparison of the whether the average probability of samples in the training set matches the proportion of samples genuinely in the training set

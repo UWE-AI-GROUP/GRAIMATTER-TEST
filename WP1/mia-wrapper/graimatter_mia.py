@@ -7,6 +7,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.gaussian_process.kernels import RBF, DotProduct, Matern, RationalQuadratic, WhiteKernel
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from xgboost import XGBClassifier
@@ -178,4 +179,189 @@ def evaluate_attack(target_model: Classifier,
 
 
 def evaluate_model_privacy(target_model: Classifier, x: np.ndarray, y: np.ndarray) -> Tuple[float, float, float, float]:
+    pass
+
+def _train_MLPClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
+    """
+    Trains a scikit-learn multilayer perceptron classifier using GridSearch.
+
+    :param x: Features
+    :param y: Labels
+    :return: A trained MLPClassifier
+    """
+    base_clf = MLPClassifier(max_iter=500)
+
+    param_grid = {
+        'hidden_layer_sizes': [(64,), (32, 32), (32, 32, 32)],
+        'solver': ['sgd', 'adam'],
+        'alpha': [0.0001, 0.001, 0.01],
+    }
+    n_jobs = -1
+
+    clf = GridSearchCV(base_clf, param_grid=param_grid, cv=3, n_jobs=n_jobs, refit=True, verbose=0)
+    clf.fit(x, y)
+
+    return clf.best_estimator_
+
+def _train_KNeighborsClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
+    """
+    Trains a scikit-learn k-Nearest Neighbours classifier using GridSearch.
+
+    :param x: Features
+    :param y: Labels
+    :return: A trained KNeighborsClassifier
+    """
+    base_clf = KNeighborsClassifier()
+
+    param_grid = {
+        'n_neighbors': [3, 5, 11, 19],
+        'weights': ['uniform', 'distance'],
+        'metric': ['euclidean', 'manhattan']
+    }
+
+    n_jobs = -1
+
+    clf = GridSearchCV(base_clf, param_grid=param_grid, cv=3, n_jobs=n_jobs, refit=True, verbose=0)
+    clf.fit(x, y)
+
+    return clf.best_estimator_
+
+def _train_SVC(x: np.ndarray, y: np.ndarray) -> Classifier:
+    """
+    Trains a scikit-learn Support Vector Machine classifier using GridSearch.
+
+    :param x: Features
+    :param y: Labels
+    :return: A trained SVC
+    """
+    base_clf = SVC(probability=True)
+
+    param_grid = {
+        'C': [1, 10, 100, 1000],
+        'gamma': [1, 0.1, 0.001, 0.0001],
+        'kernel': ['linear', 'rbf']
+    }
+
+    n_jobs = -1
+
+    clf = GridSearchCV(base_clf, param_grid=param_grid, cv=3, n_jobs=n_jobs, refit=True, verbose=0)
+    clf.fit(x, y)
+
+    return clf.best_estimator_
+
+def _train_GaussianProcessClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
+    """
+    Trains a scikit-learn Gaussian Process classifier using GridSearch.
+
+    :param x: Features
+    :param y: Labels
+    :return: A trained GaussianProcessClassifier
+    """
+
+    base_clf = GaussianProcessClassifier()
+
+    param_grid = {
+        'kernel': [1*RBF(), 1*DotProduct(), 1*Matern(),  1*RationalQuadratic(), 1*WhiteKernel()]
+    }
+    n_jobs = -1
+
+    clf = GridSearchCV(base_clf, param_grid=param_grid, cv=3, n_jobs=n_jobs, refit=True, verbose=0)
+    clf.fit(x, y)
+
+    return clf.best_estimator_
+
+def _train_DecisionTreeClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
+    """
+    Trains a scikit-learn Decision Tree classifier using GridSearch.
+
+    :param x: Features
+    :param y: Labels
+    :return: A trained DecisionTreeClassifier
+    """
+
+    base_clf = DecisionTreeClassifier()
+
+    param_grid = {
+        'max_features': ['auto', 'sqrt', 'log2'],
+        'ccp_alpha': [0.1, .01, .001],
+        'max_depth' : [5, 6, 7, 8, 9],
+        'criterion' :['gini', 'entropy']
+    }
+    n_jobs = -1
+
+    clf = GridSearchCV(base_clf, param_grid=param_grid, cv=3, n_jobs=n_jobs, refit=True, verbose=0)
+    clf.fit(x, y)
+
+    return clf.best_estimator_
+
+def _train_RandomForestClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
+    """
+    Trains a scikit-learn Random Forest classifier using GridSearch.
+
+    :param x: Features
+    :param y: Labels
+    :return: A trained RandomForestClassifier
+    """
+
+    base_clf = RandomForestClassifier()
+
+    param_grid = {
+        'n_estimators': [200, 500],
+        'max_features': ['auto', 'sqrt', 'log2'],
+        'max_depth': [4, 5, 6, 7, 8],
+        'criterion': ['gini', 'entropy']
+    }
+    n_jobs = -1
+
+    clf = GridSearchCV(base_clf, param_grid=param_grid, cv=3, n_jobs=n_jobs, refit=True, verbose=0)
+    clf.fit(x, y)
+
+    return clf.best_estimator_
+
+def _train_AdaBoostClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
+    """
+    Trains a scikit-learn Ada Boost classifier using GridSearch.
+
+    :param x: Features
+    :param y: Labels
+    :return: A trained AdaBoostClassifier
+    """
+
+    base_clf = AdaBoostClassifier()
+
+    param_grid = {
+     'n_estimators': np.arange(10, 300, 10),
+     'learning_rate': [0.01, 0.05, 0.1, 1]
+    }
+    n_jobs = -1
+
+    clf = GridSearchCV(base_clf, param_grid=param_grid, cv=3, n_jobs=n_jobs, refit=True, verbose=0)
+    clf.fit(x, y)
+
+    return clf.best_estimator_
+
+def _train_XGBClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
+    """
+    Trains a scikit-learn XGBoost classifier using GridSearch.
+
+    :param x: Features
+    :param y: Labels
+    :return: A trained XGBClassifier
+    """
+
+    base_clf = XGBClassifier()
+
+    param_grid = {
+        'max_depth': range (2, 10, 1),
+        'n_estimators': range(60, 220, 40),
+        'learning_rate': [0.1, 0.01, 0.05]
+    }
+    n_jobs = -1
+
+    clf = GridSearchCV(base_clf, param_grid=param_grid, cv=3, n_jobs=n_jobs, scoring='roc_auc', refit=True, verbose=0)
+    clf.fit(x, y)
+
+    return clf.best_estimator_
+
+def _train_TFNeuralNetwork(architecture: Model, x: np.ndarray, y: np.ndarray) -> Classifier:
     pass

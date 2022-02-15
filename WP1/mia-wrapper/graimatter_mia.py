@@ -1,6 +1,9 @@
 import numpy as np
 
-from tensorflow.keras import Model
+import tensorflow as tf
+from tensorflow.keras import Model, Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+import keras_tuner as kt
 
 # scikit-learn classifiers
 from sklearn.neural_network import MLPClassifier
@@ -27,7 +30,8 @@ Sklearn_classifier = Union[MLPClassifier,
                            RandomForestClassifier,
                            AdaBoostClassifier,
                            XGBClassifier]
-Classifier = Union[Sklearn_classifier, Model]
+TensorFlow_classifier = Union[Model, Sequential]
+Classifier = Union[Sklearn_classifier, TensorFlow_classifier]
 Labeled_Dataset = Tuple[np.ndarray, np.ndarray]
 
 
@@ -181,6 +185,7 @@ def evaluate_attack(target_model: Classifier,
 def evaluate_model_privacy(target_model: Classifier, x: np.ndarray, y: np.ndarray) -> Tuple[float, float, float, float]:
     pass
 
+
 def _train_MLPClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
     """
     Trains a scikit-learn multilayer perceptron classifier using GridSearch.
@@ -202,6 +207,7 @@ def _train_MLPClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
     clf.fit(x, y)
 
     return clf.best_estimator_
+
 
 def _train_KNeighborsClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
     """
@@ -226,6 +232,7 @@ def _train_KNeighborsClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
 
     return clf.best_estimator_
 
+
 def _train_SVC(x: np.ndarray, y: np.ndarray) -> Classifier:
     """
     Trains a scikit-learn Support Vector Machine classifier using GridSearch.
@@ -249,6 +256,7 @@ def _train_SVC(x: np.ndarray, y: np.ndarray) -> Classifier:
 
     return clf.best_estimator_
 
+
 def _train_GaussianProcessClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
     """
     Trains a scikit-learn Gaussian Process classifier using GridSearch.
@@ -270,6 +278,7 @@ def _train_GaussianProcessClassifier(x: np.ndarray, y: np.ndarray) -> Classifier
 
     return clf.best_estimator_
 
+
 def _train_DecisionTreeClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
     """
     Trains a scikit-learn Decision Tree classifier using GridSearch.
@@ -284,8 +293,8 @@ def _train_DecisionTreeClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
     param_grid = {
         'max_features': ['auto', 'sqrt', 'log2'],
         'ccp_alpha': [0.1, .01, .001],
-        'max_depth' : [5, 6, 7, 8, 9],
-        'criterion' :['gini', 'entropy']
+        'max_depth': [5, 6, 7, 8, 9],
+        'criterion': ['gini', 'entropy']
     }
     n_jobs = -1
 
@@ -293,6 +302,7 @@ def _train_DecisionTreeClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
     clf.fit(x, y)
 
     return clf.best_estimator_
+
 
 def _train_RandomForestClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
     """
@@ -318,6 +328,7 @@ def _train_RandomForestClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
 
     return clf.best_estimator_
 
+
 def _train_AdaBoostClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
     """
     Trains a scikit-learn Ada Boost classifier using GridSearch.
@@ -340,6 +351,7 @@ def _train_AdaBoostClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
 
     return clf.best_estimator_
 
+
 def _train_XGBClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
     """
     Trains a scikit-learn XGBoost classifier using GridSearch.
@@ -352,7 +364,7 @@ def _train_XGBClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
     base_clf = XGBClassifier()
 
     param_grid = {
-        'max_depth': range (2, 10, 1),
+        'max_depth': range(2, 10, 1),
         'n_estimators': range(60, 220, 40),
         'learning_rate': [0.1, 0.01, 0.05]
     }
@@ -363,5 +375,96 @@ def _train_XGBClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
 
     return clf.best_estimator_
 
-def _train_TFNeuralNetwork(architecture: Model, x: np.ndarray, y: np.ndarray) -> Classifier:
-    pass
+
+def _train_TFNeuralNetwork(x: np.ndarray, y: np.ndarray) -> Classifier:
+    """
+    Trains a TensorFlow classifier using Keras Tuner.
+    :param x: Features
+    :param y: Labels
+    :return: A Tensorflow classifier
+    """
+
+    # One-hot encoding of labels
+    n_classes = np.max(y) + 1
+    y_oh = np.eye(n_classes)[y]
+
+    # Multi-layer perceptron builder function with different hyperparameter options
+    def build_mlp(hp):
+        model = Sequential()
+        for i in range(hp.Int('dense_layers', 1, 4)):
+            model.add(Dense(
+                units=hp.Int(f'dense_layer_{i}_units', 32, 128, step=32),
+                activation='relu'
+            ))
+            model.add(Dropout(
+                rate=hp.Float(f'dense_layer_{i}_dropout', 0.0, 0.5)
+            ))
+        model.add(Dense(n_classes))
+
+        loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+        optimizer = tf.keras.optimizers.Adam(
+            learning_rate=hp.Choice('learning_rate', values=[1e-2, 1e-4])
+        )
+        model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
+        return model
+
+    # Convolutional model builder function with different hyperparameter options
+    def build_convnet(hp):
+        model = Sequential()
+        for i in range(hp.Int('conv_layers', 1, 3)):
+            model.add(Conv2D(
+                filters=hp.Int(f'conv_layer_{i}_filters', 32, 128, step=32),
+                kernel_size=(3, 3),
+                activation=hp.Choice(f'conv_layer_{i}_act', ['relu', 'tanh'])
+            ))
+            model.add(MaxPooling2D())
+        model.add(Flatten())
+        for i in range(hp.Int('dense_layers', 1, 2)):
+            model.add(Dense(
+                units=hp.Int(f'dense_layer_{i}_units', 32, 128, step=32),
+                activation='relu'
+            ))
+            model.add(Dropout(
+                rate=hp.Float(f'dense_layer_{i}_dropout', 0.0, 0.5)
+            ))
+        model.add(Dense(n_classes))
+
+        loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+        optimizer = tf.keras.optimizers.Adam(
+            learning_rate=hp.Choice('learning_rate', values=[1e-2, 1e-4])
+        )
+        model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
+        return model
+
+    # Decide whether an MLP or a ConvNet is needed: in general, inputs for MLPs
+    # are of shape (n_instances, n_features) while inputs for ConvNets are of
+    # shape (n_instances, height, width, channels).
+    if len(x.shape) == 2:
+        # Hyperparameter tuner for a MLP
+        tuner = kt.Hyperband(build_mlp,
+                             objective='val_accuracy',
+                             max_epochs=10,
+                             factor=3,
+                             project_name='tf_model_hp')
+    elif len(x.shape) == 4:
+        # Hyperparameter tuner for a ConvNet
+        tuner = kt.Hyperband(build_convnet,
+                             objective='val_accuracy',
+                             max_epochs=10,
+                             factor=3,
+                             project_name='tf_model_hp')
+    else:
+        raise Exception()
+
+    # Callback to stop training when validation loss peaks
+    stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+
+    # Search for optimal hyperparameters and return the best combination
+    tuner.search(x, y_oh, epochs=50, validation_split=0.2, callbacks=[stop_early])
+    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+    clf = tuner.hypermodel.build(best_hps)
+
+    # Train network
+    clf.fit(x, y_oh, epochs=50, validation_split=0.2)
+
+    return clf

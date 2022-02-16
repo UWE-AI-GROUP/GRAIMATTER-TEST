@@ -3,7 +3,6 @@
 ## Assessment Criteria
 
 * "[Libraries.io](https://libraries.io) indexes data from 5,086,238 packages from 32 package managers. We monitor package releases, analyse each project's code, community, distribution and documentation, and we map the relationships between packages when they're declared as a dependency."
-* It provides a searchable index of packages via keyword - perhaps we can specify some keywords and then systematically go through the packages to check for relevant ones - the keywords used will help other researchers know what we searched for? List so far ["trusted-ai", "trustworthy-ai", "poisoning", "privacy-protection", "privacy-enhancing-technologies"]. Same approach applied to github search?
 * It generates a "source rank" for many projects, which is based on a set of criteria that include the project documentation, licenses, recency and number of versions available, whether [semantic version numbering](https://semver.org) is used, popularity measures such as github stars, the number of contributors, and how many packages or repositories are dependent on the project.
 
 Following this general criteria, below are notes on some tools:
@@ -117,6 +116,7 @@ Following this general criteria, below are notes on some tools:
   - The tool requires the setting of a number of model/dataset specific parameters, which include (depending on white-box or black-box) an optimiser, a list of layers to exploit, the learning rate, and number of training epochs.
   - For black-box attacks, the output dimension of Model A and B must be identical (requires a one-hot encoding of labels), however the rest of the architecture can differ. For white-box attacks, the architectures must be identical.
   - Report generates a set of visualisations, including histograms for privacy risk, ROC curves for the membership probabilities, gradient norm distributions for member and non-member data, and label-wise privacy risk plots.
+* Notes: the `requirements.txt` and tutorials are out of date. To use this tool, clone the repository and change to the root `ml_privacy_meter` directory; place source/notebooks here and execute; install any missing packages with pip; generated plots are located in `logs/plots`.
 
 ---------------------
 
@@ -128,7 +128,8 @@ Following this general criteria, below are notes on some tools:
 * Distribution: no distributions available
 * Popularity: 11 stars; 1 contributor
 * Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
-* Description: Provides 10 black-box and white-box (partial and shadow) inference attacks including membership inference, model inversion, attribute inference, and model extraction introduced in [Liu et al. (2022)](https://www.usenix.org/conference/usenixsecurity22/presentation/liu-yugeng). For white-box membership inference, they provide 4 inputs to the attack model, which the paper says is similar to the one used by ML Privacy Meter, including the classification loss, last layer gradients, and one-hot encoding of its true label. they feed each input into a different neural network, and then concatenate the resulting embeddings as input to another neural network. Includes differential privacy through PyTorch [Opacus](https://github.com/pytorch/opacus).
-  - The tool expects a PyTorch neural network model.
+* Description: Provides 10 black-box and white-box (partial and shadow) inference attacks including membership inference, model inversion, attribute inference, and model extraction introduced in [Liu et al. (2022)](https://www.usenix.org/conference/usenixsecurity22/presentation/liu-yugeng). For white-box membership inference, they provide 4 inputs to the attack model, which the paper says is similar to the one used by ML Privacy Meter, including the classification loss, last layer gradients, and one-hot encoding of its true label. they feed each input into a different neural network, and then concatenate the resulting embeddings as input to another neural network. Reports the F1, AUC, and accuracy as metrics. Includes differential privacy through PyTorch [Opacus](https://github.com/pytorch/opacus).
+  - The tool expects a PyTorch neural network model and the data loaded using a [DataLoader](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html).
+* Notes: the tutorial/readme is not very clear; if using the UTKFace data suggested for testing (requires manual downloading), there is an error in one of the data files, which can be fixed by deleting line 4172 from `landmark_list_part2.txt`. To train the base model, shadow model, and run an attack on that dataset: `python demo.py --train_model --train_shadow`
 
 ---------------------

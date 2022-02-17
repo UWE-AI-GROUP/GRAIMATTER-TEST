@@ -51,6 +51,8 @@ def get_data_sklearn(
         return in_hospital_mortality(data_folder)
     elif dataset_name == 'medical-mnist-ab-v-br-100':
         return medical_mnist_ab_v_br_100(data_folder)
+    elif dataset_name == 'indian liver':
+        return indian_liver(data_folder)
     else:
         raise UnknownDataset()
 
@@ -100,6 +102,41 @@ def medical_mnist_ab_v_br_100(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFr
     return (pd.DataFrame(all_x), pd.DataFrame(all_y))
 
 
+def indian_liver(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    '''
+    Indian Liver Patient Dataset
+    (https://archive.ics.uci.edu/ml/datasets/ILPD+(Indian+Liver+Patient+Dataset)
+    '''
+
+    file_path = os.path.join(
+        data_folder,
+        "Indian Liver Patient Dataset (ILPD).csv"
+    )
+
+    if not os.path.exists(file_path):
+        help_message = f"""
+Data file {file_path} does not exist. Please download fhe file from:
+https://archive.ics.uci.edu/ml/datasets/ILPD+(Indian+Liver+Patient+Dataset
+and place it in the correct folder.
+        """
+        raise DataNotAvailable(help_message)
+
+    column_names= [
+        'age', 'gender', 'total Bilirubin', 'direct Bilirubin', 'Alkphos',
+        'SGPT', 'SGOT', 'total proteins', 'albumin', 'A/G ratio',  'class'
+    ]
+
+    X = pd.read_csv(file_path, names=column_names, index_col=False)
+    
+    X.gender.replace('Male', 0, inplace=True)
+    X.gender.replace('Female', 1, inplace=True)
+
+    X.dropna(axis=0, inplace=True)
+
+    y = X['class']
+    X.drop(['class'], axis=1, inplace=True)
+
+    return (X, y)
 
 def in_hospital_mortality(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''

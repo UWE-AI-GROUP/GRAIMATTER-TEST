@@ -16,7 +16,7 @@ class SafeModel:
     def __init__(self) -> None:
         """Super class constructor, gets researcher name."""
         self.model_type: str = "None"
-        self.model = None  
+        self.model = None
         self.model_save_file: str = "None"
         self.filename: str = "None"
         self.researcher: str = "None"
@@ -64,7 +64,7 @@ class SafeModel:
                 setattr(self.model, key, int(recommended_val))
             else:
                 setattr(self.model, key, recommended_val)
-                
+
     def apply_constraints(self, **kwargs: Any) -> None:
         """Sets model attributes according to constraints. Multiple inheritance version"""
         params: dict = self.get_constraints()
@@ -134,8 +134,7 @@ class SafeModel:
                 msg = f"- unknown operator in parameter specification {operator}"
             msg = msg + "\n"
         return msg, possibly_disclosive
-    
-    
+
     def check_model_params_old(self) -> tuple[str, bool]:
         """Checks whether current model parameters have been changed from
         constrained settings. Single inheritance version"""
@@ -190,10 +189,7 @@ class SafeModel:
             else:
                 msg = f"- unknown operator in parameter specification {operator}"
             msg = msg + "\n"
-        return msg, possibly_disclosive    
-    
-    
-    
+        return msg, possibly_disclosive
 
     def request_release(self, filename: str = "undefined") -> None:
         """Saves model to filename specified and creates a report for the TRE
@@ -217,19 +213,17 @@ class SafeModel:
                     file.write(
                         "WARNING: model has been changed"
                         f" in way that increases disclosure risk:\n{msg}\n"
-                    )
-                    file.write(
                         f"RECOMMENDATION: Do not allow release of file {filename}\n\n"
                     )
                 else:
                     file.write(
-                        f"Model has not been changed to increase risk of disclosure:\n{msg}\n"
-                    )
-                    file.write(
-                        f"RECOMMENDATION: Run file {filename} through next step of checking procedure\n\n"
+                        "Model has not been changed to increase risk of disclosure:\n"
+                        f"{msg}\n"
+                        "RECOMMENDATION: "
+                        f"Run file {filename} through next step of checking procedure\n\n"
                     )
 
-    def preliminary_check(self) -> None:
+    def preliminary_check(self) -> tuple[str, bool]:
         """Allows user to test whether model parameters break safety
         constraints prior to requesting release."""
         msg, possibly_disclosive = self.check_model_params()
@@ -243,28 +237,32 @@ class SafeModel:
                 " These are the params:"
             )
         print(msg + "\n")
+        return msg, possibly_disclosive
 
     def __str__old(self) -> str:
         """Returns string with model description. Single inheritance version"""
         return self.model_type + " with parameters: " + str(self.model.__dict__)
-    
-    
+
     def __str__(self) -> str:
         """Returns string with model description. Multiple inheritance version"""
         return self.model_type + " with parameters: " + str(self.__dict__)
 
-    
+
 from sklearn.tree import DecisionTreeClassifier as DecisionTreeClassifier
-class SafeDecisionTree(SafeModel, DecisionTreeClassifier):    
+
+
+class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
+    """Privacy protected decision tree classifier."""
+
     def __init__(self, **kwargs: Any) -> None:
         """Creates model and applies constraints to params. Multiple Inheritance Version"""
         # separate "safe_init" function
         SafeModel.__init__(self)
-        DecisionTreeClassifier.__init__(self,**kwargs)
+        DecisionTreeClassifier.__init__(self, **kwargs)
         self.model_type: str = "DecisionTreeClassifier"
         print("Safe model created using multiple inheritance")
-        super().apply_constraints(**kwargs)    
-    
+        super().apply_constraints(**kwargs)
+
 
 class SafeDecisionTree_old(SafeModel):
     """Privacy protected decision tree classifier."""
@@ -345,26 +343,27 @@ class SafeDecisionTree_old(SafeModel):
         # TODO  check against recommendations and flag warnings here
         self.model.set_params(**params)
 
+
 from sklearn.ensemble import RandomForestClassifier as RandomForest
 
-class SafeRandomForest(SafeModel,RandomForest):
+
+class SafeRandomForest(SafeModel, RandomForest):
     """Privacy protected Random Forest classifier.multiple inheritance version"""
 
     def __init__(self, **kwargs: Any) -> None:
         """Creates model and applies constraints to params"""
         # separate "safe_init" function
         SafeModel.__init__(self)
-        RandomForest.__init__(self,**kwargs)
+        RandomForest.__init__(self, **kwargs)
         self.model_type: str = "RandomForestClassifier"
         super().apply_constraints(**kwargs)
 
-    #def __getattr__(self, attr):
+    # def __getattr__(self, attr):
     #    if attr in self.__dict__:
     #        return getattr(self, attr)
     #    return getattr(self, attr)
 
 
-        
 class SafeRandomForest_old(SafeModel):
     """Privacy protected Random Forest classifier. Single inheritance version"""
 

@@ -16,7 +16,7 @@ class SafeModel:
     def __init__(self) -> None:
         """Super class constructor, gets researcher name."""
         self.model_type: str = "None"
-        self.model = None  # sklearn.base.BaseEstimator
+        self.model = None  
         self.model_save_file: str = "None"
         self.filename: str = "None"
         self.researcher: str = "None"
@@ -72,7 +72,8 @@ class SafeModel:
             setattr(self, key, val)
         for key, (operator, recommended_val) in params.items():
             # TODO distinguish between ints and floats as some models take both
-            # and behave differently ALSO need to  deal with not overriding safer values 
+            # and behave differently ALSO need to  deal with not overriding safer values
+            # anad not sure there is any point using setattr rather than direct assignment
             if operator in ("min", "max"):
                 setattr(self, key, int(recommended_val))
             else:
@@ -344,9 +345,28 @@ class SafeDecisionTree_old(SafeModel):
         # TODO  check against recommendations and flag warnings here
         self.model.set_params(**params)
 
+from sklearn.ensemble import RandomForestClassifier as RandomForest
 
-class SafeRandomForest(SafeModel):
-    """Privacy protected Random Forest classifier."""
+class SafeRandomForest(SafeModel,RandomForest):
+    """Privacy protected Random Forest classifier.multiple inheritance version"""
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Creates model and applies constraints to params"""
+        # separate "safe_init" function
+        SafeModel.__init__(self)
+        RandomForest.__init__(self,**kwargs)
+        self.model_type: str = "RandomForestClassifier"
+        super().apply_constraints(**kwargs)
+
+    #def __getattr__(self, attr):
+    #    if attr in self.__dict__:
+    #        return getattr(self, attr)
+    #    return getattr(self, attr)
+
+
+        
+class SafeRandomForest_old(SafeModel):
+    """Privacy protected Random Forest classifier. Single inheritance version"""
 
     from sklearn.ensemble import RandomForestClassifier as RandomForest
 
@@ -401,34 +421,3 @@ class SafeRandomForest(SafeModel):
         """Set the parameters of this estimator."""
         # TODO  check against recommendations and flag warnings here
         self.model.set_params(**params)
-        
-        
-import tensorflow as tf
-from tensorflow.keras import Model as KerasModel
-from tensorflow_privacy.privacy.optimizers import dp_optimizer_keras
-from tensorflow_privacy.privacy.analysis import compute_dp_sgd_privacy 
-
-class SafeKerasModel(SafeModel, KerasModel):
-    def __init__(self, **kwargs: Any) -> None:
-        """Creates model and applies constraints to params. Multiple Inheritance Version"""
-        # separate "safe_init" function
-        SafeModel.__init__(self)
-        KerasModel.__init__(self,**kwargs)
-        self.model_type: str = "KerasModel"
-        print("Safe model created using multiple inheritance")
-        super().apply_constraints(**kwargs)    
-    
-    
-       def compile( optimizer='rmsprop', loss=None, metrics=None, loss_weights=None,
-                 weighted_metrics=None, run_eagerly=None, steps_per_execution=None,
-                 jit_compile=None, **kwargs):
-        """Configures the model for training."""
-        
-        #check if provided optimiswer is one of the allowed types
-        dp_optimisers = ("DPKerasAdagradOptimizer", "DPKerasAdamOptimizer", "DPKerasSGDOptimizer")
-        if type(optimiser) not in dp_optimisers:
-            print(f'only these differentially priviate optimisers are supported {dp_optimisers}')
-            print('please consult Tensorflow tf_privacy docs and supply an appropriately configured optimiser')
-        else:
-            self.model.compile(optimizer,loss,metrics,loss_weights,weighted_metrics,
-                               run_eagerly,steps_per_execution,jit_compile,**kwargs)

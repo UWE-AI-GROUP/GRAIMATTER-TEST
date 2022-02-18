@@ -52,8 +52,8 @@ class SafeModel:
                     params[key] = value
         return params
 
-    def apply_constraints(self, **kwargs: Any) -> None:
-        """Sets model attributes according to constraints."""
+    def apply_constraints_old(self, **kwargs: Any) -> None:
+        """Sets model attributes according to constraints. Single inheritance version"""
         params: dict = self.get_constraints()
         for key, val in kwargs.items():
             setattr(self.model, key, val)
@@ -64,10 +64,80 @@ class SafeModel:
                 setattr(self.model, key, int(recommended_val))
             else:
                 setattr(self.model, key, recommended_val)
+                
+    def apply_constraints(self, **kwargs: Any) -> None:
+        """Sets model attributes according to constraints. Multiple inheritance version"""
+        params: dict = self.get_constraints()
+        for key, val in kwargs.items():
+            setattr(self, key, val)
+        for key, (operator, recommended_val) in params.items():
+            # TODO distinguish between ints and floats as some models take both
+            # and behave differently ALSO need to  deal with not overriding safer values 
+            if operator in ("min", "max"):
+                setattr(self, key, int(recommended_val))
+            else:
+                setattr(self, key, recommended_val)
 
     def check_model_params(self) -> tuple[str, bool]:
         """Checks whether current model parameters have been changed from
-        constrained settings."""
+        constrained settings.Multiple inheritance version"""
+        possibly_disclosive: bool = False
+        msg: str = ""
+        params: dict = self.get_constraints()
+        for key, (operator, recommended_val) in params.items():
+            current_val = str(eval(f"self.{key}"))
+            # print(
+            #    f"checking key {key}: current_val {current_val}, recommended {recommended_val}"
+            # )
+            if current_val == recommended_val:
+                msg = (
+                    msg
+                    + f"- parameter {key} unchanged at recommended value {recommended_val}"
+                )
+            elif operator == "min":
+                if float(current_val) > float(recommended_val):
+                    msg = msg + (
+                        f"- parameter {key} increased"
+                        f" from recommended min value of {recommended_val} to {current_val}."
+                        " This is not problematic.\n"
+                    )
+                else:
+                    possibly_disclosive = True
+                    msg = msg + (
+                        f"- parameter {key} decreased"
+                        f" from recommended min value of {recommended_val} to {current_val}."
+                        " THIS IS POTENTIALLY PROBLEMATIC.\n"
+                    )
+            elif operator == "max":
+                if float(current_val) < float(recommended_val):
+                    msg = msg + (
+                        f"- parameter {key} decreased"
+                        f" from recommended max value of {recommended_val} to {current_val}."
+                        " This is not problematic.\n"
+                    )
+                else:
+                    possibly_disclosive = True
+                    msg = msg + (
+                        f"- parameter {key} increased"
+                        f" from recommended max value of {recommended_val} to {current_val}."
+                        " THIS IS POTENTIALLY PROBLEMATIC.\n"
+                    )
+            elif operator == "equals":
+                msg = msg + (
+                    f"- parameter {key} changed"
+                    f" from recommended fixed value of {recommended_val} to {current_val}."
+                    " THIS IS POTENTIALLY PROBLEMATIC.\n"
+                )
+                possibly_disclosive = True
+            else:
+                msg = f"- unknown operator in parameter specification {operator}"
+            msg = msg + "\n"
+        return msg, possibly_disclosive
+    
+    
+    def check_model_params_old(self) -> tuple[str, bool]:
+        """Checks whether current model parameters have been changed from
+        constrained settings. Single inheritance version"""
         possibly_disclosive: bool = False
         msg: str = ""
         params: dict = self.get_constraints()
@@ -119,7 +189,10 @@ class SafeModel:
             else:
                 msg = f"- unknown operator in parameter specification {operator}"
             msg = msg + "\n"
-        return msg, possibly_disclosive
+        return msg, possibly_disclosive    
+    
+    
+    
 
     def request_release(self, filename: str = "undefined") -> None:
         """Saves model to filename specified and creates a report for the TRE
@@ -170,12 +243,29 @@ class SafeModel:
             )
         print(msg + "\n")
 
-    def __str__(self) -> str:
-        """Returns string with model description."""
+    def __str__old(self) -> str:
+        """Returns string with model description. Single inheritance version"""
         return self.model_type + " with parameters: " + str(self.model.__dict__)
+    
+    
+    def __str__(self) -> str:
+        """Returns string with model description. Multiple inheritance version"""
+        return self.model_type + " with parameters: " + str(self.__dict__)
 
+    
+from sklearn.tree import DecisionTreeClassifier as DecisionTreeClassifier
+class SafeDecisionTree(SafeModel, DecisionTreeClassifier):    
+    def __init__(self, **kwargs: Any) -> None:
+        """Creates model and applies constraints to params. Multiple Inheritance Version"""
+        # separate "safe_init" function
+        SafeModel.__init__(self)
+        DecisionTreeClassifier.__init__(self,**kwargs)
+        self.model_type: str = "DecisionTreeClassifier"
+        print("Safe model created using multiple inheritance")
+        super().apply_constraints(**kwargs)    
+    
 
-class SafeDecisionTree(SafeModel):
+class SafeDecisionTree_old(SafeModel):
     """Privacy protected decision tree classifier."""
 
     from sklearn.tree import DecisionTreeClassifier as DecisionTree
@@ -311,3 +401,34 @@ class SafeRandomForest(SafeModel):
         """Set the parameters of this estimator."""
         # TODO  check against recommendations and flag warnings here
         self.model.set_params(**params)
+        
+        
+import tensorflow as tf
+from tensorflow.keras import Model as KerasModel
+from tensorflow_privacy.privacy.optimizers import dp_optimizer_keras
+from tensorflow_privacy.privacy.analysis import compute_dp_sgd_privacy 
+
+class SafeKerasModel(SafeModel, KerasModel):
+    def __init__(self, **kwargs: Any) -> None:
+        """Creates model and applies constraints to params. Multiple Inheritance Version"""
+        # separate "safe_init" function
+        SafeModel.__init__(self)
+        KerasModel.__init__(self,**kwargs)
+        self.model_type: str = "KerasModel"
+        print("Safe model created using multiple inheritance")
+        super().apply_constraints(**kwargs)    
+    
+    
+       def compile( optimizer='rmsprop', loss=None, metrics=None, loss_weights=None,
+                 weighted_metrics=None, run_eagerly=None, steps_per_execution=None,
+                 jit_compile=None, **kwargs):
+        """Configures the model for training."""
+        
+        #check if provided optimiswer is one of the allowed types
+        dp_optimisers = ("DPKerasAdagradOptimizer", "DPKerasAdamOptimizer", "DPKerasSGDOptimizer")
+        if type(optimiser) not in dp_optimisers:
+            print(f'only these differentially priviate optimisers are supported {dp_optimisers}')
+            print('please consult Tensorflow tf_privacy docs and supply an appropriately configured optimiser')
+        else:
+            self.model.compile(optimizer,loss,metrics,loss_weights,weighted_metrics,
+                               run_eagerly,steps_per_execution,jit_compile,**kwargs)

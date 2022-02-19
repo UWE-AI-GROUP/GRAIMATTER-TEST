@@ -1,9 +1,8 @@
 """This module contains unit tests for the SafeDecisionTree wrapper."""
 
 import numpy as np
-from sklearn import datasets
-
 from SafeModel import SafeDecisionTree
+from sklearn import datasets
 
 
 def get_data():
@@ -23,7 +22,11 @@ def test_decisiontree_unchanged():
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
     msg, possibly_disclosive = model.preliminary_check()
-    correct_msg = "- parameter min_samples_leaf unchanged at recommended value 5\n"
+    correct_msg = (
+        "- parameter min_samples_leaf unchanged at recommended value 5\n"
+        "- parameter min_samples_leaf decreased from recommended "
+        "max value of 500 to 5. This is not problematic.\n\n"
+    )
     assert msg == correct_msg
     assert possibly_disclosive is False
 
@@ -36,7 +39,11 @@ def test_decisiontree_safe_recommended():
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
     msg, possibly_disclosive = model.preliminary_check()
-    correct_msg = "- parameter min_samples_leaf unchanged at recommended value 5\n"
+    correct_msg = (
+        "- parameter min_samples_leaf unchanged at recommended value 5\n"
+        "- parameter min_samples_leaf decreased from recommended "
+        "max value of 500 to 5. This is not problematic.\n\n"
+    )
     assert msg == correct_msg
     assert possibly_disclosive is False
 
@@ -53,6 +60,8 @@ def test_decisiontree_safe():
     correct_msg = (
         "- parameter min_samples_leaf increased from recommended "
         "min value of 5 to 10. This is not problematic.\n\n"
+        "- parameter min_samples_leaf decreased from recommended "
+        "max value of 500 to 10. This is not problematic.\n\n"
     )
     assert msg == correct_msg
     assert possibly_disclosive is False
@@ -66,6 +75,8 @@ def test_decisiontree_unsafe():
     correct_msg = (
         "- parameter min_samples_leaf decreased from recommended "
         "min value of 5 to 1. THIS IS POTENTIALLY PROBLEMATIC.\n\n"
+        "- parameter min_samples_leaf decreased from recommended "
+        "max value of 500 to 1. This is not problematic.\n\n"
     )
     assert msg == correct_msg
     assert possibly_disclosive is True

@@ -1,9 +1,8 @@
 """This module contains unit tests for the SafeRandomForest wrapper."""
 
 import numpy as np
-from sklearn import datasets
-
 from SafeModel import SafeRandomForest
+from sklearn import datasets
 
 
 def get_data():
@@ -24,7 +23,7 @@ def test_randomforest_unchanged():
     assert model.score(x, y) == 0.9668874172185431
     msg, possibly_disclosive = model.preliminary_check()
     correct_msg = (
-        "- parameter bootstrap unchanged at recommended value True\n"
+        "- parameter bootstrap unchanged at recommended value True"
         "- parameter min_samples_leaf unchanged at recommended value 5\n"
     )
     assert msg == correct_msg
@@ -40,7 +39,7 @@ def test_randomforest_recommended():
     assert model.score(x, y) == 0.9668874172185431
     msg, possibly_disclosive = model.preliminary_check()
     correct_msg = (
-        "- parameter bootstrap unchanged at recommended value True\n"
+        "- parameter bootstrap unchanged at recommended value True"
         "- parameter min_samples_leaf increased from recommended min value of 5 to 6. "
         "This is not problematic.\n\n"
     )
@@ -58,7 +57,7 @@ def test_randomforest_unsafe_1():
     msg, possibly_disclosive = model.preliminary_check()
     correct_msg = (
         "- parameter bootstrap changed from recommended fixed value of True to False. "
-        "THIS IS POTENTIALLY PROBLEMATIC.\n\n"
+        "THIS IS POTENTIALLY PROBLEMATIC.\n"
         "- parameter min_samples_leaf unchanged at recommended value 5\n"
     )
     assert msg == correct_msg
@@ -72,7 +71,7 @@ def test_randomforest_unsafe_2():
     model.min_samples_leaf = 2
     msg, possibly_disclosive = model.preliminary_check()
     correct_msg = (
-        "- parameter bootstrap unchanged at recommended value True\n"
+        "- parameter bootstrap unchanged at recommended value True"
         "- parameter min_samples_leaf decreased from recommended min value of 5 to 2. "
         "THIS IS POTENTIALLY PROBLEMATIC.\n\n"
     )
@@ -88,7 +87,7 @@ def test_randomforest_unsafe_3():
     msg, possibly_disclosive = model.preliminary_check()
     correct_msg = (
         "- parameter bootstrap changed from recommended fixed value of True to False. "
-        "THIS IS POTENTIALLY PROBLEMATIC.\n\n"
+        "THIS IS POTENTIALLY PROBLEMATIC.\n"
         "- parameter min_samples_leaf decreased from recommended min value of 5 to 2. "
         "THIS IS POTENTIALLY PROBLEMATIC.\n\n"
     )

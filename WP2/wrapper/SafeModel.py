@@ -3,11 +3,69 @@
 from __future__ import annotations
 
 import getpass
+import json
 import pickle
 from typing import Any
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
+
+
+def check_min(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
+    """Checks minimum value constraint."""
+    if cur_val > val:
+        possibly_disclosive = False
+        msg = (
+            f"- parameter {key} increased"
+            f" from recommended min value of {val} to {cur_val}."
+            " This is not problematic.\n"
+        )
+    else:
+        possibly_disclosive = True
+        msg = (
+            f"- parameter {key} decreased"
+            f" from recommended min value of {val} to {cur_val}."
+            " THIS IS POTENTIALLY PROBLEMATIC.\n"
+        )
+    return msg, possibly_disclosive
+
+
+def check_max(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
+    """Checks maximum value constraint."""
+    if cur_val < val:
+        possibly_disclosive = False
+        msg = (
+            f"- parameter {key} decreased"
+            f" from recommended max value of {val} to {cur_val}."
+            " This is not problematic.\n"
+        )
+    else:
+        possibly_disclosive = True
+        msg = (
+            f"- parameter {key} increased"
+            f" from recommended max value of {val} to {cur_val}."
+            " THIS IS POTENTIALLY PROBLEMATIC.\n"
+        )
+    return msg, possibly_disclosive
+
+
+def check_equal(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
+    """Checks equality value constraint."""
+    if cur_val == val:
+        possibly_disclosive = False
+        msg = (
+            f"- parameter {key} changed"
+            f" from value of {val} to recommended {cur_val}."
+            " This is not problematic.\n"
+        )
+    else:
+        possibly_disclosive = True
+        msg = (
+            f"- parameter {key} changed"
+            f" from recommended fixed value of {val} to {cur_val}."
+            " THIS IS POTENTIALLY PROBLEMATIC.\n"
+        )
+    return msg, possibly_disclosive
 
 
 class SafeModel:
@@ -41,79 +99,69 @@ class SafeModel:
 
     def get_constraints(self) -> dict:
         """Gets constraints relevant to the model type from the master read-only file."""
-        params: dict = {}
-        # TODO change to json format from text?
-        with open("params.txt", "r", encoding="utf-8") as file:
-            for line in file:
-                contents = line.split()
-                if contents[0] == self.model_type:
-                    key = contents[1]
-                    value = [contents[2], contents[3]]
-                    params[key] = value
-        return params
+        rules: dict = {}
+        with open("rules.json", "r", encoding="utf-8") as json_file:
+            parsed = json.load(json_file)
+            rules = parsed[self.model_type]
+        return rules["rules"]
 
-    def apply_constraints(self, **kwargs: Any) -> None:
-        """Sets model attributes according to constraints."""
-        params: dict = self.get_constraints()
-        for key, val in kwargs.items():
+    def __check_model_param(
+        self, rule: dict, apply_constraints: bool
+    ) -> tuple[str, bool]:
+        """Checks whether current model parameter has been changed from
+        constrained settings. Optionally fixes violations."""
+        op_msg: str = ""
+        op_disclosive: bool = False
+        operator: str = rule["operator"]
+        key: str = rule["keyword"]
+        val = rule["value"]
+        cur_val = getattr(self, key)
+        if cur_val == val:
+            op_msg = f"- parameter {key} unchanged at recommended value {val}"
+        elif operator == "min":
+            op_msg, op_disclosive = check_min(key, val, cur_val)
+        elif operator == "max":
+            op_msg, op_disclosive = check_max(key, val, cur_val)
+        elif operator == "equals":
+            op_msg, op_disclosive = check_equal(key, val, cur_val)
+        else:
+            op_msg = f"- unknown operator in parameter specification {operator}"
+        if apply_constraints and op_disclosive:
             setattr(self, key, val)
-        for key, (operator, recommended_val) in params.items():
-            # TODO distinguish between ints and floats as some models take both
-            # and behave differently ALSO need to  deal with not overriding safer values
-            # anad not sure there is any point using setattr rather than direct assignment
-            if operator in ("min", "max"):
-                setattr(self, key, int(recommended_val))
-            else:
-                setattr(self, key, recommended_val)
+        return op_msg, op_disclosive
 
-    def check_model_params(self) -> tuple[str, bool]:
+    def check_model_params(self, apply_constraints: bool = False) -> tuple[str, bool]:
         """Checks whether current model parameters have been changed from
-        constrained settings."""
+        constrained settings. Automatically fixes violated constraints."""
         possibly_disclosive: bool = False
         msg: str = ""
-        params: dict = self.get_constraints()
-        for key, (operator, recommended_val) in params.items():
-            current_val = str(eval(f"self.{key}"))
-            if current_val == recommended_val:
-                msg += f"- parameter {key} unchanged at recommended value {recommended_val}"
-            elif operator == "min":
-                if float(current_val) > float(recommended_val):
-                    msg += (
-                        f"- parameter {key} increased"
-                        f" from recommended min value of {recommended_val} to {current_val}."
-                        " This is not problematic.\n"
+        rules: dict = self.get_constraints()
+        for rule in rules:
+            op_disclosive = False
+            op_msg = ""
+            operator = rule["operator"]
+            if operator == "and":  # shallow sub rules
+                for arg in rule["subexpr"]:
+                    sop_msg, sop_disclosive = self.__check_model_param(
+                        arg, apply_constraints
                     )
-                else:
-                    possibly_disclosive = True
-                    msg += (
-                        f"- parameter {key} decreased"
-                        f" from recommended min value of {recommended_val} to {current_val}."
-                        " THIS IS POTENTIALLY PROBLEMATIC.\n"
-                    )
-            elif operator == "max":
-                if float(current_val) < float(recommended_val):
-                    msg += (
-                        f"- parameter {key} decreased"
-                        f" from recommended max value of {recommended_val} to {current_val}."
-                        " This is not problematic.\n"
-                    )
-                else:
-                    possibly_disclosive = True
-                    msg += (
-                        f"- parameter {key} increased"
-                        f" from recommended max value of {recommended_val} to {current_val}."
-                        " THIS IS POTENTIALLY PROBLEMATIC.\n"
-                    )
-            elif operator == "equals":
-                possibly_disclosive = True
-                msg += (
-                    f"- parameter {key} changed"
-                    f" from recommended fixed value of {recommended_val} to {current_val}."
-                    " THIS IS POTENTIALLY PROBLEMATIC.\n"
-                )
+                    op_msg += sop_msg
+                    if sop_disclosive:
+                        op_disclosive = True
+            elif operator == "or":  # no automatic fixing
+                for arg in rule["subexpr"]:
+                    op_disclosive = True
+                    sop_msg, sop_disclosive = self.__check_model_param(arg, False)
+                    op_msg += sop_msg
+                    if not sop_disclosive:
+                        op_disclosive = False
             else:
-                msg += f"- unknown operator in parameter specification {operator}"
-            msg += "\n"
+                op_msg, op_disclosive = self.__check_model_param(
+                    rule, apply_constraints
+                )
+            if op_disclosive:
+                possibly_disclosive = True
+            msg += op_msg + "\n"
         return msg, possibly_disclosive
 
     def request_release(self, filename: str = "undefined") -> None:
@@ -177,7 +225,7 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         SafeModel.__init__(self)
         DecisionTreeClassifier.__init__(self, **kwargs)
         self.model_type: str = "DecisionTreeClassifier"
-        super().apply_constraints(**kwargs)
+        super().check_model_params(apply_constraints=True)
 
 
 class SafeRandomForest(SafeModel, RandomForestClassifier):
@@ -188,7 +236,7 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         SafeModel.__init__(self)
         RandomForestClassifier.__init__(self, **kwargs)
         self.model_type: str = "RandomForestClassifier"
-        super().apply_constraints(**kwargs)
+        super().check_model_params(apply_constraints=True)
 
     # def __getattr__(self, attr):
     #    if attr in self.__dict__:

@@ -1,0 +1,35 @@
+{
+    "DecisionTreeClassifier": {
+        "rules": [
+            {
+                "keyword": "min_samples_leaf",
+                "operator": "min",
+                "value": 5
+            },
+            {
+                "keyword": "min_samples_leaf",
+                "operator": "max",
+                "value": 500
+            }
+        ]
+    },
+    "RandomForestClassifier": {
+        "rules": [
+            {
+                "operator": "and",
+                "subexpr": [
+                    {
+                        "keyword": "bootstrap",
+                        "operator": "equals",
+                        "value": true
+                    },
+                    {
+                        "keyword": "min_samples_leaf",
+                        "operator": "min",
+                        "value": 5
+                    }
+                ]
+            }
+        ]
+    }
+}

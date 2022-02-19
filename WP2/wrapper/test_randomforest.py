@@ -21,13 +21,10 @@ def test_randomforest_unchanged():
     model = SafeRandomForest(random_state=1)
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
-    msg, possibly_disclosive = model.preliminary_check()
-    correct_msg = (
-        "- parameter bootstrap unchanged at recommended value True"
-        "- parameter min_samples_leaf unchanged at recommended value 5\n"
-    )
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
     assert msg == correct_msg
-    assert possibly_disclosive is False
+    assert disclosive is False
 
 
 def test_randomforest_recommended():
@@ -37,14 +34,10 @@ def test_randomforest_recommended():
     model.min_samples_leaf = 6
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
-    msg, possibly_disclosive = model.preliminary_check()
-    correct_msg = (
-        "- parameter bootstrap unchanged at recommended value True"
-        "- parameter min_samples_leaf increased from recommended min value of 5 to 6. "
-        "This is not problematic.\n\n"
-    )
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
     assert msg == correct_msg
-    assert possibly_disclosive is False
+    assert disclosive is False
 
 
 def test_randomforest_unsafe_1():
@@ -54,14 +47,15 @@ def test_randomforest_unsafe_1():
     model.bootstrap = False
     model.fit(x, y)
     assert model.score(x, y) == 0.9735099337748344
-    msg, possibly_disclosive = model.preliminary_check()
+    msg, disclosive = model.preliminary_check()
     correct_msg = (
-        "- parameter bootstrap changed from recommended fixed value of True to False. "
-        "THIS IS POTENTIALLY PROBLEMATIC.\n"
-        "- parameter min_samples_leaf unchanged at recommended value 5\n"
+        "Model parameters are within recommended ranges.\n"
+        "- parameter bootstrap = False identified as different than the recommended "
+        "fixed value of True.\n"
+        "Changed parameter bootstrap = True.\n"
     )
     assert msg == correct_msg
-    assert possibly_disclosive is True
+    assert disclosive is False
 
 
 def test_randomforest_unsafe_2():
@@ -69,14 +63,15 @@ def test_randomforest_unsafe_2():
     model = SafeRandomForest(random_state=1)
     model.bootstrap = True
     model.min_samples_leaf = 2
-    msg, possibly_disclosive = model.preliminary_check()
+    msg, disclosive = model.preliminary_check()
     correct_msg = (
-        "- parameter bootstrap unchanged at recommended value True"
-        "- parameter min_samples_leaf decreased from recommended min value of 5 to 2. "
-        "THIS IS POTENTIALLY PROBLEMATIC.\n\n"
+        "Model parameters are within recommended ranges.\n"
+        "- parameter min_samples_leaf = 2 identified as less than the recommended "
+        "min value of 5.\n"
+        "Changed parameter min_samples_leaf = 5.\n"
     )
     assert msg == correct_msg
-    assert possibly_disclosive is True
+    assert disclosive is False
 
 
 def test_randomforest_unsafe_3():
@@ -84,12 +79,15 @@ def test_randomforest_unsafe_3():
     model = SafeRandomForest(random_state=1)
     model.bootstrap = False
     model.min_samples_leaf = 2
-    msg, possibly_disclosive = model.preliminary_check()
+    msg, disclosive = model.preliminary_check()
     correct_msg = (
-        "- parameter bootstrap changed from recommended fixed value of True to False. "
-        "THIS IS POTENTIALLY PROBLEMATIC.\n"
-        "- parameter min_samples_leaf decreased from recommended min value of 5 to 2. "
-        "THIS IS POTENTIALLY PROBLEMATIC.\n\n"
+        "Model parameters are within recommended ranges.\n"
+        "- parameter bootstrap = False identified as different than the recommended "
+        "fixed value of True.\n"
+        "Changed parameter bootstrap = True.\n"
+        "- parameter min_samples_leaf = 2 identified as less than the recommended "
+        "min value of 5.\n"
+        "Changed parameter min_samples_leaf = 5.\n"
     )
     assert msg == correct_msg
-    assert possibly_disclosive is True
+    assert disclosive is False

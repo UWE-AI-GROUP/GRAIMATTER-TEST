@@ -21,14 +21,10 @@ def test_decisiontree_unchanged():
     model = SafeDecisionTree(random_state=1)
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
-    msg, possibly_disclosive = model.preliminary_check()
-    correct_msg = (
-        "- parameter min_samples_leaf unchanged at recommended value 5\n"
-        "- parameter min_samples_leaf decreased from recommended "
-        "max value of 500 to 5. This is not problematic.\n\n"
-    )
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
     assert msg == correct_msg
-    assert possibly_disclosive is False
+    assert disclosive is False
 
 
 def test_decisiontree_safe_recommended():
@@ -38,14 +34,10 @@ def test_decisiontree_safe_recommended():
     model.min_samples_leaf = 5
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
-    msg, possibly_disclosive = model.preliminary_check()
-    correct_msg = (
-        "- parameter min_samples_leaf unchanged at recommended value 5\n"
-        "- parameter min_samples_leaf decreased from recommended "
-        "max value of 500 to 5. This is not problematic.\n\n"
-    )
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
     assert msg == correct_msg
-    assert possibly_disclosive is False
+    assert disclosive is False
 
 
 def test_decisiontree_safe():
@@ -56,27 +48,22 @@ def test_decisiontree_safe():
     model.fit(x, y)
     assert model.score(x, y) == 0.9536423841059603
     model.preliminary_check()
-    msg, possibly_disclosive = model.preliminary_check()
-    correct_msg = (
-        "- parameter min_samples_leaf increased from recommended "
-        "min value of 5 to 10. This is not problematic.\n\n"
-        "- parameter min_samples_leaf decreased from recommended "
-        "max value of 500 to 10. This is not problematic.\n\n"
-    )
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
     assert msg == correct_msg
-    assert possibly_disclosive is False
+    assert disclosive is False
 
 
 def test_decisiontree_unsafe():
     """SafeDecisionTree with unsafe changes."""
     model = SafeDecisionTree(random_state=1)
     model.min_samples_leaf = 1
-    msg, possibly_disclosive = model.preliminary_check()
+    msg, disclosive = model.preliminary_check()
     correct_msg = (
-        "- parameter min_samples_leaf decreased from recommended "
-        "min value of 5 to 1. THIS IS POTENTIALLY PROBLEMATIC.\n\n"
-        "- parameter min_samples_leaf decreased from recommended "
-        "max value of 500 to 1. This is not problematic.\n\n"
+        "Model parameters are within recommended ranges.\n"
+        "- parameter min_samples_leaf = 1 identified as less than the recommended "
+        "min value of 5.\n"
+        "Changed parameter min_samples_leaf = 5.\n"
     )
     assert msg == correct_msg
-    assert possibly_disclosive is True
+    assert disclosive is False

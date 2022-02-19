@@ -163,7 +163,7 @@ class SafeModel:
             if op_disclosive:
                 disclosive = True
         if disclosive:
-            msg = "WARNING: " "model parameters may present a disclosure risk:\n" + msg
+            msg = "WARNING: model parameters may present a disclosure risk:\n" + msg
         else:
             msg = "Model parameters are within recommended ranges.\n" + msg
         if verbose:

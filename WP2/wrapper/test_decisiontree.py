@@ -47,7 +47,6 @@ def test_decisiontree_safe():
     model.min_samples_leaf = 10
     model.fit(x, y)
     assert model.score(x, y) == 0.9536423841059603
-    model.preliminary_check()
     msg, disclosive = model.preliminary_check()
     correct_msg = "Model parameters are within recommended ranges.\n"
     assert msg == correct_msg

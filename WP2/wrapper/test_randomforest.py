@@ -80,7 +80,6 @@ def test_randomforest_unsafe_3():
     model.bootstrap = False
     model.min_samples_leaf = 2
     msg, disclosive = model.preliminary_check()
-
     correct_msg = (
         "WARNING: model parameters may present a disclosure risk:\n"
         "- parameter bootstrap = False identified as different than the recommended "

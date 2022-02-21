@@ -111,7 +111,6 @@ class SafeModel:
         if apply_constraints and disclosive:
             setattr(self, key, val)
             msg += f"\nChanged parameter {key} = {val}.\n"
-            disclosive = False
         return msg, disclosive
 
     def __check_model_param_and(

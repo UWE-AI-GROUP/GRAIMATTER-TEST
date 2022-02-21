@@ -65,16 +65,31 @@ def test_decisiontree_safe_2():
     assert disclosive is False
 
 
-def test_decisiontree_unsafe():
+def test_decisiontree_unsafe_1():
     """SafeDecisionTree with unsafe changes."""
+    x, y = get_data()
     model = SafeDecisionTree(random_state=1)
     model.min_samples_leaf = 1
+    model.fit(x, y)
+    assert model.score(x, y) == 1
     msg, disclosive = model.preliminary_check()
     correct_msg = (
-        "Model parameters are within recommended ranges.\n"
+        "WARNING: model parameters may present a disclosure risk:\n"
         "- parameter min_samples_leaf = 1 identified as less than the recommended "
         "min value of 5.\n"
         "Changed parameter min_samples_leaf = 5.\n"
     )
+    assert msg == correct_msg
+    assert disclosive is True
+
+
+def test_decisiontree_unsafe_2():
+    """SafeDecisionTree with unsafe changes - automatically fixed."""
+    x, y = get_data()
+    model = SafeDecisionTree(random_state=1, min_samples_leaf=1)
+    model.fit(x, y)
+    assert model.score(x, y) == 0.9668874172185431
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
     assert msg == correct_msg
     assert disclosive is False

@@ -49,13 +49,13 @@ def test_randomforest_unsafe_1():
     assert model.score(x, y) == 0.9735099337748344
     msg, disclosive = model.preliminary_check()
     correct_msg = (
-        "Model parameters are within recommended ranges.\n"
+        "WARNING: model parameters may present a disclosure risk:\n"
         "- parameter bootstrap = False identified as different than the recommended "
         "fixed value of True.\n"
         "Changed parameter bootstrap = True.\n"
     )
     assert msg == correct_msg
-    assert disclosive is False
+    assert disclosive is True
 
 
 def test_randomforest_unsafe_2():
@@ -65,13 +65,13 @@ def test_randomforest_unsafe_2():
     model.min_samples_leaf = 2
     msg, disclosive = model.preliminary_check()
     correct_msg = (
-        "Model parameters are within recommended ranges.\n"
+        "WARNING: model parameters may present a disclosure risk:\n"
         "- parameter min_samples_leaf = 2 identified as less than the recommended "
         "min value of 5.\n"
         "Changed parameter min_samples_leaf = 5.\n"
     )
     assert msg == correct_msg
-    assert disclosive is False
+    assert disclosive is True
 
 
 def test_randomforest_unsafe_3():
@@ -80,8 +80,9 @@ def test_randomforest_unsafe_3():
     model.bootstrap = False
     model.min_samples_leaf = 2
     msg, disclosive = model.preliminary_check()
+
     correct_msg = (
-        "Model parameters are within recommended ranges.\n"
+        "WARNING: model parameters may present a disclosure risk:\n"
         "- parameter bootstrap = False identified as different than the recommended "
         "fixed value of True.\n"
         "Changed parameter bootstrap = True.\n"
@@ -90,4 +91,4 @@ def test_randomforest_unsafe_3():
         "Changed parameter min_samples_leaf = 5.\n"
     )
     assert msg == correct_msg
-    assert disclosive is False
+    assert disclosive is True

@@ -40,11 +40,23 @@ def test_decisiontree_safe_recommended():
     assert disclosive is False
 
 
-def test_decisiontree_safe():
+def test_decisiontree_safe_1():
     """SafeDecisionTree with safe changes."""
     x, y = get_data()
     model = SafeDecisionTree(random_state=1)
     model.min_samples_leaf = 10
+    model.fit(x, y)
+    assert model.score(x, y) == 0.9536423841059603
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
+    assert msg == correct_msg
+    assert disclosive is False
+
+
+def test_decisiontree_safe_2():
+    """SafeDecisionTree with safe changes."""
+    x, y = get_data()
+    model = SafeDecisionTree(random_state=1, min_samples_leaf=10)
     model.fit(x, y)
     assert model.score(x, y) == 0.9536423841059603
     msg, disclosive = model.preliminary_check()

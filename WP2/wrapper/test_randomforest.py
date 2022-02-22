@@ -1,9 +1,11 @@
 """This module contains unit tests for the SafeRandomForest wrapper."""
 
-import numpy as np
-from sklearn import datasets
+import pickle
 
+import joblib
+import numpy as np
 from SafeModel import SafeRandomForest
+from sklearn import datasets
 
 
 def get_data():
@@ -22,13 +24,10 @@ def test_randomforest_unchanged():
     model = SafeRandomForest(random_state=1)
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
-    msg, possibly_disclosive = model.preliminary_check()
-    correct_msg = (
-        "- parameter bootstrap unchanged at recommended value True\n"
-        "- parameter min_samples_leaf unchanged at recommended value 5\n"
-    )
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
     assert msg == correct_msg
-    assert possibly_disclosive is False
+    assert disclosive is False
 
 
 def test_randomforest_recommended():
@@ -38,59 +37,74 @@ def test_randomforest_recommended():
     model.min_samples_leaf = 6
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
-    msg, possibly_disclosive = model.preliminary_check()
-    correct_msg = (
-        "- parameter bootstrap unchanged at recommended value True\n"
-        "- parameter min_samples_leaf increased from recommended min value of 5 to 6. "
-        "This is not problematic.\n\n"
-    )
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
     assert msg == correct_msg
-    assert possibly_disclosive is False
+    assert disclosive is False
 
 
 def test_randomforest_unsafe_1():
-    """SafeDecisionTree with unsafe changes."""
+    """SafeRandomForest with unsafe changes."""
     x, y = get_data()
     model = SafeRandomForest(random_state=1)
     model.bootstrap = False
     model.fit(x, y)
     assert model.score(x, y) == 0.9735099337748344
-    msg, possibly_disclosive = model.preliminary_check()
+    msg, disclosive = model.preliminary_check()
     correct_msg = (
-        "- parameter bootstrap changed from recommended fixed value of True to False. "
-        "THIS IS POTENTIALLY PROBLEMATIC.\n\n"
-        "- parameter min_samples_leaf unchanged at recommended value 5\n"
+        "WARNING: model parameters may present a disclosure risk:\n"
+        "- parameter bootstrap = False identified as different than the recommended "
+        "fixed value of True."
     )
     assert msg == correct_msg
-    assert possibly_disclosive is True
+    assert disclosive is True
 
 
 def test_randomforest_unsafe_2():
-    """SafeDecisionTree with unsafe changes."""
+    """SafeRandomForest with unsafe changes."""
     model = SafeRandomForest(random_state=1)
     model.bootstrap = True
     model.min_samples_leaf = 2
-    msg, possibly_disclosive = model.preliminary_check()
+    msg, disclosive = model.preliminary_check()
     correct_msg = (
-        "- parameter bootstrap unchanged at recommended value True\n"
-        "- parameter min_samples_leaf decreased from recommended min value of 5 to 2. "
-        "THIS IS POTENTIALLY PROBLEMATIC.\n\n"
+        "WARNING: model parameters may present a disclosure risk:\n"
+        "- parameter min_samples_leaf = 2 identified as less than the recommended "
+        "min value of 5."
     )
     assert msg == correct_msg
-    assert possibly_disclosive is True
+    assert disclosive is True
 
 
 def test_randomforest_unsafe_3():
-    """SafeDecisionTree with unsafe changes."""
+    """SafeRandomForest with unsafe changes."""
     model = SafeRandomForest(random_state=1)
     model.bootstrap = False
     model.min_samples_leaf = 2
-    msg, possibly_disclosive = model.preliminary_check()
+    msg, disclosive = model.preliminary_check()
     correct_msg = (
-        "- parameter bootstrap changed from recommended fixed value of True to False. "
-        "THIS IS POTENTIALLY PROBLEMATIC.\n\n"
-        "- parameter min_samples_leaf decreased from recommended min value of 5 to 2. "
-        "THIS IS POTENTIALLY PROBLEMATIC.\n\n"
+        "WARNING: model parameters may present a disclosure risk:\n"
+        "- parameter bootstrap = False identified as different than the recommended "
+        "fixed value of True."
+        "- parameter min_samples_leaf = 2 identified as less than the recommended "
+        "min value of 5."
     )
     assert msg == correct_msg
-    assert possibly_disclosive is True
+    assert disclosive is True
+
+
+def test_randomforest_save():
+    """SafeRandomForest model saving."""
+    x, y = get_data()
+    model = SafeRandomForest(random_state=1, min_samples_leaf=50)
+    model.fit(x, y)
+    assert model.score(x, y) == 0.6622516556291391
+    # test pickle
+    model.save("rf_test.pkl")
+    with open("rf_test.pkl", "rb") as file:
+        pkl_model = pickle.load(file)
+    assert pkl_model.score(x, y) == 0.6622516556291391
+    # test joblib
+    model.save("rf_test.sav")
+    with open("rf_test.sav", "rb") as file:
+        sav_model = joblib.load(file)
+    assert sav_model.score(x, y) == 0.6622516556291391

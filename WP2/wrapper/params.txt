@@ -1,3 +1,0 @@
-DecisionTreeClassifier min_samples_leaf min 5
-RandomForestClassifier bootstrap equals True
-RandomForestClassifier min_samples_leaf min 5

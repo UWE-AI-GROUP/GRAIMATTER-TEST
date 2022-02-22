@@ -3,11 +3,55 @@
 from __future__ import annotations
 
 import getpass
+import json
 import pickle
 from typing import Any
 
+import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
+
+
+def check_min(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
+    """Checks minimum value constraint."""
+    if cur_val < val:
+        disclosive = True
+        msg = (
+            f"- parameter {key} = {cur_val}"
+            f" identified as less than the recommended min value of {val}."
+        )
+    else:
+        disclosive = False
+        msg = ""
+    return msg, disclosive
+
+
+def check_max(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
+    """Checks maximum value constraint."""
+    if cur_val > val:
+        disclosive = True
+        msg = (
+            f"- parameter {key} = {cur_val}"
+            f" identified as greater than the recommended max value of {val}."
+        )
+    else:
+        disclosive = False
+        msg = ""
+    return msg, disclosive
+
+
+def check_equal(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
+    """Checks equality value constraint."""
+    if cur_val != val:
+        disclosive = True
+        msg = (
+            f"- parameter {key} = {cur_val}"
+            f" identified as different than the recommended fixed value of {val}."
+        )
+    else:
+        disclosive = False
+        msg = ""
+    return msg, disclosive
 
 
 class SafeModel:
@@ -25,96 +69,109 @@ class SafeModel:
         except BaseException:
             self.researcher = "unknown"
 
-    def save_model(self, name: str = "undefined") -> None:
+    def save(self, name: str = "undefined") -> None:
         """Writes model to file in appropriate format."""
         self.model_save_file = name
         while self.model_save_file == "undefined":
             self.model_save_file = input(
                 "Please input a name with extension for the model to be saved."
             )
-        # TODO implement more file types
-        if self.model_save_file[-4:] == ".pkl":
+        if self.model_save_file[-4:] == ".pkl":  # save to pickle
             with open(self.model_save_file, "wb") as file:
-                pickle.dump(self.model, file)
+                pickle.dump(self, file)
+        elif self.model_save_file[-4:] == ".sav":  # save to joblib
+            joblib.dump(self, self.model_save_file)
         else:
-            print("only .pkl file saves currently implemented")
+            suffix = self.model_save_file.split(".")[-1]
+            print(f"{suffix} file saves currently not supported")
 
-    def get_constraints(self) -> dict:
+    def __get_constraints(self) -> dict:
         """Gets constraints relevant to the model type from the master read-only file."""
-        params: dict = {}
-        # TODO change to json format from text?
-        with open("params.txt", "r", encoding="utf-8") as file:
-            for line in file:
-                contents = line.split()
-                if contents[0] == self.model_type:
-                    key = contents[1]
-                    value = [contents[2], contents[3]]
-                    params[key] = value
-        return params
+        rules: dict = {}
+        with open("rules.json", "r", encoding="utf-8") as json_file:
+            parsed = json.load(json_file)
+            rules = parsed[self.model_type]
+        return rules["rules"]
 
-    def apply_constraints(self, **kwargs: Any) -> None:
-        """Sets model attributes according to constraints."""
-        params: dict = self.get_constraints()
-        for key, val in kwargs.items():
-            setattr(self, key, val)
-        for key, (operator, recommended_val) in params.items():
-            # TODO distinguish between ints and floats as some models take both
-            # and behave differently ALSO need to  deal with not overriding safer values
-            # anad not sure there is any point using setattr rather than direct assignment
-            if operator in ("min", "max"):
-                setattr(self, key, int(recommended_val))
-            else:
-                setattr(self, key, recommended_val)
-
-    def check_model_params(self) -> tuple[str, bool]:
-        """Checks whether current model parameters have been changed from
-        constrained settings."""
-        possibly_disclosive: bool = False
+    def __check_model_param(
+        self, rule: dict, apply_constraints: bool
+    ) -> tuple[str, bool]:
+        """Checks whether a current model parameter violates a safe rule.
+        Optionally fixes violations."""
+        disclosive: bool = False
         msg: str = ""
-        params: dict = self.get_constraints()
-        for key, (operator, recommended_val) in params.items():
-            current_val = str(eval(f"self.{key}"))
-            if current_val == recommended_val:
-                msg += f"- parameter {key} unchanged at recommended value {recommended_val}"
-            elif operator == "min":
-                if float(current_val) > float(recommended_val):
-                    msg += (
-                        f"- parameter {key} increased"
-                        f" from recommended min value of {recommended_val} to {current_val}."
-                        " This is not problematic.\n"
-                    )
-                else:
-                    possibly_disclosive = True
-                    msg += (
-                        f"- parameter {key} decreased"
-                        f" from recommended min value of {recommended_val} to {current_val}."
-                        " THIS IS POTENTIALLY PROBLEMATIC.\n"
-                    )
-            elif operator == "max":
-                if float(current_val) < float(recommended_val):
-                    msg += (
-                        f"- parameter {key} decreased"
-                        f" from recommended max value of {recommended_val} to {current_val}."
-                        " This is not problematic.\n"
-                    )
-                else:
-                    possibly_disclosive = True
-                    msg += (
-                        f"- parameter {key} increased"
-                        f" from recommended max value of {recommended_val} to {current_val}."
-                        " THIS IS POTENTIALLY PROBLEMATIC.\n"
-                    )
-            elif operator == "equals":
-                possibly_disclosive = True
-                msg += (
-                    f"- parameter {key} changed"
-                    f" from recommended fixed value of {recommended_val} to {current_val}."
-                    " THIS IS POTENTIALLY PROBLEMATIC.\n"
+        operator: str = rule["operator"]
+        key: str = rule["keyword"]
+        val: Any = rule["value"]
+        cur_val: Any = getattr(self, key)
+        if operator == "min":
+            msg, disclosive = check_min(key, val, cur_val)
+        elif operator == "max":
+            msg, disclosive = check_max(key, val, cur_val)
+        elif operator == "equals":
+            msg, disclosive = check_equal(key, val, cur_val)
+        else:
+            msg = f"- unknown operator in parameter specification {operator}"
+        if apply_constraints and disclosive:
+            setattr(self, key, val)
+            msg += f"\nChanged parameter {key} = {val}.\n"
+        return msg, disclosive
+
+    def __check_model_param_and(
+        self, rule: dict, apply_constraints: bool
+    ) -> tuple[str, bool]:
+        """Checks whether current model parameters violate a logical AND rule.
+        Optionally fixes violations."""
+        disclosive: bool = False
+        msg: str = ""
+        for arg in rule["subexpr"]:
+            op_msg, op_disclosive = self.__check_model_param(arg, apply_constraints)
+            msg += op_msg
+            if op_disclosive:
+                disclosive = True
+        return msg, disclosive
+
+    def __check_model_param_or(self, rule: dict) -> tuple[str, bool]:
+        """Checks whether current model parameters violate a logical OR rule."""
+        disclosive: bool = True
+        msg: str = ""
+        for arg in rule["subexpr"]:
+            op_msg, op_disclosive = self.__check_model_param(arg, False)
+            msg += op_msg
+            if not op_disclosive:
+                disclosive = False
+        return msg, disclosive
+
+    def preliminary_check(
+        self, verbose: bool = True, apply_constraints: bool = False
+    ) -> tuple[str, bool]:
+        """Checks whether current model parameters violate the safe rules.
+        Optionally fixes violations."""
+        disclosive: bool = False
+        msg: str = ""
+        rules: dict = self.__get_constraints()
+        for rule in rules:
+            operator = rule["operator"]
+            if operator == "and":
+                op_msg, op_disclosive = self.__check_model_param_and(
+                    rule, apply_constraints
                 )
+            elif operator == "or":
+                op_msg, op_disclosive = self.__check_model_param_or(rule)
             else:
-                msg += f"- unknown operator in parameter specification {operator}"
-            msg += "\n"
-        return msg, possibly_disclosive
+                op_msg, op_disclosive = self.__check_model_param(
+                    rule, apply_constraints
+                )
+            msg += op_msg
+            if op_disclosive:
+                disclosive = True
+        if disclosive:
+            msg = "WARNING: model parameters may present a disclosure risk:\n" + msg
+        else:
+            msg = "Model parameters are within recommended ranges.\n" + msg
+        if verbose:
+            print(msg)
+        return msg, disclosive
 
     def request_release(self, filename: str = "undefined") -> None:
         """Saves model to filename specified and creates a report for the TRE
@@ -123,46 +180,24 @@ class SafeModel:
             print("You must provide the name of the file you want to save your model")
             print("For security reasons, this will overwrite previous versions")
         else:
-            # resave the model
-            # ideally we would then prevent over-writing
-            self.filename = filename
-            self.save_model(filename)
-            msg, possibly_disclosive = self.check_model_params()
-            outputfilename: str = self.researcher + "_checkfile.txt"
+            self.save(filename)
+            msg, disclosive = self.preliminary_check(verbose=False)
+            output: dict = {
+                "researcher": self.researcher,
+                "model_type": self.model_type,
+                "model_save_file": self.model_save_file,
+                "details": msg,
+            }
+            if disclosive:
+                output["recommendation"] = "Do not allow release"
+            else:
+                output[
+                    "recommendation"
+                ] = f"Run file {filename} through next step of checking procedure"
+            json_str = json.dumps(output, indent=4)
+            outputfilename = self.researcher + "_checkfile.json"
             with open(outputfilename, "a", encoding="utf-8") as file:
-                file.write(
-                    f"{self.researcher} created model of type {self.model_type}"
-                    f" saved as {self.model_save_file}\n"
-                )
-                if possibly_disclosive:
-                    file.write(
-                        "WARNING: model has been changed"
-                        f" in way that increases disclosure risk:\n{msg}\n"
-                        f"RECOMMENDATION: Do not allow release of file {filename}\n\n"
-                    )
-                else:
-                    file.write(
-                        "Model has not been changed to increase risk of disclosure:\n"
-                        f"{msg}\n"
-                        "RECOMMENDATION: "
-                        f"Run file {filename} through next step of checking procedure\n\n"
-                    )
-
-    def preliminary_check(self) -> tuple[str, bool]:
-        """Allows user to test whether model parameters break safety
-        constraints prior to requesting release."""
-        msg, possibly_disclosive = self.check_model_params()
-        if possibly_disclosive:
-            print(
-                "WARNING: model has been changed in way that increases disclosure risk:\n"
-            )
-        else:
-            print(
-                "Model has not been changed to increase risk of disclosure.\n"
-                " These are the params:"
-            )
-        print(msg + "\n")
-        return msg, possibly_disclosive
+                file.write(json_str)
 
     def __str__(self) -> str:
         """Returns string with model description."""
@@ -177,7 +212,7 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         SafeModel.__init__(self)
         DecisionTreeClassifier.__init__(self, **kwargs)
         self.model_type: str = "DecisionTreeClassifier"
-        super().apply_constraints(**kwargs)
+        super().preliminary_check(apply_constraints=True, verbose=True)
 
 
 class SafeRandomForest(SafeModel, RandomForestClassifier):
@@ -188,7 +223,7 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         SafeModel.__init__(self)
         RandomForestClassifier.__init__(self, **kwargs)
         self.model_type: str = "RandomForestClassifier"
-        super().apply_constraints(**kwargs)
+        super().preliminary_check(apply_constraints=True, verbose=True)
 
     # def __getattr__(self, attr):
     #    if attr in self.__dict__:

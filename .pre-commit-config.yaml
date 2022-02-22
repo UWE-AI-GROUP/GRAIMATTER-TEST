@@ -14,7 +14,7 @@ repos:
     rev: v2.1.0
     hooks:
       - id: codespell
-        args: ["-L", "tre, sav"]
+        args: ["-L", "fpr, tre, sav"]
         exclude: >
             (?x)^(
                 .*\.svg|

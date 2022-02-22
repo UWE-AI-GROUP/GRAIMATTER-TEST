@@ -14,8 +14,12 @@ repos:
     rev: v2.1.0
     hooks:
       - id: codespell
-        exclude: ".ipynb"
         args: ["-L", "tre, sav"]
+        exclude: >
+            (?x)^(
+                .*\.svg|
+                .*\.ipynb
+            )$
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.30.0
     hooks:

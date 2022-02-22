@@ -88,9 +88,6 @@ def test_randomforest_unsafe_3():
         "- parameter min_samples_leaf = 2 identified as less than the recommended "
         "min value of 5."
     )
-
-    print("this is what is being compoared" + "\nthe_msg = " + msg)
-    print("cor_msg = " + correct_msg + "\nend")
     assert msg == correct_msg
     assert disclosive is True
 

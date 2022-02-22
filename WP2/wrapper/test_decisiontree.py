@@ -81,7 +81,6 @@ def test_decisiontree_unsafe_1():
         "- parameter min_samples_leaf = 1 identified as less than the recommended "
         "min value of 5."
     )
-
     assert msg == correct_msg
     assert disclosive is True
 

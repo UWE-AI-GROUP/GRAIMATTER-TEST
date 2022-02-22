@@ -54,8 +54,7 @@ def test_randomforest_unsafe_1():
     correct_msg = (
         "WARNING: model parameters may present a disclosure risk:\n"
         "- parameter bootstrap = False identified as different than the recommended "
-        "fixed value of True.\n"
-        "Changed parameter bootstrap = True.\n"
+        "fixed value of True."
     )
     assert msg == correct_msg
     assert disclosive is True
@@ -70,8 +69,7 @@ def test_randomforest_unsafe_2():
     correct_msg = (
         "WARNING: model parameters may present a disclosure risk:\n"
         "- parameter min_samples_leaf = 2 identified as less than the recommended "
-        "min value of 5.\n"
-        "Changed parameter min_samples_leaf = 5.\n"
+        "min value of 5."
     )
     assert msg == correct_msg
     assert disclosive is True
@@ -86,12 +84,13 @@ def test_randomforest_unsafe_3():
     correct_msg = (
         "WARNING: model parameters may present a disclosure risk:\n"
         "- parameter bootstrap = False identified as different than the recommended "
-        "fixed value of True.\n"
-        "Changed parameter bootstrap = True.\n"
+        "fixed value of True."
         "- parameter min_samples_leaf = 2 identified as less than the recommended "
-        "min value of 5.\n"
-        "Changed parameter min_samples_leaf = 5.\n"
+        "min value of 5."
     )
+
+    print("this is what is being compoared" + "\nthe_msg = " + msg)
+    print("cor_msg = " + correct_msg + "\nend")
     assert msg == correct_msg
     assert disclosive is True
 

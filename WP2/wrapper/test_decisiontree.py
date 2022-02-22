@@ -79,9 +79,9 @@ def test_decisiontree_unsafe_1():
     correct_msg = (
         "WARNING: model parameters may present a disclosure risk:\n"
         "- parameter min_samples_leaf = 1 identified as less than the recommended "
-        "min value of 5.\n"
-        "Changed parameter min_samples_leaf = 5.\n"
+        "min value of 5."
     )
+
     assert msg == correct_msg
     assert disclosive is True
 

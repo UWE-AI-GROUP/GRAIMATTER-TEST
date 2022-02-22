@@ -143,7 +143,7 @@ class SafeModel:
         return msg, disclosive
 
     def preliminary_check(
-        self, verbose: bool = True, apply_constraints: bool = True
+        self, verbose: bool = True, apply_constraints: bool = False
     ) -> tuple[str, bool]:
         """Checks whether current model parameters violate the safe rules.
         Optionally fixes violations."""
@@ -212,7 +212,7 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         SafeModel.__init__(self)
         DecisionTreeClassifier.__init__(self, **kwargs)
         self.model_type: str = "DecisionTreeClassifier"
-        super().preliminary_check(verbose=False)
+        super().preliminary_check(apply_constraints=True, verbose=True)
 
 
 class SafeRandomForest(SafeModel, RandomForestClassifier):
@@ -223,7 +223,7 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         SafeModel.__init__(self)
         RandomForestClassifier.__init__(self, **kwargs)
         self.model_type: str = "RandomForestClassifier"
-        super().preliminary_check(verbose=False)
+        super().preliminary_check(apply_constraints=True, verbose=True)
 
     # def __getattr__(self, attr):
     #    if attr in self.__dict__:

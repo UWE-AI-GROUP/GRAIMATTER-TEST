@@ -130,7 +130,10 @@ dmypy.json
 
 
 # Saved pickle files
-.pkl
+*.pkl
+
+# Saved joblib files
+*.sav
 
 # Data folder
 /data

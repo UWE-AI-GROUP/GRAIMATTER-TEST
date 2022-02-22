@@ -180,25 +180,24 @@ class SafeModel:
             print("You must provide the name of the file you want to save your model")
             print("For security reasons, this will overwrite previous versions")
         else:
-            self.filename = filename
             self.save(filename)
             msg, disclosive = self.preliminary_check(verbose=False)
-            outputfilename = self.researcher + "_checkfile.txt"
+            output: dict = {
+                "researcher": self.researcher,
+                "model_type": self.model_type,
+                "model_save_file": self.model_save_file,
+                "details": msg,
+            }
+            if disclosive:
+                output["recommendation"] = "Do not allow release"
+            else:
+                output[
+                    "recommendation"
+                ] = f"Run file {filename} through next step of checking procedure"
+            json_str = json.dumps(output, indent=4)
+            outputfilename = self.researcher + "_checkfile.json"
             with open(outputfilename, "a", encoding="utf-8") as file:
-                file.write(
-                    f"{self.researcher} created model of type {self.model_type}"
-                    f" saved as {self.model_save_file}\n"
-                )
-                if disclosive:
-                    file.write(
-                        f"{msg}RECOMMENDATION:"
-                        f" Do not allow release of file {filename}\n\n"
-                    )
-                else:
-                    file.write(
-                        f"{msg}RECOMMENDATION:"
-                        f" Run file {filename} through next step of checking procedure\n\n"
-                    )
+                file.write(json_str)
 
     def __str__(self) -> str:
         """Returns string with model description."""

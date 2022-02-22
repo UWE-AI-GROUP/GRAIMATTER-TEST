@@ -35,10 +35,10 @@ This document is etc etc
 
 ## Metrics and technical terms ##
 
-**Mechanism** is a term describing a procedure which takes a dataset and outputs some information about it. Usually, this is random-valued and considered for fixed data. As an example, given data $D=(X_1, X_2, X_3)$, a mechanism $M$ might return $M(D)=(X_1+X_2+X_3)/3 + \lambda$, where $\lambda$ is a random variable. 
+**Mechanism** is a term describing a procedure which takes a dataset and outputs some information about it. Usually, this is random-valued and considered for fixed data. As an example, given data $D=(X_1, X_2, X_3)$, a mechanism $M$ might return $M(D)=(X_1+X_2+X_3)/3 + \lambda$, where $\lambda$ is a random variable.
 
 **Differential Privacy** is a measure assigned to an output mechanism roughly stating how similar outputs can be when their training data differs by only a single sample. Limiting differential privacy ensures that a malicious attacker with access to all-but-one of the training samples would have difficulty inferring the values of the last training sample. For a full definition and treatment see [The Algorithmic Foundations of Differential Privacy](https://www.cis.upenn.edu/~aaroth/Papers/privacybook.pdf), particularly chapters 2 and 3. Differential privacy can be quantified as
- - $\epsilon$-differential privacy: the probability/density of seeing some output of the model _never_ changes by more than a factor of $e^{\epsilon}$ when changing one sample 
+ - $\epsilon$-differential privacy: the probability/density of seeing some output of the model _never_ changes by more than a factor of $e^{\epsilon}$ when changing one sample
  - ($\epsilon,\delta$)-differential privacy: the probability/density of seeing some output of the model _usually_ does not by more than a factor of $e^{\epsilon}$ when changing one sample, except for a set of values which have probability $\delta$ of being observed.
 The lower $\epsilon$ and $\delta$, the more private the mechanism. Typically, lower $\epsilon$ and $\delta$ correspond to less _useful_ mechanisms, in that they contain less useful information about the true dataset.
 
@@ -63,7 +63,7 @@ The lower $\epsilon$ and $\delta$, the more private the mechanism. Typically, lo
  - boosting
 
 ## Trained ML behaviours ##
-**Overfitting** Models that remember and model the training data too well and do not generalise well for unseen data. They can be more prone to membership attacks. 
+**Overfitting** Models that remember and model the training data too well and do not generalise well for unseen data. They can be more prone to membership attacks.
 Typically, small training datasets can lead to overfitted models, especially if the data points have many features. A bad choice of hyperparameters can also lead to overfitting (for example, excessively big NN for simple classification tasks can lead to overfitting).
 
 Methods to reduce overfitting include increasing the training dataset size, possibly using *data augmentation techniques* and optimizing the choice of hyperparameters, possibly with cross validation. In neural networks, it is often beneficial to include *dropout* layers, which randomly deactivate neurons during training (effectively making the training procedure more noisy) and to include regularization methods (which add additional terms to the loss function that penalize overfitting). Differentially private optimizers (such as DP-SGD) add noise during the optimization steps and often lead to better generalization.

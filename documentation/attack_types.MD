@@ -8,7 +8,7 @@ This document summarises the different attack types that we are considering. The
 
 **Membership Inference Attack**: a form of attack in which the attacker has a data object and they wish to determine whether or not that data object was part of the training set.
 
-**Target Model**: the machine learning model that has been trained within the TRE and that researchers want to release. The model can be queried by presenting values to the inputs and observing the predictions that it makes. Attackers can also look within the model object to potentially see the parameters of the model, its architecture and, for example, how it was optimised. The target model will be trained on data observations (health parameters for indiviuals etc, or images)
+**Target Model**: the machine learning model that has been trained within the TRE and that researchers want to release. The model can be queried by presenting values to the inputs and observing the predictions that it makes. Attackers can also look within the model object to potentially see the parameters of the model, its architecture and, for example, how it was optimised. The target model will be trained on data observations (health parameters for individuals etc, or images)
 
 **Attack Model**: the model that the attacker will use to determine if, for example, the data example they have is part of the training set or not (for MIA). Attack models are typically not trained on health parameters, but trained on the _probabilities_ obtained when the data object is passed through a predictive model.
 
@@ -33,7 +33,7 @@ This is the scenario used in [Rezaei](https://openaccess.thecvf.com/content/CVPR
 
 ### How it works
 
-The attacker has _white box_ access to the target model. The attacker also has access to the data used to train the model and a second dataset from the same distribution (e.g. the original data is split into training and test portions and the attacker has access to both). They attempt to develop a predictor of whether a sample is in the training set using _only_ the probabilities outputted from the target model. This can be thought of as an attacker interal to the TRE who plans to leak a model which can be used for MIAs outside it.
+The attacker has _white box_ access to the target model. The attacker also has access to the data used to train the model and a second dataset from the same distribution (e.g. the original data is split into training and test portions and the attacker has access to both). They attempt to develop a predictor of whether a sample is in the training set using _only_ the probabilities outputted from the target model. This can be thought of as an attacker internal to the TRE who plans to leak a model which can be used for MIAs outside it.
 
 There is no shadow model in this attack (it is not required).
 
@@ -49,7 +49,7 @@ This is the attack format presented in the original Shokri paper, in which Membe
 
 The attacker knows the structure of the target model (i.e. what type of model it is, and perhaps hyper-parameters). The attacker does not have access to the exact training data. This can be thought of as an attacker outside the TRE but roughly familiar with the practices used inside it.
 
-The attacker builds a number of shadow models. Each shadow model is an estimate of the target model (i.e. they are trained to perform the same task as the target model). Because the attacker doesn't have access to the actual training data, they have to synthesise data to train the shadow models. 
+The attacker builds a number of shadow models. Each shadow model is an estimate of the target model (i.e. they are trained to perform the same task as the target model). Because the attacker doesn't have access to the actual training data, they have to synthesise data to train the shadow models.
 
 Each shadow model can then be presented with the data that trained it, and data that didn't, to generate the predictive probabilities that can be used to train an attack model.
 
@@ -57,7 +57,7 @@ Shokri presents several methods for the creation of this synthetic data for trai
 
 ## Salem scenario 1
 
-Salem's first scenario sits somewhere inbetween _Worst Case_ and Shokri. It is assumed that the attacker doesn't have access to the training data, but has access to other data from the same distribution. This can be simulated by partitioning the data at source. The attacker is assumed to _not_ have access to knowledge about the target model's structure and creates only one shadow model.
+Salem's first scenario sits somewhere in between _Worst Case_ and Shokri. It is assumed that the attacker doesn't have access to the training data, but has access to other data from the same distribution. This can be simulated by partitioning the data at source. The attacker is assumed to _not_ have access to knowledge about the target model's structure and creates only one shadow model.
 
 ### How does it work?
 
@@ -67,11 +67,11 @@ Salem shows that it isn't necessary for the shadow model to have the same form a
 
 ## Salem scenario 2
 
-In Salem's second scenario, the restriction that the shadow model training data comes from the same distribution as the data used to train the taret model is also lifted. i.e. the attacker has neither training data from the real distrubition nor knowledge of the target model structure. Salem use completely different datasets to train the shadow model. This is markedly different to Shokri who, when faced with not having data from the same distribution as that used to train the target model attempted to synthesise something similar. Salem show that shadow models trained on different data completely can provide predictions that allow successful attack models to be trained.
+In Salem's second scenario, the restriction that the shadow model training data comes from the same distribution as the data used to train the target model is also lifted. i.e. the attacker has neither training data from the real distribution nor knowledge of the target model structure. Salem use completely different datasets to train the shadow model. This is markedly different to Shokri who, when faced with not having data from the same distribution as that used to train the target model attempted to synthesise something similar. Salem show that shadow models trained on different data completely can provide predictions that allow successful attack models to be trained.
 
 ## Salem scenario 3
 
-In Salem's third scenario, the attacker does not use an attack model at all. The observations for which the attacker wants to perfom the MI are passed through the target point and the highest class probability for each one is compared against a threshold to predict whether or not it belonged to the training set or not (above threshold = in training set).
+In Salem's third scenario, the attacker does not use an attack model at all. The observations for which the attacker wants to perform the MI are passed through the target point and the highest class probability for each one is compared against a threshold to predict whether or not it belonged to the training set or not (above threshold = in training set).
 
 ### How it works
 
@@ -107,11 +107,11 @@ The true positive rate, also known as the _sensitivity_ is computed as TP / (TP 
 
 Using the definitions above, the TNR is defined as TN / (TN + FP) which can be interpreted as the proportion of examples that were not in the training set that were correctly classified. Also known as the _specificity_.
 
-## False Positive Rate 
+## False Positive Rate
 
 FPR is defined as FP / (FP + TN) (also known as the complementary specificity) and can be interpreted as the proportion of examples that were not in the training set that were incorrectly classified.
 
-## False Alarm Rate 
+## False Alarm Rate
 
 FAR is defined as FP / (FP + TP) which can be interpreted as the proportion of things classified as being in the training set that were wrong (i.e. not in).
 
@@ -135,7 +135,7 @@ NLR = FNR / TNR
 
 ## Odds Ratio (OR)
 
-OR find the likelihood ratio of an outcome of an event when there are two possible outcomes, as is defined as 
+OR find the likelihood ratio of an outcome of an event when there are two possible outcomes, as is defined as
 
 OR =  PLR / NLR
 

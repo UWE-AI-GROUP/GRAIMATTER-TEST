@@ -7,6 +7,7 @@ import json
 import pickle
 from typing import Any
 
+import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 
@@ -68,18 +69,21 @@ class SafeModel:
         except BaseException:
             self.researcher = "unknown"
 
-    def save_model(self, name: str = "undefined") -> None:
+    def save(self, name: str = "undefined") -> None:
         """Writes model to file in appropriate format."""
         self.model_save_file = name
         while self.model_save_file == "undefined":
             self.model_save_file = input(
                 "Please input a name with extension for the model to be saved."
             )
-        if self.model_save_file[-4:] == ".pkl":
+        if self.model_save_file[-4:] == ".pkl":  # save to pickle
             with open(self.model_save_file, "wb") as file:
-                pickle.dump(self.model, file)
+                pickle.dump(self, file)
+        elif self.model_save_file[-4:] == ".sav":  # save to joblib
+            joblib.dump(self, self.model_save_file)
         else:
-            print("only .pkl file saves currently implemented")
+            suffix = self.model_save_file.split(".")[-1]
+            print(suffix + "file saves currently not supported")
 
     def __get_constraints(self) -> dict:
         """Gets constraints relevant to the model type from the master read-only file."""

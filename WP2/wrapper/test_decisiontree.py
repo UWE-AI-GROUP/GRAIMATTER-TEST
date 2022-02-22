@@ -1,5 +1,8 @@
 """This module contains unit tests for the SafeDecisionTree wrapper."""
 
+import pickle
+
+import joblib
 import numpy as np
 from SafeModel import SafeDecisionTree
 from sklearn import datasets
@@ -93,3 +96,21 @@ def test_decisiontree_unsafe_2():
     correct_msg = "Model parameters are within recommended ranges.\n"
     assert msg == correct_msg
     assert disclosive is False
+
+
+def test_decisiontree_save():
+    """SafeDecisionTree model saving."""
+    x, y = get_data()
+    model = SafeDecisionTree(random_state=1, min_samples_leaf=50)
+    model.fit(x, y)
+    assert model.score(x, y) == 0.9470198675496688
+    # test pickle
+    model.save("dt_test.pkl")
+    with open("dt_test.pkl", "rb") as file:
+        pkl_model = pickle.load(file)
+    assert pkl_model.score(x, y) == 0.9470198675496688
+    # test joblib
+    model.save("dt_test.sav")
+    with open("dt_test.sav", "rb") as file:
+        sav_model = joblib.load(file)
+    assert sav_model.score(x, y) == 0.9470198675496688

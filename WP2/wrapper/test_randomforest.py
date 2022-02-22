@@ -1,5 +1,8 @@
 """This module contains unit tests for the SafeRandomForest wrapper."""
 
+import pickle
+
+import joblib
 import numpy as np
 from SafeModel import SafeRandomForest
 from sklearn import datasets
@@ -41,7 +44,7 @@ def test_randomforest_recommended():
 
 
 def test_randomforest_unsafe_1():
-    """SafeDecisionTree with unsafe changes."""
+    """SafeRandomForest with unsafe changes."""
     x, y = get_data()
     model = SafeRandomForest(random_state=1)
     model.bootstrap = False
@@ -59,7 +62,7 @@ def test_randomforest_unsafe_1():
 
 
 def test_randomforest_unsafe_2():
-    """SafeDecisionTree with unsafe changes."""
+    """SafeRandomForest with unsafe changes."""
     model = SafeRandomForest(random_state=1)
     model.bootstrap = True
     model.min_samples_leaf = 2
@@ -75,7 +78,7 @@ def test_randomforest_unsafe_2():
 
 
 def test_randomforest_unsafe_3():
-    """SafeDecisionTree with unsafe changes."""
+    """SafeRandomForest with unsafe changes."""
     model = SafeRandomForest(random_state=1)
     model.bootstrap = False
     model.min_samples_leaf = 2
@@ -91,3 +94,21 @@ def test_randomforest_unsafe_3():
     )
     assert msg == correct_msg
     assert disclosive is True
+
+
+def test_randomforest_save():
+    """SafeRandomForest model saving."""
+    x, y = get_data()
+    model = SafeRandomForest(random_state=1, min_samples_leaf=50)
+    model.fit(x, y)
+    assert model.score(x, y) == 0.6622516556291391
+    # test pickle
+    model.save("rf_test.pkl")
+    with open("rf_test.pkl", "rb") as file:
+        pkl_model = pickle.load(file)
+    assert pkl_model.score(x, y) == 0.6622516556291391
+    # test joblib
+    model.save("rf_test.sav")
+    with open("rf_test.sav", "rb") as file:
+        sav_model = joblib.load(file)
+    assert sav_model.score(x, y) == 0.6622516556291391

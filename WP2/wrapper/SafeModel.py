@@ -83,7 +83,7 @@ class SafeModel:
             joblib.dump(self, self.model_save_file)
         else:
             suffix = self.model_save_file.split(".")[-1]
-            print(suffix + "file saves currently not supported")
+            print(f"{suffix} file saves currently not supported")
 
     def __get_constraints(self) -> dict:
         """Gets constraints relevant to the model type from the master read-only file."""

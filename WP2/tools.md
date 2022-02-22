@@ -2,10 +2,16 @@
 
 ## Assessment Criteria
 
-* "[Libraries.io](https://libraries.io) indexes data from 5,086,238 packages from 32 package managers. We monitor package releases, analyse each project's code, community, distribution and documentation, and we map the relationships between packages when they're declared as a dependency."
-* It generates a "source rank" for many projects, which is based on a set of criteria that include the project documentation, licenses, recency and number of versions available, whether [semantic version numbering](https://semver.org) is used, popularity measures such as github stars, the number of contributors, and how many packages or repositories are dependent on the project.
-
-Following this general criteria, below are notes on some tools:
+* Project license
+* Project documentation and tutorials
+* Project based on peer-reviewed publication(s)
+* Project version numbered and has a version tagged as a release
+* Project recency and update frequency
+* Project popularity (e.g., GitHub stars and contributors)
+* Project quality assurance (e.g., use of unit tests, static analysis, and continuous integration tools)
+* Project distribution: location and ease of installation with current platforms/software
+* Project ease of use: including output analysis metrics and/or visualisations
+* Number of and quality of other projects that use/depend on the project
 
 ---------------------
 

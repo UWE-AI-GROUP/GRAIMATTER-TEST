@@ -181,7 +181,7 @@ class SafeModel:
             print("For security reasons, this will overwrite previous versions")
         else:
             self.filename = filename
-            self.save_model(filename)
+            self.save(filename)
             msg, disclosive = self.preliminary_check(verbose=False)
             outputfilename = self.researcher + "_checkfile.txt"
             with open(outputfilename, "a", encoding="utf-8") as file:

@@ -51,6 +51,6 @@ Referenced in Zillet at al (2021) *Medical imaging deep learning with differenti
 
 European Genome-Phenome Archive [EGA](https://ega-archive.org/). Access needs to be requested for each data set.
 
-The database of Genotypes and Phenotypes [dbGaP](https://www.ncbi.nlm.nih.gov/gap/). This database might be crosslinked witht EGA. Also access need to be requested to access some of the data.
+The database of Genotypes and Phenotypes [dbGaP](https://www.ncbi.nlm.nih.gov/gap/). This database might be crosslinked with EGA. Also access need to be requested to access some of the data.
 
 For example the *Lothian Birth cohort* contains several types of genomics data, some of which access can be requested. An example is this dataset [methilation age and mortality](https://ega-archive.org/studies/phs000821)

@@ -174,3 +174,15 @@
 * Popularity: 19 stars; 1 contributor
 * Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
 * Description: Implementation of an attribute inference defence described by [Jia and Gong (2018)](https://arxiv.org/abs/1805.04810): In Phase I, for each value of the attribute, we find a minimum noise such that if we add the noise to the user's public data, then the attacker's classifier is very likely to infer the attribute value for the user. We find the minimum noise via adapting existing evasion attacks in adversarial machine learning. In Phase II, we sample one attribute value according to a certain probability distribution and add the corresponding noise found in Phase I to the user's public data.
+
+---------------------
+
+## [MemGuard](https://github.com/jjy1994/MemGuard)
+
+* Category: Defences
+* License: None
+* Source: available on github
+* Distribution: no distributions available
+* Popularity: 31 stars; 1 contributor
+* Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
+* Description: Implementation of a membership inference defence described by [Jia et al. (2019)](https://arxiv.org/abs/1909.10594): In Phase I, MemGuard finds a carefully crafted noise vector that can turn a confidence score vector into an adversarial example, which is likely to mislead the attacker's classifier to make a random guessing at member or non-member. We find such carefully crafted noise vector via a new method that we design to incorporate the unique utility-loss constraints on the noise vector. In Phase II, MemGuard adds the noise vector to the confidence score vector with a certain probability, which is selected to satisfy a given utility-loss budget on the confidence score vector

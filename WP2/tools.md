@@ -162,3 +162,15 @@
 * Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
 * Description: Implementation of membership inference and model inversion attacks, extracting training data information from an ML model.
 * Notes: Project is archived (read-only).
+
+---------------------
+
+## [AttriGuard](https://github.com/jjy1994/AttriGuard)
+
+* Category: Defences
+* License: None
+* Source: available on github
+* Distribution: no distributions available
+* Popularity: 19 stars; 1 contributor
+* Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
+* Description: Implementation of an attribute inference defence described by [Jia and Gong (2018)](https://arxiv.org/abs/1805.04810): In Phase I, for each value of the attribute, we find a minimum noise such that if we add the noise to the user's public data, then the attacker's classifier is very likely to infer the attribute value for the user. We find the minimum noise via adapting existing evasion attacks in adversarial machine learning. In Phase II, we sample one attribute value according to a certain probability distribution and add the corresponding noise found in Phase I to the user's public data.

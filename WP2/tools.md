@@ -139,3 +139,26 @@
 * Notes: To train the base model, shadow model, and run an attack on that dataset: `python demo.py --train_model --train_shadow`
 
 ---------------------
+
+## [PrivacyRaven](https://github.com/trailofbits/PrivacyRaven)
+
+* Category: Attacks (black-box)
+* License: Apache-2.0
+* Source: available on github
+* Distribution: no distributions available
+* Popularity: 113 stars; 2 contributors
+* Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
+* Description: Provides label-only black-box model extraction, membership inference, and (soon) model inversion attacks for Pytorch deep neural networks.
+
+---------------------
+
+## [CypherCat](https://github.com/Lab41/cyphercat)
+
+* Category: Attacks (black-box)
+* License: Apache-2.0
+* Source: available on github
+* Distribution: no distributions available
+* Popularity: 87 stars; 10 contributors
+* Versioning: no tags have been generated to assign version numbers (and there is no version tagged as a release)
+* Description: Implementation of membership inference and model inversion attacks, extracting training data information from an ML model.
+* Notes: Project is archived (read-only).

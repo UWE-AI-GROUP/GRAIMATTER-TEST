@@ -179,7 +179,7 @@
 
 ## [MemGuard](https://github.com/jjy1994/MemGuard)
 
-* Category: Defences
+* Category: Defences (black-box attacks)
 * License: None
 * Source: available on github
 * Distribution: no distributions available

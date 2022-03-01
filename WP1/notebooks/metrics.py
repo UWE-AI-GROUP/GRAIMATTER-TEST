@@ -1,6 +1,6 @@
 from sklearn.metrics import confusion_matrix
 from typing import Any, Iterable, Optional
-from sklearn.metrics import auc, roc_curve
+from sklearn.metrics import roc_auc_score
 
 
 def get_metrics(clf,
@@ -45,4 +45,8 @@ def get_metrics(clf,
     metrics['PLR'] = metrics['TPR'] / metrics['FPR'] #positive likelihood ratio
     metrics['NLR'] = metrics['FNR'] / metrics['TNR'] #negative likelihood ratio
     metrics['OR'] = metrics['PLR'] / metrics['NLR'] #odds ratio, the odds ratio is used to find the probability of an outcome of an event when there are two possible outcomes
+    #calculate AUC of model
+    y_pred_proba = clf.predict_proba(X_test)[::,1]
+    metrics['AUC'] = roc_auc_score(y_test, y_pred_proba)
+    
     return metrics

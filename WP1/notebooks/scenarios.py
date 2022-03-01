@@ -1,4 +1,5 @@
 #import itertools, os
+from random import Random
 import numpy as np
 #import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -68,11 +69,15 @@ def create_mia_data(clf:Any,
     return(miX,miY)
 
 
-def run_membership_inference_attack(model:Any, 
-                                    xtrain:Iterable[float], 
-                                    xtest:Iterable[float], 
-                                    mia_classifier:Any, 
-                                    test_size:Optional[float]=0.5):
+def run_membership_inference_attack(
+    target_model:Any,
+    shadow_model: Any,
+    x_target_train:Iterable[float],
+    x_shadow_train:Iterable[float], 
+    x_test:Iterable[float], 
+    mia_classifier:Any, 
+    test_size:Optional[float]=0.5
+):
     """
     This function performs MIA (membership inference attack).
 
@@ -84,32 +89,39 @@ def run_membership_inference_attack(model:Any,
     test_size: Size of the split for the test data. Default 0.5.
     """
 
-    miX, miY = create_mia_data(model, xtrain, xtest, sort_probs=True)
-    mi_train_x, mi_test_x, mi_train_y, mi_test_y = train_test_split(miX, miY, test_size=test_size, stratify=miY)
+    target_1, target_2 = train_test_split(x_target_train, train_size=(1-test_size))
+    shadow_1, shadow_2 = train_test_split(x_shadow_train, train_size=(1-test_size))
+    test_1, test_2 = train_test_split(x_test, train_size=(1-test_size))
+
+    # Create data for training MIA
+    mi_train_x, mi_train_y = create_mia_data(shadow_model, shadow_1, test_1, sort_probs=True)
 
     mi_clf = mia_classifier
     mi_clf.fit(mi_train_x, mi_train_y)
+
+    # Create data for testing MIA
+    mi_test_x, mi_test_y = create_mia_data(target_model, target_2, test_2, sort_probs=True)
     
-    pred_train_y = model.predict_proba(xtrain)
-    pred_test_y = model.predict_proba(xtest)
             
-    return(np.concatenate((pred_train_y,pred_test_y)), mi_test_x, mi_test_y, mi_clf)
+    return(mi_test_x, mi_test_y, mi_clf)
 
 
 
-def mia_salem_1(shadow_clf: Any,
-                X_shadow_train:Iterable[float],
-                y_shadow_train:Iterable,
-                X_test:Iterable[float],
-                #y_test:Iterable,
-                #j:Optional[float]=0.5,
-                #r_state:Optional[int]=5,
-                mia_clf:Optional[Any]=RandomForestClassifier(),
-                mia_test_split:Optional[float]=0.5):
+def mia_salem_1(
+    target_model: Any,
+    shadow_clf: Any,
+    X_target_train: Iterable[float],
+    X_shadow_train: Iterable[float],
+    y_shadow_train: Iterable,
+    X_test: Iterable[float],
+    #y_test:Iterable,
+    #j:Optional[float]=0.5,
+    #r_state:Optional[int]=5,
+    mia_clf:Optional[Any]=RandomForestClassifier(),
+    mia_test_split:Optional[float]=0.5):
     """
     Perform Salem adversary 1 type of attack. This attack assumes attacker has a dataset of the same distribution as the target's model tarining data. The shadow model mimic the target's model behaviour.
 
-    
     shadow_clf: classifier for shadow model (not fitted)
     X_shadow_train: shadow model training data, which must be of the same distribution of the target data, e.g. could be a split of the one used for training/test the target model and not used to train the target.
     y_shadow_train: training data labels
@@ -118,28 +130,38 @@ def mia_salem_1(shadow_clf: Any,
     mia_clf: unfitted classifier for the MIA attack. Deafault: RandomForest.
     mia_test_split: proportion of data for the test split for MIA.
     """
-      
+ 
     #1 shadow model training
     shadow_model = shadow_clf
     shadow_model.fit(X_shadow_train, y_shadow_train)
-    
+
     #2 attack model training
     # Get prediction probabilities from the shadow model
-    proba, mi_test_x, mi_test_y, mi_clf = run_membership_inference_attack(shadow_model, X_shadow_train,X_test, mia_clf, mia_test_split)
-    
-    return(proba, mi_test_x, mi_test_y, mi_clf, shadow_model)
-    
+    mi_test_x, mi_test_y, mi_clf = run_membership_inference_attack(
+        target_model,
+        shadow_model,
+        X_target_train,
+        X_shadow_train,
+        X_test,mia_clf,
+        mia_test_split
+    )
+
+    return(mi_test_x, mi_test_y, mi_clf, shadow_model)
 
 
-def mia_salem_2(shadow_clf: Any,
-                X_shadow:Optional=None,
-                y_shadow:Optional=None,
-                #X_test:Optional=None,
-                #y_test:Optional=None,
-                j:Optional[float]=0.5,
-                r_state:Optional[int]=5,
-                mia_clf:Optional[Any]=RandomForestClassifier(),
-                mia_test_split:Optional[float]=0.5):
+
+def mia_salem_2(
+    target_model: Any,
+    shadow_clf: Any,
+    X_target_train,
+    X_shadow:Optional=None,
+    y_shadow:Optional=None,
+    #X_test:Optional=None,
+    #y_test:Optional=None,
+    j:Optional[float]=0.5,
+    r_state:Optional[int]=5,
+    mia_clf:Optional[Any]=RandomForestClassifier(),
+    mia_test_split:Optional[float]=0.5):
     """
     Perform Salem adversary 2 type of attack. This attack assumes attacker does not have a dataset of the same distribution as the target's model tarining data. The adversary does not know the structure of the target mode.
 
@@ -166,7 +188,76 @@ def mia_salem_2(shadow_clf: Any,
     
     #2 attack model training
     # Get prediction probabilities from the shadow model   
-    proba, mi_test_x, mi_test_y, mi_clf = run_membership_inference_attack(shadow_clf, X_shadow_train,X_shadow_test, mia_clf, mia_test_split)
-    return(proba, mi_test_x, mi_test_y, mi_clf, shadow_model, X_shadow_test, y_shadow_test)
+    mi_test_x, mi_test_y, mi_clf = run_membership_inference_attack(
+        target_model,
+        shadow_model,
+        X_target_train,
+        X_shadow_train,
+        X_shadow_test,
+        mia_clf,
+        mia_test_split
+    )
+    return(mi_test_x, mi_test_y, mi_clf, shadow_model, X_shadow_test, y_shadow_test)
 
 
+def train_mia(mia_train_probs, mia_train_labels, mia_classifier):
+    """
+    Train the mia classifier
+    """
+    mia_classifier.fit(mia_train_probs, mia_train_labels)
+    return mia_classifier
+
+def predict_mia(mia_test_probs, mia_classifier):
+    """
+    Make predictions from the mia classifier
+    """
+    return mia_classifier.predict_proba(mia_test_probs)
+
+def train_test_mia(mia_train_probs, mia_train_labels, mia_test_probs, mia_classifier):
+    """
+    Train and test the mia
+    """
+    mia_classifier = train_mia(mia_test_probs, mia_train_labels)
+    return (mia_classifier, predict_mia(mia_test_probs, mia_classifier))
+
+def worst_case_mia(target_model, X_target_train, X_test, prop_mia_train=0.5, mia_classifier=RandomForestClassifier()):
+    """
+    Worst case mia scenario
+    """
+    mi_probs, mi_labels = create_mia_data(target_model, X_target_train, X_test, sort_probs=True)
+    mia_train_probs, mia_test_probs, mia_train_labels, mia_test_labels = train_test_split(
+        mi_probs,
+        mi_labels,
+        stratify=mi_labels,
+        train_size=prop_mia_train
+    )
+
+    mia_classifier = train_mia(mia_train_probs, mia_train_labels, mia_classifier)
+    return mia_test_probs, mia_test_labels, mia_classifier
+
+def salem(target_model, shadow_clf, X_target_train, X_shadow, y_shadow, X_test, prop_shadow_train=0.5, mia_classifier=RandomForestClassifier()):
+    """
+    Salem scenario 2
+    """
+
+    X_shadow_train, X_shadow_test, y_shadow_train, y_shadow_test = train_test_split(X_shadow, y_shadow, train_size=prop_shadow_train)
+
+    shadow_clf.fit(X_shadow_train, y_shadow_train)
+
+
+    mia_train_probs, mia_train_labels = create_mia_data(shadow_clf, X_shadow_train, X_shadow_test, sort_probs=True)
+    mia_test_probs, mia_test_labels = create_mia_data(target_model, X_target_train, X_test, sort_probs=True)
+
+    _, n_class_shadow = mia_train_probs.shape
+    _, n_class_target = mia_test_probs.shape
+
+    min_classes = min(n_class_shadow, n_class_target)
+
+    mia_train_probs = mia_train_probs[:, :min_classes]
+    mia_test_probs = mia_test_probs[:, :min_classes]
+
+    mia_classifier = train_mia(mia_train_probs, mia_train_labels, mia_classifier)
+    return mia_test_probs, mia_test_labels, mia_classifier, shadow_clf, X_shadow_test, y_shadow_test
+
+
+    

@@ -168,7 +168,7 @@ and place it in the correct folder.
     ]
 
     liver_data = pd.read_csv(file_path, names=column_names, index_col=False)
-    
+
     liver_data.gender.replace('Male', 0, inplace=True)
     liver_data.gender.replace('Female', 1, inplace=True)
 
@@ -182,7 +182,7 @@ and place it in the correct folder.
 
 def in_hospital_mortality(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
-    In-hospital mortality data from this study: 
+    In-hospital mortality data from this study:
         https://datadryad.org/stash/dataset/doi:10.5061/dryad.0p2ngf1zd
     '''
     # Check the data has been downloaded. If not throw an exception with instructions on how to
@@ -197,17 +197,17 @@ https://datadryad.org/stash/dataset/doi:10.5061/dryad.0p2ngf1zd
 and place it in the correct folder. It works with either the zip file or uncompressed.
         """
         raise DataNotAvailable(help_message)
-    
+
     if os.path.exists(file_path[1]):
         input_data = pd.read_csv(ZipFile(file_path[1]).open("data01.csv"))
     else:
         input_data = pd.read_csv(file_path)
     clean_data = input_data.dropna(axis=0, how='any').drop(columns=["group", "ID"])
     target = 'outcome'
-    y = clean_data[target]
-    X = clean_data.drop([target], axis=1)
+    labels = clean_data[target]
+    features = clean_data.drop([target], axis=1)
 
-    return (X, y)
+    return (features, labels)
 
 
 
@@ -240,7 +240,7 @@ Please download from https://physionet.org/content/mimic2-iaccd/1.0/full_cohort_
 
     logger.info("Preprocessing")
     # remove columns non-numerical and repetitive or uninformative data for the analysis
-    col = ['service_unit', 'day_icu_intime', 'hosp_exp_flg','icu_exp_flg', 'day_28_flg'] 
+    col = ['service_unit', 'day_icu_intime', 'hosp_exp_flg','icu_exp_flg', 'day_28_flg']
     # service_num is the numerical version of service_unit
     # day_icu_intime_num is the numerical version of day_icu_intime
     # the other columns are to do with death and are somewhat repetitive with censor_flg
@@ -254,7 +254,7 @@ Please download from https://physionet.org/content/mimic2-iaccd/1.0/full_cohort_
     target = 'censor_flg'
     y = input_data[target]
     X = input_data.drop([target], axis=1)
-    
+
     return (X, y)
 
 
@@ -263,32 +263,32 @@ def texas_hospitals(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     Texas Hospitals Dataset
     (https://www.dshs.texas.gov/THCIC/Hospitals/Download.shtm)
     '''
-    file_list = ["PUDF_1Q2006_tab-delimited.zip", 
-                 "PUDF_1Q2007_tab-delimited.zip", 
-                 "PUDF_1Q2008_tab-delimited.zip", 
-                 "PUDF_1Q2009_tab-delimited.zip", 
-                 "PUDF_2Q2006_tab-delimited.zip", 
-                 "PUDF_2Q2007_tab-delimited.zip", 
-                 "PUDF_2Q2008_tab-delimited.zip", 
-                 "PUDF_2Q2009_tab-delimited.zip", 
-                 "PUDF_3Q2006_tab-delimited.zip", 
-                 "PUDF_3Q2007_tab-delimited.zip", 
-                 "PUDF_3Q2008_tab-delimited.zip", 
-                 "PUDF_3Q2009_tab-delimited.zip", 
-                 "PUDF_4Q2006_tab-delimited.zip", 
-                 "PUDF_4Q2007_tab-delimited.zip", 
-                 "PUDF_4Q2008_tab-delimited.zip", 
+    file_list = ["PUDF_1Q2006_tab-delimited.zip",
+                 "PUDF_1Q2007_tab-delimited.zip",
+                 "PUDF_1Q2008_tab-delimited.zip",
+                 "PUDF_1Q2009_tab-delimited.zip",
+                 "PUDF_2Q2006_tab-delimited.zip",
+                 "PUDF_2Q2007_tab-delimited.zip",
+                 "PUDF_2Q2008_tab-delimited.zip",
+                 "PUDF_2Q2009_tab-delimited.zip",
+                 "PUDF_3Q2006_tab-delimited.zip",
+                 "PUDF_3Q2007_tab-delimited.zip",
+                 "PUDF_3Q2008_tab-delimited.zip",
+                 "PUDF_3Q2009_tab-delimited.zip",
+                 "PUDF_4Q2006_tab-delimited.zip",
+                 "PUDF_4Q2007_tab-delimited.zip",
+                 "PUDF_4Q2008_tab-delimited.zip",
                  "PUDF_4Q2009_tab-delimited.zip"]
-    
+
     files_path = [os.path.join(
         data_folder,"TexasHospitals",f) for f in file_list]
-    
+
     found = [os.path.exists(file_path) for file_path in files_path]
     not_found = [file_path for file_path in files_path if not os.path.exists(file_path)]
-    
+
     if not all(found):
         help_message = f"""
-    Some or all data files do not exist. Please accept their terms & conditions, then download the
+    Some or all data files do not exist. Please accept their terms & conditions,then download the
     tab delimited files from each quarter during 2006-2009 from:
     https://www.dshs.texas.gov/THCIC/Hospitals/Download.shtm
 and place it in the correct folder.
@@ -298,7 +298,7 @@ and place it in the correct folder.
         """
         raise DataNotAvailable(help_message)
     elif not os.path.exists(os.path.join(data_folder,"TexasHospitals","texas_data10.csv")):
-    
+
         logger.info("Processing Texas Hospitals data (2006-2009)")
 
         #Load data
@@ -325,7 +325,10 @@ and place it in the correct folder.
         # obtain the 100 most frequent procedures
         tmp = []
         for f in files_path:
-            df = [pd.read_csv(ZipFile(f).open(i), sep="\t", usecols=["PRINC_SURG_PROC_CODE"]) for i in ZipFile(f).namelist() if 'base' in i][0]
+            df = [
+                pd.read_csv(ZipFile(f).open(i), sep="\t", usecols=["PRINC_SURG_PROC_CODE"])\
+                     for i in ZipFile(f).namelist() if 'base' in i
+            ][0]
             df.dropna(inplace=True)
             tmp.extend(list(df.PRINC_SURG_PROC_CODE))
         princ_surg_proc_keep = [k for k,v in Counter(tmp).most_common(10)]

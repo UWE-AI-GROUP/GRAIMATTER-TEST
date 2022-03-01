@@ -3,14 +3,14 @@ data_interface.py
 A set of useful handlers to pull in datasets common to the project and perform the appropriate
 pre-processing
 '''
-import os, json
+import os
 import logging
 from typing import Tuple
+from zipfile import ZipFile
+from collections import Counter
 import pandas as pd
 import numpy as np
 import pylab as plt
-from zipfile import ZipFile
-from collections import Counter
 
 logging.basicConfig(
     level = "DEBUG"
@@ -42,7 +42,8 @@ def get_data_sklearn(
     is returned as a pandas DataFrame.
 
     @param dataset_name (str): the name of the dataset
-    @param data_folder (str; optional): the root folder to look for data. Defaults to GRAIMatter/data
+    @param data_folder (str; optional): the root folder to look for data. Defaults to
+        GRAIMatter/data
     @returns Tuple[pd.DataFrame, pd.DataFrame]: tuple of dataframes correspnding to X and y
     '''
     logger.info("DATASET FOLDER = %s", data_folder)
@@ -73,25 +74,25 @@ def images_to_ndarray(images_dir: str, number_to_load: int, label: int) -> Tuple
     labels = np.ones((len(np_images), 1), int) * label
     return(np_images, labels)
 
-def medical_mnist_ab_v_br_100(data_folder: str) -> Tuple[np.array, np.array]:
+def medical_mnist_ab_v_br_100(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Load Medical MNIST into pandas format
     borrows heavily from: https://www.kaggle.com/harelshattenstein/medical-mnist-knn
-    Creates a binary classification 
+    Creates a binary classification
     '''
-    
+
     base_folder = os.path.join(
         data_folder,
         'kaggle-medical-mnist',
         'archive',
     )
-    
+
     zip_file = os.path.join(
         data_folder,
         'kaggle-medical-mnist',
         "archive.zip"
     )
-    
+
     print(base_folder, data_folder)
     if not any([os.path.exists(base_folder), os.path.exists(zip_file)]):
         help_message = f"""
@@ -100,22 +101,29 @@ https://www.kaggle.com/andrewmvd/medical-mnist
 and place it in the correct folder. It unzips the file first.
         """
         raise DataNotAvailable(help_message)
-    
+
     elif os.path.exists(base_folder):
         pass
     elif os.path.exists(zip_file):
         try:
-            with ZiplFile(zip_file) as z:
-                z.extractall()
+            with ZipFile(zip_file) as zip_handle:
+                zip_handle.extractall()
                 print("Extracted all")
                 #os.remove(zip_file)
                 #print("zip file removed")
-        except:
+        except: # TODO: define exception type that this should catch
             print("Invalid file")
-    
-    labels_dict = {0 : 'AbdomenCT', 1 : 'BreastMRI', 2 : 'CXR', 3 : 'ChestCT', 4 : 'Hand', 5 : 'HeadCT'}
 
-    
+    labels_dict = {
+        0 : 'AbdomenCT',
+        1 : 'BreastMRI',
+        2 : 'CXR',
+        3 : 'ChestCT',
+        4 : 'Hand',
+        5 : 'HeadCT'
+    }
+
+
 
     x_ab, y_ab = images_to_ndarray(
         os.path.join(base_folder, labels_dict.get(0)),
@@ -132,10 +140,10 @@ and place it in the correct folder. It unzips the file first.
     all_x = np.vstack((x_ab, x_br))
     all_y = np.vstack((y_ab, y_br))
 
-    return (np.array(all_x), np.array(all_y))
+    return (pd.DataFrame(all_x), pd.DataFrame(all_y))
 
 
-def indian_liver(data_folder: str) -> Tuple[np.array, np.array]:
+def indian_liver(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Indian Liver Patient Dataset
      https://archive.ics.uci.edu/ml/machine-learning-databases/00225/Indian%20Liver%20Patient%20Dataset%20(ILPD).csv
@@ -159,21 +167,23 @@ and place it in the correct folder.
         'SGPT', 'SGOT', 'total proteins', 'albumin', 'A/G ratio',  'class'
     ]
 
-    X = pd.read_csv(file_path, names=column_names, index_col=False)
+    liver_data = pd.read_csv(file_path, names=column_names, index_col=False)
     
-    X.gender.replace('Male', 0, inplace=True)
-    X.gender.replace('Female', 1, inplace=True)
+    liver_data.gender.replace('Male', 0, inplace=True)
+    liver_data.gender.replace('Female', 1, inplace=True)
 
-    X.dropna(axis=0, inplace=True)
+    liver_data.dropna(axis=0, inplace=True)
 
-    y = X['class']
-    X.drop(['class'], axis=1, inplace=True)
+    liver_labels = liver_data['class']
+    liver_data.drop(['class'], axis=1, inplace=True)
 
-    return (np.array(X), np.array(y))
+    return (liver_data, liver_labels)
 
-def in_hospital_mortality(data_folder: str) -> Tuple[np.array, np.array]:
+
+def in_hospital_mortality(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
-    In-hospital mortality data from this study: https://datadryad.org/stash/dataset/doi:10.5061/dryad.0p2ngf1zd
+    In-hospital mortality data from this study: 
+        https://datadryad.org/stash/dataset/doi:10.5061/dryad.0p2ngf1zd
     '''
     # Check the data has been downloaded. If not throw an exception with instructions on how to
     # download, and where to store
@@ -197,12 +207,12 @@ and place it in the correct folder. It works with either the zip file or uncompr
     y = clean_data[target]
     X = clean_data.drop([target], axis=1)
 
-    return (np.array(X), np.array(y))
+    return (X, y)
 
 
 
 
-def mimic_iaccd(data_folder: str) -> Tuple[np.array, np.array]:
+def mimic_iaccd(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Loads the mimic_iaccd data and performs Alba's pre-processing
     '''
@@ -248,7 +258,7 @@ Please download from https://physionet.org/content/mimic2-iaccd/1.0/full_cohort_
     return (X, y)
 
 
-def texas_hospitals(data_folder: str) -> Tuple[np.array, np.array]:
+def texas_hospitals(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Texas Hospitals Dataset
     (https://www.dshs.texas.gov/THCIC/Hospitals/Download.shtm)
@@ -275,10 +285,11 @@ def texas_hospitals(data_folder: str) -> Tuple[np.array, np.array]:
     
     found = [os.path.exists(file_path) for file_path in files_path]
     not_found = [file_path for file_path in files_path if not os.path.exists(file_path)]
-    #not_found = [file_path for m in [i for i,x in enumerate(found) if x==False]]
+    
     if not all(found):
         help_message = f"""
-    Some or all data files do not exist. Please accept their terms & conditions, then download the tab delimited files from each quarter during 2006-2009 from:
+    Some or all data files do not exist. Please accept their terms & conditions, then download the
+    tab delimited files from each quarter during 2006-2009 from:
     https://www.dshs.texas.gov/THCIC/Hospitals/Download.shtm
 and place it in the correct folder.
 
@@ -291,26 +302,27 @@ and place it in the correct folder.
         logger.info("Processing Texas Hospitals data (2006-2009)")
 
         #Load data
-        columns_names = ['THCIC_ID',# Provider ID. Unique identifier assigned to the provider by DSHS. Hospitals with fewer than 50 discharges have been aggregated into the Provider ID '999999'
-                     'DISCHARGE_QTR', #yyyyQm
-                     'TYPE_OF_ADMISSION',
-                     'SOURCE_OF_ADMISSION',
-                     'PAT_ZIP',#Patient’s five-digit ZIP code
-                     'PUBLIC_HEALTH_REGION', #Public Health Region of patient’s address
-                     'PAT_STATUS', #Code indicating patient status as of the ending date of service for the period of care reported
-                     'SEX_CODE',
-                     'RACE',
-                     'ETHNICITY',
-                     'LENGTH_OF_STAY',
-                     'PAT_AGE', #Code indicating age of patient in days or years on date of discharge. 
-                     'PRINC_DIAG_CODE', #diagnosis code for the principal diagnosis
-                     'E_CODE_1', #external cause of injury
-                     'PRINC_SURG_PROC_CODE', #Code for the principal surgical or other procedure performed during the period covered by the bill           
-                     'RISK_MORTALITY', #Assignment of a risk of mortality score from the All Patient Refined (APR) Diagnosis Related Group (DRG) 
-                     'ILLNESS_SEVERITY',#Assignment of a severity of illness score from the All Patient Refined (APR) Diagnosis RelatedGroup (DRG
-                     'RECORD_ID'
-                    ]
-        #obtain the 100 most frequent procedures
+        columns_names = [
+            'THCIC_ID',# Provider ID. Unique identifier assigned to the provider by DSHS. Hospitals with fewer than 50 discharges have been aggregated into the Provider ID '999999'
+            'DISCHARGE_QTR', #yyyyQm
+            'TYPE_OF_ADMISSION',
+            'SOURCE_OF_ADMISSION',
+            'PAT_ZIP',#Patient’s five-digit ZIP code
+            'PUBLIC_HEALTH_REGION', #Public Health Region of patient’s address
+            'PAT_STATUS', #Code indicating patient status as of the ending date of service for the period of care reported
+            'SEX_CODE',
+            'RACE',
+            'ETHNICITY',
+            'LENGTH_OF_STAY',
+            'PAT_AGE', #Code indicating age of patient in days or years on date of discharge.
+            'PRINC_DIAG_CODE', #diagnosis code for the principal diagnosis
+            'E_CODE_1', #external cause of injury
+            'PRINC_SURG_PROC_CODE', #Code for the principal surgical or other procedure performed during the period covered by the bill
+            'RISK_MORTALITY', #Assignment of a risk of mortality score from the All Patient Refined (APR) Diagnosis Related Group (DRG)
+            'ILLNESS_SEVERITY',#Assignment of a severity of illness score from the All Patient Refined (APR) Diagnosis RelatedGroup (DRG
+            'RECORD_ID'
+        ]
+        # obtain the 100 most frequent procedures
         tmp = []
         for f in files_path:
             df = [pd.read_csv(ZipFile(f).open(i), sep="\t", usecols=["PRINC_SURG_PROC_CODE"]) for i in ZipFile(f).namelist() if 'base' in i][0]
@@ -320,7 +332,7 @@ and place it in the correct folder.
         #remove unecessary variables
         del tmp
 
-        #Load the data    
+        # Load the data
         tx_data = pd.DataFrame()
         for f in files_path:
             df = [pd.read_csv(ZipFile(f).open(i), sep="\t", usecols=columns_names)
@@ -336,7 +348,8 @@ and place it in the correct folder.
             df.SEX_CODE.replace('F',1,inplace=True)
             df.SEX_CODE.replace('U',2,inplace=True)
             #set to numerical variable
-            [df.DISCHARGE_QTR.replace(d_code, ''.join(d_code.split('Q')), inplace=True) for d_code in set(list(df.DISCHARGE_QTR))]
+            for d_code in set(list(df.DISCHARGE_QTR)):
+                df.DISCHARGE_QTR.replace(d_code, ''.join(d_code.split('Q')), inplace=True)
             df.dropna(inplace=True)
             #merge data
             tx_data = pd.concat([tx_data, df])
@@ -346,9 +359,16 @@ and place it in the correct folder.
         #renumber non-numerical codes for cols
         cols=['PRINC_DIAG_CODE', 'SOURCE_OF_ADMISSION', 'E_CODE_1']
         for col in cols:
-            tmp = list(set([x for x in tx_data[col] if not str(x).isdigit() and not isinstance(x, float)]))
-            n = max(list(set([int(x) for x in tx_data[col] if str(x).isdigit() or isinstance(x, float)])))
-            [tx_data[col].replace(x, n+i,inplace=True) for i,x in enumerate(tmp)]   
+            tmp = list(
+                set([x for x in tx_data[col] if not str(x).isdigit() and not isinstance(x, float)])
+            )
+            n = max(
+                list(
+                    set([int(x) for x in tx_data[col] if str(x).isdigit() or isinstance(x, float)])
+                )
+            )
+            for i, x in enumerate(tmp):
+                tx_data[col].replace(x, n+i, inplace=True)
         del tmp, n
         #set index
         tx_data.set_index('RECORD_ID', inplace=True)
@@ -362,11 +382,11 @@ and place it in the correct folder.
         logger.info("Loading processed Texas Hospitals data (2006-2009) csv file.")
         #load texas data processed csv file
         tx_data = pd.read_csv(os.path.join(data_folder, "TexasHospitals", "texas_data10.csv"))
-        
+
     # extract target
     var = 'RISK_MORTALITY'
     labels = tx_data[var]
     # Drop the column that contains the labels
     tx_data.drop([var], axis=1, inplace=True)
-    
-    return(np.array(tx_data), np.array(labels))
+
+    return(tx_data, labels)

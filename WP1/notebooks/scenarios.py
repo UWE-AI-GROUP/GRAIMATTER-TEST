@@ -130,7 +130,7 @@ def mia_salem_1(
     mia_clf: unfitted classifier for the MIA attack. Deafault: RandomForest.
     mia_test_split: proportion of data for the test split for MIA.
     """
- 
+
     #1 shadow model training
     shadow_model = shadow_clf
     shadow_model.fit(X_shadow_train, y_shadow_train)
@@ -206,19 +206,6 @@ def train_mia(mia_train_probs, mia_train_labels, mia_classifier):
     """
     mia_classifier.fit(mia_train_probs, mia_train_labels)
     return mia_classifier
-
-def predict_mia(mia_test_probs, mia_classifier):
-    """
-    Make predictions from the mia classifier
-    """
-    return mia_classifier.predict_proba(mia_test_probs)
-
-def train_test_mia(mia_train_probs, mia_train_labels, mia_test_probs, mia_classifier):
-    """
-    Train and test the mia
-    """
-    mia_classifier = train_mia(mia_test_probs, mia_train_labels)
-    return (mia_classifier, predict_mia(mia_test_probs, mia_classifier))
 
 def worst_case_mia(target_model, X_target_train, X_test, prop_mia_train=0.5, mia_classifier=RandomForestClassifier()):
     """

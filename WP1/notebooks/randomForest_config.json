@@ -12,17 +12,16 @@
     "experiment_params" : {
         "RandomForestClassifier": {
             "bootstrap": [true, false],
-            "min_samples_split": [2, 5, 10, 15, 20],
-            "min_samples_leaf": [1,2,3,4,5,6,7,8,9,10],
-            "n_estimators": [10, 50, 100, 150, 200, 250, 300, 400, 500],
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 2, 5, 10],
+            "n_estimators": [10, 50, 100],
             "criterion": ["gini","entropy"],
-            "max_depth": [null, 2, 4, 6, 8, 10, 12],
-            "max_features": [null, "sqrt", "log2"],
-            "class_weight": [null, "balanced", "balanced_subsample"]
+            "max_depth": [2, 5, 10, null],
+            "class_weight": [null, "balanced"]
         }
     },
     "results_filename": "experiments/RF/Random_Forest_loop_results.csv",
-    "n_reps": 5,
+    "n_reps": 1,
     "mia_classifier": 
         ["sklearn.ensemble", "RandomForestClassifier"],
     "scenarios": ["WorstCase", "Salem1", "Salem2"]

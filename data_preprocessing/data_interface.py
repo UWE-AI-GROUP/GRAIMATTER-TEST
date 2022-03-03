@@ -201,7 +201,7 @@ and place it in the correct folder. It works with either the zip file or uncompr
     if os.path.exists(file_path[1]):
         input_data = pd.read_csv(ZipFile(file_path[1]).open("data01.csv"))
     else:
-        input_data = pd.read_csv(file_path)
+        input_data = pd.read_csv(file_path[0])
     clean_data = input_data.dropna(axis=0, how='any').drop(columns=["group", "ID"])
     target = 'outcome'
     labels = clean_data[target]

@@ -6,10 +6,10 @@ import os
 import sys
 import warnings
 import importlib
-import itertools
 import hashlib
 import logging
 import pandas as pd
+from tqdm.contrib.itertools import product
 import sklearn.datasets as skl_datasets
 
 from scenarios import *
@@ -130,12 +130,11 @@ def run_loop(config_file: str) -> pd.DataFrame:
             
             for classifier_name, clf_class in classifiers.items():
                 logger.info("Classifier: %s", classifier_name)
-                all_combinations = itertools.product(*experiment_params[classifier_name].values())
-                for i,combination in enumerate(all_combinations):
+                all_combinations = product(*experiment_params[classifier_name].values())
+                for i, combination in enumerate(all_combinations):
 
                     # Turn this particular combination into a dictionary
                     params = {n: v for n, v in zip(experiment_params[classifier_name].keys(), combination)}
-                    logging.info("Params: %s", str(params))
                     target_classifier = clf_class()
                     target_classifier.set_params(**params)
 

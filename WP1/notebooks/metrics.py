@@ -45,7 +45,7 @@ def get_metrics(clf,
     
     metrics['TPR'] = float(tp / (tp + fn)) #true positive rate or recall
     metrics['FPR'] = float(fp / (fp + tn)) #false positive rate, proportion of negative examples incorrectly classified as positives
-    metrics['FAR'] = float(fp / (fp + tp)) #proportion of things classified as positives that are incorrect, also known as false discovery rate
+    metrics['FAR'] = float(fp / (fp + tp)) #False alarm rate, proportion of things classified as positives that are incorrect, also known as false discovery rate
     metrics['TNR'] = float(tn / (tn + fp)) #true negative rate or specificity
     metrics['PPV'] = float(tp / (tp + fp)) #precision or positive predictive value
     metrics['NPV'] = float(tn / (tn + fn)) #negative predictive value

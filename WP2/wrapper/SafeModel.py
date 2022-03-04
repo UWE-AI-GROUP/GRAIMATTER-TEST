@@ -54,23 +54,16 @@ def check_equal(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
     return msg, disclosive
 
 
-def check_type(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
-    """Checks the type of a value"""
-    if type(cur_val).__name__ != val:
-        disclosive = True
-        msg = (
-            f"- parameter {key} = {cur_val}"
-            f" identified as different type than the recommended fixed value of {val}."
-        )
-    else:
-        disclosive = False
-        msg = ""
-    return msg, disclosive
-
-
+def removeKey(d, key):
+    r = dict(d)
+    del r[key]
+    return r
 
 class SafeModel:
     """Privacy protected model base class."""
+
+    savedDict: dict = {'savedDict':'Dummy1'}
+    currentDict: dict = {'savedDict':'Dummy2'}
 
     def __init__(self) -> None:
         """Super class constructor, gets researcher name."""
@@ -125,16 +118,11 @@ class SafeModel:
             msg, disclosive = check_max(key, val, cur_val)
         elif operator == "equals":
             msg, disclosive = check_equal(key, val, cur_val)
-        elif operator =="is_type":
-            msg, disclosive = check_type(key, val, cur_val)
         else:
             msg = f"- unknown operator in parameter specification {operator}"
         if apply_constraints and disclosive:
-            if (operator=="is_type"):
-                msg += f"Nothing currently implemented to change type of parameter {key} to {val}.\n"
-            else:
-                setattr(self, key, val)
-                msg += f"\nChanged parameter {key} = {val}.\n"
+            setattr(self, key, val)
+            msg += f"\nChanged parameter {key} = {val}.\n"
         return msg, disclosive
 
     def __check_model_param_and(
@@ -192,50 +180,49 @@ class SafeModel:
         if verbose:
             print(msg)
         return msg, disclosive
-    
-    def posthoc_check(
-        self, verbose: bool = True    ) -> tuple[str, bool]:
-        """Checks whether model has been changed since fit() was last run"""
-        disclosive  =False
-        msg= "posthoc checking not currently implemented"
-        #needs implementation of checking model dict
-        #  oldDict = dict(self.__dict__)
-        # del oldDict.savedDict
-        # if (oldDict !=self.savedDict):
-        #      msg= "model atributes or methods have been changed since fit() was last called"
-        #.     disclosve = True
- 
-        return msg,disclosive
-        
-            
-            
 
     def request_release(self, filename: str = "undefined") -> None:
         """Saves model to filename specified and creates a report for the TRE
         output checkers."""
-        if filename == "undefined":
+
+        #print(self.currentDict)
+        self.currentDict = self.__dict__
+        #print(self.currentDict)
+        self.currentDict = removeKey(self.currentDict,"currentDict")
+        self.currentDict = removeKey(self.currentDict,"savedDict")
+
+        #print(self.savedDict)
+        self.savedDict = removeKey(self.savedDict,"currentDict")
+        self.savedDict = removeKey(self.savedDict,"savedDict")
+        #print(self.savedDict)
+        
+        if(self.currentDict != self.savedDict):
+            print("Model Parameters do not match those used to fit the model.")
+            print("You must fit the model before release.")
+            print("currentDict: "+ self.currentDict)
+            print("savedDict: " + self.savedDict)
+            
+        elif filename == "undefined":
             print("You must provide the name of the file you want to save your model")
             print("For security reasons, this will overwrite previous versions")
         else:
+            print("currentDict and savedDict Match")
+            print("currentDict: "+ str(self.currentDict))
+            print("savedDict: " + str(self.savedDict))
             self.save(filename)
             msg, disclosive = self.preliminary_check(verbose=False)
-            msg2, disclosive2 = self.posthoc_check(verbose=False)
             output: dict = {
                 "researcher": self.researcher,
                 "model_type": self.model_type,
                 "model_save_file": self.model_save_file,
                 "details": msg,
             }
-            if (disclosive==False)and(disclosive2==False):
-                              output[
+            if disclosive:
+                output["recommendation"] = "Do not allow release"
+            else:
+                output[
                     "recommendation"
                 ] = f"Run file {filename} through next step of checking procedure"
-                    
-            else:
-                output["recommendation"] = "Do not allow release"
-                output["reason"]= msg +msg2
-                            
-                
             json_str = json.dumps(output, indent=4)
             outputfilename = self.researcher + "_checkfile.json"
             with open(outputfilename, "a", encoding="utf-8") as file:
@@ -256,6 +243,10 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         self.model_type: str = "DecisionTreeClassifier"
         super().preliminary_check(apply_constraints=True, verbose=True)
 
+    def fit(self, X, y):
+        """Do fit and then store model dict"""
+        super().fit(X, y)
+        self.savedDict = self.__dict__
 
 class SafeRandomForest(SafeModel, RandomForestClassifier):
     """Privacy protected Random Forest classifier."""
@@ -266,6 +257,11 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         RandomForestClassifier.__init__(self, **kwargs)
         self.model_type: str = "RandomForestClassifier"
         super().preliminary_check(apply_constraints=True, verbose=True)
+
+    def fit(self, **kwargs: Any) -> None:
+        """Do fit and then store model dict"""
+        super().fit(self, **kwargs)
+        self.savedDict = self.__dict__
 
     # def __getattr__(self, attr):
     #    if attr in self.__dict__:

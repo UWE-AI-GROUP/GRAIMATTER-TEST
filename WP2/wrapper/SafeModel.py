@@ -54,6 +54,11 @@ def check_equal(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
     return msg, disclosive
 
 
+def removeKey(d, key):
+    r = dict(d)
+    del r[key]
+    return r
+
 def check_type(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
     """Checks the type of a value"""
     if type(cur_val).__name__ != val:
@@ -72,6 +77,9 @@ def check_type(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
 class SafeModel:
     """Privacy protected model base class."""
 
+    savedDict: dict = {'savedDict':'Dummy1'}
+    currentDict: dict = {'savedDict':'Dummy2'}
+    
     def __init__(self) -> None:
         """Super class constructor, gets researcher name."""
         self.model_type: str = "None"
@@ -213,10 +221,34 @@ class SafeModel:
     def request_release(self, filename: str = "undefined") -> None:
         """Saves model to filename specified and creates a report for the TRE
         output checkers."""
-        if filename == "undefined":
+
+
+        #print(self.currentDict)
+        self.currentDict = self.__dict__
+        #print(self.currentDict)
+        self.currentDict = removeKey(self.currentDict,"currentDict")
+        self.currentDict = removeKey(self.currentDict,"savedDict")
+
+        #print(self.savedDict)
+        self.savedDict = removeKey(self.savedDict,"currentDict")
+        self.savedDict = removeKey(self.savedDict,"savedDict")
+        #print(self.savedDict)
+
+        if(self.currentDict != self.savedDict):
+            print("Model Parameters do not match those used to fit the model.")
+            print("You must fit the model before release.")
+            print("currentDict: "+ self.currentDict)
+            print("savedDict: " + self.savedDict)
+
+
+
+        elif filename == "undefined":
             print("You must provide the name of the file you want to save your model")
             print("For security reasons, this will overwrite previous versions")
         else:
+            print("currentDict and savedDict Match")
+            print("currentDict: "+ str(self.currentDict))
+            print("savedDict: " + str(self.savedDict))
             self.save(filename)
             msg, disclosive = self.preliminary_check(verbose=False)
             msg2, disclosive2 = self.posthoc_check(verbose=False)
@@ -257,6 +289,12 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         super().preliminary_check(apply_constraints=True, verbose=True)
 
 
+    def fit(self, X, y):
+        """Do fit and then store model dict"""
+        super().fit(X, y)
+        self.savedDict = self.__dict__
+        
+
 class SafeRandomForest(SafeModel, RandomForestClassifier):
     """Privacy protected Random Forest classifier."""
 
@@ -266,6 +304,11 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         RandomForestClassifier.__init__(self, **kwargs)
         self.model_type: str = "RandomForestClassifier"
         super().preliminary_check(apply_constraints=True, verbose=True)
+
+    def fit(self, **kwargs: Any) -> None:
+        """Do fit and then store model dict"""
+        super().fit(self, **kwargs)
+        self.savedDict = self.__dict__
 
     # def __getattr__(self, attr):
     #    if attr in self.__dict__:

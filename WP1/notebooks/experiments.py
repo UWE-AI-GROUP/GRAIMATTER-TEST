@@ -139,14 +139,12 @@ def run_loop(config_file: str) -> pd.DataFrame:
                     target_classifier.set_params(**params)
 
                     # Train the target model
-                    target_classifier.fit(X_target_train, y_target_train)
+                    target_classifier.fit(X_target_train, y_target_train.ravel())#convert that array shape to (n, ) (i.e. flatten it) -- Fix warning
 
                     # Get target metrics
                     target_metrics = {f"target_{key}": val for key, val in get_metrics(target_classifier, X_test, y_test).items()}
                     target_train_metrics = {f"target_train_{key}": val for key, val in get_metrics(target_classifier, X_target_train, y_target_train).items()}
                     target_metrics = {**target_metrics, **target_train_metrics}
-                    del target_train_metrics
-                    
                 
                     hashstr = f'{dataset} {classifier_name} {str(params)}'
                     model_data_param_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()

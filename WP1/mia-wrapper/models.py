@@ -1,8 +1,9 @@
 import numpy as np
+import itertools
 
 import tensorflow as tf
 from tensorflow.keras import Model, Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 import keras_tuner as kt
 
 # scikit-learn classifiers
@@ -15,12 +16,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from xgboost import XGBClassifier
 
-from sklearn.base import ClassifierMixin
-from sklearn.datasets import make_classification
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import confusion_matrix, classification_report
-from typing import Tuple, Union
-
+from sklearn.model_selection import GridSearchCV
+from typing import List, Union
 
 Sklearn_classifier = Union[MLPClassifier,
                            KNeighborsClassifier,
@@ -32,158 +29,52 @@ Sklearn_classifier = Union[MLPClassifier,
                            XGBClassifier]
 TensorFlow_classifier = Union[Model, Sequential]
 Classifier = Union[Sklearn_classifier, TensorFlow_classifier]
-Labeled_Dataset = Tuple[np.ndarray, np.ndarray]
+
+SUPPORTED_ALGORITHMS = ['MLPClassifier',
+                        'KNeighborsClassifier',
+                        'SVC',
+                        'GaussianProcessClassifier',
+                        'DecisionTreeClassifier',
+                        'RandomForestClassifier',
+                        'AdaBoostClassifier',
+                        'XGBClassifier',
+                        'NeuralNetwork']
 
 
-def generate_synthetic_data(n_samples: int,
-                            n_classes: int,
-                            n_features: int) -> Tuple[Labeled_Dataset, Labeled_Dataset, Labeled_Dataset]:
-    """
-    Generates synthetic data using the sklearn `make_classification` function.
-    Three synthetic datasets are generated: a target dataset and a shadow dataset
-    coming from the same distribution and an additional dataset from a different
-    distribution.
-
-    :param n_samples: Number of samples for each dataset.
-    :param n_classes: Number of classes.
-    :param n_features: number of informative features in the data.
-    :return: A tuple with three datasets. Each of the datasets is a
-        tuple with two numpy arrays for features and labels.
+def train_model(algorithm: str, x: np.ndarray, y: np.ndarray) -> Classifier:
     """
 
-    # Target distribution
-    x, y = make_classification(
-        n_samples=n_samples * 2,
-        n_classes=n_classes,
-        n_features=n_features,
-        n_informative=n_features,
-        n_redundant=0,
-        n_repeated=0
-    )
-
-    # (xt, yt) is the target dataset, owned by the TRE and drawn from the (x,y) distribution
-    # (xs, ys) is a shadow dataset drawn from the (x,y) distribution
-    xt, xs, yt, ys = train_test_split(x, y, test_size=0.50, shuffle=False)
-
-    # (xd, yd) is a shadow dataset, drawn from a different distribution (different seed)
-    xd, yd = make_classification(
-        n_samples=n_samples,
-        n_classes=n_classes,
-        n_features=300,
-        n_informative=300,
-        n_redundant=0,
-        n_repeated=0
-    )
-
-    return (xt, yt), (xs, ys), (xd, yd)
-
-
-def get_attack_data(model: Classifier, n_classes: int, train_data: np.ndarray,
-                    test_data: np.ndarray) -> Labeled_Dataset:
+    :param algorithm: Name of a supported classifier algorithm. Supported algorithms include 'MLPClassifier',
+    'KNeighborsClassifier', 'SVC', 'GaussianProcessClassifier', 'DecisionTreeClassifier', 'RandomForestClassifier',
+    'AdaBoostClassifier', 'XGBClassifier', and 'NeuralNetwork'.
+    :param x: Training features
+    :param y: Training labels
+    :return: A trained classifier
     """
-    Get classification probabilities from the target model or from
-    a shadow model.
 
-    :param model: A trained Scikit-learn or TensorFlow classifier.
-    :param n_classes: The number of classes.
-    :param train_data: Data used for training (member instances).
-    :param test_data: Data used for testing (non-member instances).
-    :return: Attack data with probabilities and membership labels.
-    """
-    assert (n_classes >= 2, "The number of classes must be at least 2.")
+    if algorithm not in SUPPORTED_ALGORITHMS:
+        raise Exception()
 
-    if issubclass(type(model), ClassifierMixin):
-        # Get prediction probabilities from sklearn model
-        probabilities = np.vstack(
-            (
-                model.predict_proba(train_data),
-                model.predict_proba(test_data)
-            )
-        )
-    elif issubclass(type(model), Model):
-        # Get prediction probabilities from tensorflow model
-        probabilities = np.vstack(
-            (
-                model.predict(train_data),
-                model.predict(test_data)
-            )
-        )
+    if algorithm == 'MLPClassifier':
+        return _train_MLPClassifier(x, y)
+    elif algorithm == 'KNeighborsClassifier':
+        return _train_KNeighborsClassifier(x, y)
+    elif algorithm == 'SVC':
+        return _train_SVC(x, y)
+    elif algorithm == 'GaussianProcessClassifier':
+        return _train_GaussianProcessClassifier(x, y)
+    elif algorithm == 'DecisionTreeClassifier':
+        return _train_DecisionTreeClassifier(x, y)
+    elif algorithm == 'RandomForestClassifier':
+        return _train_RandomForestClassifier(x, y)
+    elif algorithm == 'AdaBoostClassifier':
+        return _train_AdaBoostClassifier(x, y)
+    elif algorithm == 'XGBClassifier':
+        return _train_XGBClassifier(x, y)
+    elif algorithm == 'NeuralNetwork':
+        return _train_TFNeuralNetwork(x, y)
     else:
-        raise Exception("Model must be a trained scikit-learn or TensorFlow classifier.")
-
-    # Keep only the 3  highest probabilities in descending order.
-    # Keep only 2 if binary classifier
-    probabilities = np.sort(probabilities, axis=1)
-    probabilities = np.flip(probabilities, axis=1)
-    n_probs = 3 if n_classes > 2 else 2
-    probabilities = probabilities[:, :n_probs]
-
-    # Membership labels
-    membership = np.vstack(
-        (
-            np.ones((train_data.shape[0], 1), np.uint8),
-            np.zeros((test_data.shape[0], 1), np.uint8)
-        )
-    ).flatten()
-
-    return probabilities, membership
-
-
-def train_attack_model(probabilities: np.ndarray, labels: np.ndarray) -> Sklearn_classifier:
-    """
-    Train an attack model from the classification probabilities and membership information.
-
-    :param probabilities: Classification probabilities obtained from target or shadow model.
-    :param labels: Membership information (members/nonmembers).
-    :return: The attack model (a scikit-learn MLPClassifier).
-    """
-
-    mlp_clf = MLPClassifier(max_iter=500)
-
-    param_grid = {
-        'hidden_layer_sizes': [(64,), (32, 32), (32, 32, 32)],
-        'solver': ['sgd', 'adam'],
-        'alpha': [0.0001, 0.001, 0.01],
-    }
-    n_jobs = -1
-
-    attack_model = GridSearchCV(mlp_clf, param_grid=param_grid, cv=3, n_jobs=n_jobs, refit=True, verbose=0)
-    attack_model.fit(probabilities, labels)
-
-    return attack_model.best_estimator_
-
-
-def evaluate_attack(target_model: Classifier,
-                    attack_model: Sklearn_classifier,
-                    members: np.ndarray,
-                    nonmembers: np.ndarray,
-                    n_classes: int) -> Tuple[float, float, float, float]:
-    """
-
-    :param target_model: Trained Scikit-learn or Tensorflow model to attack.
-    :param attack_model: Attack model, distinguishes from members and nonmembers.
-    :param members: Data used to train the target model (members).
-    :param nonmembers: Evaluation data (nonmembers).
-    :param n_classes: Number of classes.
-    :return: Attack performance results.
-    """
-
-    probabilities, true_membership = get_attack_data(target_model, n_classes, members, nonmembers)
-
-    predicted_membership = attack_model.predict(probabilities)
-
-    print(classification_report(true_membership, predicted_membership, target_names=['nonmember', 'member'], digits=4))
-    cm = confusion_matrix(true_membership, predicted_membership)
-    tn = cm[0, 0]
-    tp = cm[1, 1]
-    fn = cm[0, 1]
-    fp = cm[1, 0]
-
-    return tn, tp, fn, fp
-
-
-def evaluate_model_privacy(target_model: Classifier, x: np.ndarray, y: np.ndarray) -> Tuple[float, float, float, float]:
-    pass
+        raise Exception()
 
 
 def _train_MLPClassifier(x: np.ndarray, y: np.ndarray) -> Classifier:
@@ -468,3 +359,104 @@ def _train_TFNeuralNetwork(x: np.ndarray, y: np.ndarray) -> Classifier:
     clf.fit(x, y_oh, epochs=50, validation_split=0.2)
 
     return clf
+
+
+def config_generator(config_grid: dict) -> List[dict]:
+    """
+    Generates list of config dictionaries from a grid.
+
+    :param config_grid: example:
+    config_grid = {
+        'feature_shape': [x_train[0].shape],
+        'n_classes': [10],
+        'conv': [True],
+        'conv_sizes': [(64,), (64, 64)],
+        'conv_kernel_size': [(3, 3), (5, 5)],
+        'conv_activation': ['tanh', 'relu'],
+        'conv_regularizer': [None, 'l2'],
+        'dense_sizes': [(128,), (128, 128)],
+        'dense_activation': ['relu'],
+        'output_activation': ['softmax'],
+        'dropout_rate': [0.0, 0.2],
+        'regularizer': [None, 'l2'],
+        'optimizer': ['adam'],
+        'loss': ['categorical_crossentropy'],
+        'batch_size': [32, 64],
+        'epochs': [1]
+    }
+    :return:
+    """
+    config_list = []
+    keys = config_grid.keys()
+    all_combinations = itertools.product(*config_grid.values())
+    for combination in all_combinations:
+        config_list.append({n: v for n, v in zip(keys, combination)})
+    return config_list
+
+
+def _TFModel_from_config(x_train: np.ndarray,
+                         x_test: np.ndarray,
+                         y_train: np.ndarray,
+                         y_test: np.ndarray,
+                         config: dict) -> TensorFlow_classifier:
+    """
+    Instantiate relatively simple TF models from a dict of parameters
+
+    :param x_train: Train features
+    :param x_test: Test features
+    :param y_train: Train labels
+    :param y_test: Test labels
+    :param config: Example config file:
+    config = {
+        'feature_shape': (32, 32, 3),
+        'conv': True,
+        'conv_sizes': (64, 64),
+        'conv_kernel_size': (3,3),
+        'conv_activation': 'relu',
+        'conv_regularizer': None,
+        'dense_sizes': (128, 128),
+        'dense_activation': 'relu',
+        'output_activation': 'softmax',
+        'dropout_rate': 0.0,
+        'regularizer': None,
+        'n_classes': 10,
+        'optimizer': 'adam',
+        'loss': 'categorical_crossentropy'
+    }
+    :return:
+    """
+
+    early_stopping = tf.keras.callbacks.EarlyStopping(patience=2)
+
+    input_layer = Input(shape=config['feature_shape'])
+    x = input_layer
+
+    if config['conv']:
+        for units in config['conv_sizes']:
+            x = Conv2D(units,
+                       kernel_size=config['conv_kernel_size'],
+                       activation=config['conv_activation'],
+                       kernel_regularizer=config['regularizer'])(x)
+            x = MaxPooling2D()(x)
+        x = Flatten()(x)
+        x = Dropout(config['dropout_rate'])(x)
+
+    for units in config['dense_sizes']:
+        x = Dense(units,
+                  activation=config['dense_activation'],
+                  kernel_regularizer=config['regularizer'])(x)
+        x = Dropout(config['dropout_rate'])(x)
+
+    output_layer = Dense(config['n_classes'], activation=config['output_activation'])(x)
+
+    model = Model(input_layer, output_layer)
+    model.compile(optimizer=config['optimizer'], loss=config['loss'], metrics=['accuracy'])
+    model.summary()
+    model.fit(x_train, y_train,
+              batch_size=config['batch_size'],
+              epochs=config['epochs'],
+              validation_data=(x_test, y_test),
+              callbacks=[early_stopping]
+              )
+
+    return model

@@ -70,4 +70,3 @@ def get_metrics(clf,
     #warnings.simplefilter("default")#enable warnings again
     
     return metrics
-

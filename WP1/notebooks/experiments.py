@@ -143,7 +143,8 @@ def run_loop(config_file: str) -> pd.DataFrame:
 
                     # Get target metrics
                     target_metrics = {f"target_{key}": val for key, val in get_metrics(target_classifier, X_test, y_test).items()}
-                    
+                    target_train_metrics = {f"target_train_{key}": val for key, val in get_metrics(target_classifier, X_target_train, y_target_train).items()}
+                    target_metrics = {**target_metrics, **target_train_metrics}
                 
                     hashstr = f'{dataset} {classifier_name} {str(params)}'
                     model_data_param_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()

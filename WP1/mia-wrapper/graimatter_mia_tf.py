@@ -1,10 +1,17 @@
 import numpy as np
+import pandas as pd
 
 # Imports for typing
 import models
 from models import Sklearn_classifier, Classifier, SUPPORTED_ALGORITHMS
 
+import tensorflow as tf
 from tensorflow.keras import Model
+# Imports for MIA
+from tensorflow_privacy.privacy.privacy_tests.membership_inference_attack import membership_inference_attack as mia
+from tensorflow_privacy.privacy.privacy_tests.membership_inference_attack.data_structures import AttackInputData
+from tensorflow_privacy.privacy.privacy_tests.membership_inference_attack.data_structures import SlicingSpec
+from tensorflow_privacy.privacy.privacy_tests.membership_inference_attack.data_structures import AttackType
 
 # scikit-learn utils
 from sklearn.base import ClassifierMixin
@@ -164,6 +171,72 @@ def evaluate_attack(target_model: Classifier,
     fp = cm[1, 0]
 
     return tn, tp, fn, fp
+
+
+def tf_privacy_mia(model: models.TensorFlow_classifier,
+                   batch_size: int,
+                   x_train: np.ndarray,
+                   x_test: np.ndarray,
+                   y_train: np.ndarray,
+                   y_test: np.ndarray) -> pd.DataFrame:
+
+    """
+    Launches TensorFlow-Privacy membership inference attacks on the provided target model.
+
+    :param model: TensorFlow model
+    :param batch_size: Batch size for predictions
+    :param x_train: Member features
+    :param x_test: Nonmember features
+    :param y_train: Member labels
+    :param y_test: Nonmember labels
+    :return: Pandas Dataframe with attack results
+    """
+
+    prob_train = model.predict(x_train, batch_size=batch_size)
+    prob_test = model.predict(x_test, batch_size=batch_size)
+
+    cce = tf.keras.backend.categorical_crossentropy
+    constant = tf.keras.backend.constant
+
+    loss_train = cce(constant(y_train), constant(prob_train), from_logits=False).numpy()
+    loss_test = cce(constant(y_test), constant(prob_test), from_logits=False).numpy()
+
+    labels_train = np.argmax(y_train, axis=1)
+    labels_test = np.argmax(y_test, axis=1)
+
+    input_data = AttackInputData(
+        probs_train=prob_train,
+        probs_test=prob_test,
+        loss_train=loss_train,
+        loss_test=loss_test,
+        labels_train=labels_train,
+        labels_test=labels_test
+    )
+
+    # Run several attacks for different data slices
+    attacks_result = mia.run_attacks(input_data,
+                                     SlicingSpec(
+                                         entire_dataset=True,
+                                         by_class=True,
+                                         by_classification_correctness=True
+                                     ),
+                                     attack_types=[
+                                         AttackType.THRESHOLD_ATTACK,
+                                         AttackType.LOGISTIC_REGRESSION,
+                                         AttackType.MULTI_LAYERED_PERCEPTRON,
+                                         AttackType.RANDOM_FOREST,
+                                         AttackType.K_NEAREST_NEIGHBORS,
+                                         AttackType.THRESHOLD_ENTROPY_ATTACK
+                                     ])
+
+    # # Plot the ROC curve of the best classifier
+    # fig = plotting.plot_roc_curve(attacks_result.get_result_with_max_auc().roc_curve)
+    #
+    # # Print a user-friendly summary of the attacks
+    # print(attacks_result.summary(by_slices=True))
+    # return attacks_result.get_result_with_max_auc().get_auc(), attacks_result.get_result_with_max_attacker_advantage()
+    # .get_attacker_advantage()
+    return attacks_result.calculate_pd_dataframe()
 
 
 def evaluate_model_privacy(target_algorithm: str,

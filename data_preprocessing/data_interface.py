@@ -286,6 +286,7 @@ def texas_hospitals(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     found = [os.path.exists(file_path) for file_path in files_path]
     not_found = [file_path for file_path in files_path if not os.path.exists(file_path)]
 
+    processed_data_file = "texas_data10_rm_binary.csv"
     if not all(found):
         help_message = f"""
     Some or all data files do not exist. Please accept their terms & conditions,then download the
@@ -297,7 +298,7 @@ and place it in the correct folder.
     {not_found}
         """
         raise DataNotAvailable(help_message)
-    elif not os.path.exists(os.path.join(data_folder,"TexasHospitals","texas_data10.csv")):
+    elif not os.path.exists(os.path.join(data_folder,"TexasHospitals", processed_data_file)):
 
         logger.info("Processing Texas Hospitals data (2006-2009)")
 
@@ -358,6 +359,17 @@ and place it in the correct folder.
             tx_data = pd.concat([tx_data, df])
         #remove uncessary variables
         del df
+        
+        #Risk moratality, make it binary
+        #1 Minor
+        #2 Moderate
+        #3 Major
+        #4 Extreme  
+        tx_data.RISK_MORTALITY.astype(int)
+        tx_data.RISK_MORTALITY.replace(1,0,inplace=True)
+        tx_data.RISK_MORTALITY.replace(2,0,inplace=True)
+        tx_data.RISK_MORTALITY.replace(3,1,inplace=True)
+        tx_data.RISK_MORTALITY.replace(4,1,inplace=True)
 
         #renumber non-numerical codes for cols
         cols=['PRINC_DIAG_CODE', 'SOURCE_OF_ADMISSION', 'E_CODE_1']
@@ -380,11 +392,11 @@ and place it in the correct folder.
         #convert all data to numerical
         tx_data = tx_data.astype(int)
         #save csv file
-        tx_data.to_csv(os.path.join(data_folder, "TexasHospitals", "texas_data10.csv"))
+        tx_data.to_csv(os.path.join(data_folder, "TexasHospitals", processed_data_file))
     else:
         logger.info("Loading processed Texas Hospitals data (2006-2009) csv file.")
         #load texas data processed csv file
-        tx_data = pd.read_csv(os.path.join(data_folder, "TexasHospitals", "texas_data10.csv"))
+        tx_data = pd.read_csv(os.path.join(data_folder, "TexasHospitals", processed_data_file))
 
     # extract target
     var = 'RISK_MORTALITY'

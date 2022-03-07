@@ -114,7 +114,7 @@ def run_loop(config_file: str) -> pd.DataFrame:
         #MPLClassifier is giving a lot of warnings. 
         # For each repetition are the same, so it will only show the same warning once.
 
-    for dataset in datasets:
+    for dataset in datasets[4:]:
         logger.info("Starting datasset %s", dataset)
         #load the data
         try:

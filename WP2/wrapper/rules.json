@@ -3,13 +3,13 @@
         "rules": [
             {
                 "keyword": "min_samples_leaf",
-                "operator": "min",
-                "value": 5
+                "operator": "is_type",
+                "value": "int"
             },
             {
                 "keyword": "min_samples_leaf",
-                "operator": "is_type",
-                "value": "int"
+                "operator": "min",
+                "value": 5
             }
         ]
     },

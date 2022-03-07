@@ -18,6 +18,12 @@ Uses transfer learning (original network trained on imagenet) to perform multicl
 
 [64 x 64 images](https://www.kaggle.com/andrewmvd/medical-mnist)
 
+
+### Non medical:  faces datasets
+Cohen-kanade https://ieeexplore.ieee.org/document/5543262 
+VGGfact2 https://arxiv.org/pdf/1710.08092v2.pdf 
+Those two datasets would be useful to illusrate the difference of attacks success with various features extraction techniques 
+
 ## Medical Records
 
 ### MIMIC

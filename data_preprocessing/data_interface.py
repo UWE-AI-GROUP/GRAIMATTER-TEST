@@ -54,6 +54,8 @@ def get_data_sklearn(
         return in_hospital_mortality(data_folder)
     elif dataset_name == 'medical-mnist-ab-v-br-100':
         return medical_mnist_ab_v_br_100(data_folder)
+    elif dataset_name == 'medical-mnist-ab-v-br-500':
+        return medical_mnist_ab_v_br_500(data_folder)
     elif dataset_name == 'indian liver':
         return indian_liver(data_folder)
     elif dataset_name == 'texas hospitals 10':
@@ -139,9 +141,93 @@ and place it in the correct folder. It unzips the file first.
 
     all_x = np.vstack((x_ab, x_br))
     all_y = np.vstack((y_ab, y_br))
+    
+    print('xshape', all_x.shape)
+    print('y shape', all_y.shape)
+
+    #all_y = np.hstack((y_ab, y_br))
 
     return (pd.DataFrame(all_x), pd.DataFrame(all_y))
 
+
+
+def medical_mnist_ab_v_br_500(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    '''
+    Load Medical MNIST into pandas format
+    borrows heavily from: https://www.kaggle.com/harelshattenstein/medical-mnist-knn
+    Creates a binary classification
+    '''
+
+    base_folder = os.path.join(
+        data_folder,
+        'kaggle-medical-mnist',
+        'archive',
+    )
+
+    zip_file = os.path.join(
+        data_folder,
+        'kaggle-medical-mnist',
+        "archive.zip"
+    )
+
+    print(base_folder, data_folder)
+    if not any([os.path.exists(base_folder), os.path.exists(zip_file)]):
+        help_message = f"""
+Data file {base_folder} does not exist. Please download fhe file from:
+https://www.kaggle.com/andrewmvd/medical-mnist 
+and place it in the correct folder. It unzips the file first.
+        """
+        raise DataNotAvailable(help_message)
+
+    elif os.path.exists(base_folder):
+        pass
+    elif os.path.exists(zip_file):
+        try:
+            with ZipFile(zip_file) as zip_handle:
+                zip_handle.extractall()
+                print("Extracted all")
+                #os.remove(zip_file)
+                #print("zip file removed")
+        except: # TODO: define exception type that this should catch
+            print("Invalid file")
+
+    labels_dict = {
+        0 : 'AbdomenCT',
+        1 : 'BreastMRI',
+        2 : 'CXR',
+        3 : 'ChestCT',
+        4 : 'Hand',
+        5 : 'HeadCT'
+    }
+    
+    number_to_load = 100
+    def images_to_ndarray_(images_dir: str, label: int):
+        folder_path = images_dir + os.sep
+        images_names = sorted(os.listdir(folder_path))
+        images_names = images_names[:number_to_load]
+        np_images = np.array([plt.imread(folder_path + img).flatten() for img in images_names])
+        #labels = np.ones((len(np_images), 1), int) * label
+        
+        labels = np.zeros((np_images.shape[0],np_images.shape[1] + 1),dtype=int)
+        labels[:,-1] = np.ones(np_images.shape[0], dtype=int) * label
+        np_label_images[:,:-1] = np_no_label_images
+        return(np_images,labels)
+    
+    d = [images_to_ndarray_(os.path.join(base_folder, labels_dict.get(label)), number_to_load) for label, name in labels_dict.items()]
+    img = [x for x,y in d]
+    images = np.r_[img]
+    l = [y for x,y in d]
+    labels = np.r_[l]
+        
+    return (pd.DataFrame(images), pd.DataFrame(labels))
+    #label_data_1 = images_to_ndarray(labels_dict.get(1), 1)
+    #label_data_2 = images_to_ndarray(labels_dict.get(2), 2)
+    #label_data_3 = images_to_ndarray(labels_dict.get(3), 3)
+    #label_data_4 = images_to_ndarray(labels_dict.get(4), 4)
+    #label_data_5 = images_to_ndarray(labels_dict.get(5), 5)
+    #data = np.r_[label_data_0, label_data_1, label_data_2, label_data_3, label_data_4, label_data_5]
+
+    
 
 def indian_liver(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''

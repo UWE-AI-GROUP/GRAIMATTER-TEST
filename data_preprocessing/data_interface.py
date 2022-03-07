@@ -132,7 +132,7 @@ and place it in the correct folder. It unzips the file first.
     )
 
     x_br, y_br = images_to_ndarray(
-        os.path.join(base_folder, labels_dict.get(0)),
+        os.path.join(base_folder, labels_dict.get(1)),
         100,
         1
     )

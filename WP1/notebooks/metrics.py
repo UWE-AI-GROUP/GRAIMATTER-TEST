@@ -51,7 +51,8 @@ def get_metrics(clf,
     metrics['NPV'] = div(tn, (tn + fn), 0) #negative predictive value
     metrics['FNR'] = round(float(fn / (tp + fn)), 8) #false negative rate
     metrics['ACC'] = round(float((tp + tn) / (tp + fp + fn + tn)), 8) #overall accuracy
-    metrics['F1score'] = round(float(2*((metrics['PPV']*metrics['TPR']) / (metrics['PPV']+metrics['TPR']), 0)))#harmonic mean of precision and sensitivity
+    #f1score = 2*(metrics['PPV']*metrics['TPR'] / (metrics['PPV']+metrics['TPR']))
+    metrics['F1score'] = div(2*metrics['PPV']*metrics['TPR'], metrics['PPV']+metrics['TPR'], 0)#harmonic mean of precision and sensitivity
     metrics['Advantage'] = float(abs(metrics['TPR']-metrics['FPR']))
     #metrics['PLR'] = float(metrics['TPR'] / metrics['FPR']) #positive likelihood ratio
     #metrics['NLR'] = float(metrics['FNR'] / metrics['TNR']) #negative likelihood ratio

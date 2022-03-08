@@ -33,10 +33,8 @@ def get_metrics(clf,
     Negative predictive value (NPV)
     False neagative rate (FNR)
     Accuracy (ACC)
+    F1 Score - harmonic mean of precision and recall.
     Advantage
-    Positive likelihood ratio (PLR)
-    Negative likelihood ratio (NLR)
-    Odds ratio (OR)
     """
     metrics = {}
     y_pred = clf.predict(X_test)
@@ -51,11 +49,8 @@ def get_metrics(clf,
     metrics['NPV'] = div(tn, (tn + fn), 0) #negative predictive value
     metrics['FNR'] = round(float(fn / (tp + fn)), 8) #false negative rate
     metrics['ACC'] = round(float((tp + tn) / (tp + fp + fn + tn)), 8) #overall accuracy
-    metrics['F1score'] = 2 * div(metrics['PPV'] * metrics['TPR'], metrics['PPV'] + metrics['TPR'], 0)#harmonic mean of precision and sensitivity
+    metrics['F1score'] = div(2*metrics['PPV']*metrics['TPR'], metrics['PPV']+metrics['TPR'], 0)#harmonic mean of precision and sensitivity
     metrics['Advantage'] = float(abs(metrics['TPR']-metrics['FPR']))
-    #metrics['PLR'] = float(metrics['TPR'] / metrics['FPR']) #positive likelihood ratio
-    #metrics['NLR'] = float(metrics['FNR'] / metrics['TNR']) #negative likelihood ratio
-    #metrics['OR'] = metrics['PLR'] / metrics['NLR'] #odds ratio, the odds ratio is used to find the probability of an outcome of an event when there are two possible outcomes
     #calculate AUC of model
     y_pred_proba = clf.predict_proba(X_test)[::,1]
     metrics['AUC'] = round(roc_auc_score(y_test, y_pred_proba),8)

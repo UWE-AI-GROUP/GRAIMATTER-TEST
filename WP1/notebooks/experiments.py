@@ -12,6 +12,7 @@ import pandas as pd
 from tqdm.contrib.itertools import product
 import sklearn.datasets as skl_datasets
 
+
 from scenarios import *
 from metrics import get_metrics
 
@@ -111,8 +112,9 @@ def run_loop(config_file: str) -> pd.DataFrame:
 
     if not sys.warnoptions:
         warnings.simplefilter("once")
-        #MPLClassifier is giving a lot of warnings. 
+        #MPLClassifir is giving a lot of warnings. 
         # For each repetition are the same, so it will only show the same warning once.
+
 
     for dataset in datasets:
         logger.info("Starting datasset %s", dataset)
@@ -126,13 +128,13 @@ def run_loop(config_file: str) -> pd.DataFrame:
         for r in range(n_reps):
             logger.info("Rep %d", r)
             #split into training, shadow model and validation data
-            X_target_train, X_shadow_train, X_test, y_target_train, y_shadow_train, y_test = split_target_data(X.values, y.values, r_state=r)
+            X_target_train, X_shadow_train, X_test, y_target_train, y_shadow_train, y_test = split_target_data(X.values, y.values.flatten(), r_state=r)
             
             for classifier_name, clf_class in classifiers.items():
                 logger.info("Classifier: %s", classifier_name)
                 all_combinations = product(*experiment_params[classifier_name].values())
                 for i, combination in enumerate(all_combinations):
-
+                    print(dataset, r, classifier_name, combination)
                     # Turn this particular combination into a dictionary
                     params = {n: v for n, v in zip(experiment_params[classifier_name].keys(), combination)}
                     target_classifier = clf_class()

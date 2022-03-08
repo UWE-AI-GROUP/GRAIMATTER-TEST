@@ -5,12 +5,13 @@ pre-processing
 '''
 import os
 import logging
-from typing import Tuple
+from typing import Tuple, List
 from zipfile import ZipFile
 from collections import Counter
 import pandas as pd
 import numpy as np
 import pylab as plt
+from sklearn.preprocessing import OneHotEncoder
 
 logging.basicConfig(
     level = "DEBUG"
@@ -48,18 +49,27 @@ def get_data_sklearn(
     '''
     logger.info("DATASET FOLDER = %s", data_folder)
 
+
     if dataset_name == 'mimic2-iaccd':
         return mimic_iaccd(data_folder)
     elif dataset_name == 'in-hospital-mortality':
         return in_hospital_mortality(data_folder)
     elif dataset_name == 'medical-mnist-ab-v-br-100':
-        return medical_mnist_ab_v_br_100(data_folder)
+        return medical_mnist_loader(data_folder, 100, ['AbdomenCT', 'BreastMRI'])
     elif dataset_name == 'medical-mnist-ab-v-br-500':
-        return medical_mnist_ab_v_br_500(data_folder)
+        return medical_mnist_loader(data_folder, 500, ['AbdomenCT', 'BreastMRI'])
+    elif dataset_name == 'medical-mnist-all-100':
+        return medical_mnist_loader(
+            data_folder,
+            100,
+            ['AbdomenCT', 'BreastMRI', 'CXR', 'ChestCT', 'Hand', 'HeadCT']
+        )
     elif dataset_name == 'indian liver':
         return indian_liver(data_folder)
     elif dataset_name == 'texas hospitals 10':
         return texas_hospitals(data_folder)
+    elif dataset_name == 'synth-ae':
+        return synth_ae(data_folder)
     else:
         raise UnknownDataset()
 
@@ -76,7 +86,7 @@ def images_to_ndarray(images_dir: str, number_to_load: int, label: int) -> Tuple
     labels = np.ones((len(np_images), 1), int) * label
     return(np_images, labels)
 
-def medical_mnist_ab_v_br_100(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def medical_mnist_loader(data_folder: str, n_per_class: int, classes: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Load Medical MNIST into pandas format
     borrows heavily from: https://www.kaggle.com/harelshattenstein/medical-mnist-knn
@@ -125,109 +135,79 @@ and place it in the correct folder. It unzips the file first.
         5 : 'HeadCT'
     }
 
+    reverse_labels_dict = {v: k for k, v in labels_dict.items()}
 
+    for i, class_name in enumerate(classes):
+        label = reverse_labels_dict[class_name]
+        x_images, y_images = images_to_ndarray(
+            os.path.join(base_folder, class_name),
+            n_per_class,
+            label
+        )
 
-    x_ab, y_ab = images_to_ndarray(
-        os.path.join(base_folder, labels_dict.get(0)),
-        100,
-        0
-    )
-
-    x_br, y_br = images_to_ndarray(
-        os.path.join(base_folder, labels_dict.get(1)),
-        100,
-        1
-    )
-
-    all_x = np.vstack((x_ab, x_br))
-    all_y = np.vstack((y_ab, y_br))
-    
-    print('xshape', all_x.shape)
-    print('y shape', all_y.shape)
-
-    #all_y = np.hstack((y_ab, y_br))
+        if i == 0:
+            all_x = x_images
+            all_y = y_images
+        else:
+            all_x = np.vstack((all_x, x_images))
+            all_y = np.vstack((all_y, y_images))
 
     return (pd.DataFrame(all_x), pd.DataFrame(all_y))
 
 
-
-def medical_mnist_ab_v_br_500(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def synth_ae(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
-    Load Medical MNIST into pandas format
-    borrows heavily from: https://www.kaggle.com/harelshattenstein/medical-mnist-knn
-    Creates a binary classification
-    '''
+    First 20000 rows from the Synthetic A&E data from NHS England
+    https://data.england.nhs.uk/dataset/a-e-synthetic-data/resource/81b068e5-6501-4840-a880-a8e7aa56890e
+    ''' 
 
-    base_folder = os.path.join(
+    file_path = os.path.join(
         data_folder,
-        'kaggle-medical-mnist',
-        'archive',
+        'A&E Synthetic Data.csv'
     )
 
-    zip_file = os.path.join(
-        data_folder,
-        'kaggle-medical-mnist',
-        "archive.zip"
-    )
-
-    print(base_folder, data_folder)
-    if not any([os.path.exists(base_folder), os.path.exists(zip_file)]):
+    if not os.path.exists(file_path):
         help_message = f"""
-Data file {base_folder} does not exist. Please download fhe file from:
-https://www.kaggle.com/andrewmvd/medical-mnist 
-and place it in the correct folder. It unzips the file first.
-        """
+Data file {file_path} does not exist. Please download the file from:
+https://data.england.nhs.uk/dataset/a-e-synthetic-data/resource/81b068e5-6501-4840-a880-a8e7aa56890e
+unzip it (7z) and then copy the .csv file into your data folder.
+    """
         raise DataNotAvailable(help_message)
 
-    elif os.path.exists(base_folder):
-        pass
-    elif os.path.exists(zip_file):
-        try:
-            with ZipFile(zip_file) as zip_handle:
-                zip_handle.extractall()
-                print("Extracted all")
-                #os.remove(zip_file)
-                #print("zip file removed")
-        except: # TODO: define exception type that this should catch
-            print("Invalid file")
+    input_data = pd.read_csv(file_path).head(20000)
+    columns_to_drop = [
+        'AE_Arrive_Date', 'AE_Arrive_HourOfDay', 'Admission_Method',
+        'ICD10_Chapter_Code', 'Treatment_Function_Code', 'Length_Of_Stay_Days',
+        'ProvID'
+    ]
+    input_data.drop(columns_to_drop, axis=1, inplace=True)
 
-    labels_dict = {
-        0 : 'AbdomenCT',
-        1 : 'BreastMRI',
-        2 : 'CXR',
-        3 : 'ChestCT',
-        4 : 'Hand',
-        5 : 'HeadCT'
-    }
-    
-    number_to_load = 100
-    def images_to_ndarray_(images_dir: str, label: int):
-        folder_path = images_dir + os.sep
-        images_names = sorted(os.listdir(folder_path))
-        images_names = images_names[:number_to_load]
-        np_images = np.array([plt.imread(folder_path + img).flatten() for img in images_names])
-        #labels = np.ones((len(np_images), 1), int) * label
-        
-        labels = np.zeros((np_images.shape[0],np_images.shape[1] + 1),dtype=int)
-        labels[:,-1] = np.ones(np_images.shape[0], dtype=int) * label
-        np_label_images[:,:-1] = np_no_label_images
-        return(np_images,labels)
-    
-    d = [images_to_ndarray_(os.path.join(base_folder, labels_dict.get(label)), number_to_load) for label, name in labels_dict.items()]
-    img = [x for x,y in d]
-    images = np.r_[img]
-    l = [y for x,y in d]
-    labels = np.r_[l]
-        
-    return (pd.DataFrame(images), pd.DataFrame(labels))
-    #label_data_1 = images_to_ndarray(labels_dict.get(1), 1)
-    #label_data_2 = images_to_ndarray(labels_dict.get(2), 2)
-    #label_data_3 = images_to_ndarray(labels_dict.get(3), 3)
-    #label_data_4 = images_to_ndarray(labels_dict.get(4), 4)
-    #label_data_5 = images_to_ndarray(labels_dict.get(5), 5)
-    #data = np.r_[label_data_0, label_data_1, label_data_2, label_data_3, label_data_4, label_data_5]
+    # Remove any rows with NAs in the remaining columns
+    input_data.dropna(axis=0, inplace=True)
+
+    # One-hot encode some columns
+    encode_columns = ['Age_Band', 'AE_HRG']
+    encode_data = input_data[encode_columns]
+    input_data.drop(encode_columns, axis=1, inplace=True)
+
+    oh = OneHotEncoder()
+    oh.fit(encode_data)
+    onehot_df = pd.DataFrame(
+        oh.transform(encode_data).toarray(),
+        columns=oh.get_feature_names_out(),
+        index=input_data.index
+    )
+
+    input_data = pd.concat([input_data, onehot_df], axis=1)
+
+    X = input_data.drop(['Admitted_Flag'], axis=1)
+    y = input_data[['Admitted_Flag']]
+
+    return (X, y)
+
 
     
+
 
 def indian_liver(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
@@ -239,7 +219,6 @@ def indian_liver(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
         data_folder,
         "Indian Liver Patient Dataset (ILPD).csv"
     )
-    print(file_path, data_folder)
     if not os.path.exists(file_path):
         help_message = f"""
 Data file {file_path} does not exist. Please download fhe file from:

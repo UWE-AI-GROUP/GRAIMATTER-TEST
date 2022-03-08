@@ -128,7 +128,7 @@ def run_loop(config_file: str) -> pd.DataFrame:
         for r in range(n_reps):
             logger.info("Rep %d", r)
             #split into training, shadow model and validation data
-            X_target_train, X_shadow_train, X_test, y_target_train, y_shadow_train, y_test = split_target_data(X.values, y.values, r_state=r)
+            X_target_train, X_shadow_train, X_test, y_target_train, y_shadow_train, y_test = split_target_data(X.values, y.values.flatten(), r_state=r)
             
             for classifier_name, clf_class in classifiers.items():
                 logger.info("Classifier: %s", classifier_name)

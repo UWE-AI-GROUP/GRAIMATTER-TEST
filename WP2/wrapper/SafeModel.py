@@ -75,29 +75,24 @@ def removeKey(d, key):
     return r
 
 
-def compare_trees(tree1, tree2):
-    if hash(tree1.__dict__.values())==hash(tree2.__dict__.values()):
-    # the trees have both been trained
-        if tree1.tree_ != None and tree2.tree_ != None: 
-            try: # the tree values are matching arrays
-                return (tree1.tree_.value==tree2.tree_.value).all()
-            except: # they do not match
-                return False
-        elif tree1.tree_ != None or tree2.tree_ != None: 
-            # XOR of the trees is not trained
-            return False
-        else: # Neither has been trained
-            return True
-    else: # the params are different
-        return False
+def check_type(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
+    """Checks the type of a value"""
+    if type(cur_val).__name__ != val:
+        disclosive = True
+        msg = (
+            f"- parameter {key} = {cur_val}"
+            f" identified as different type than the recommended fixed value of {val}."
+        )
+    else:
+        disclosive = False
+        msg = ""
+    return msg, disclosive
 
 
 
 class SafeModel:
     """Privacy protected model base class."""
 
-    #savedDict: dict = {'savedDict':'Dummy1'}
-    #currentDict: dict = {'savedDict':'Dummy2'}
 
     def __init__(self) -> None:
         """Super class constructor, gets researcher name."""
@@ -153,7 +148,7 @@ class SafeModel:
         elif operator == "equals":
             msg, disclosive = check_equal(key, val, cur_val)
         elif operator =="is_type":
-             msg, disclosive = check_type(key, val, cur_val)
+            msg, disclosive = check_type(key, val, cur_val)
         else:
             msg = f"- unknown operator in parameter specification {operator}"
         if apply_constraints and disclosive:
@@ -289,9 +284,11 @@ class SafeModel:
         return msg,disclosive
                 
 
+
     def request_release(self, filename: str = "undefined") -> None:
         """Saves model to filename specified and creates a report for the TRE
         output checkers."""
+
 
             
         if filename == "undefined":
@@ -303,23 +300,20 @@ class SafeModel:
             msg, disclosive = self.preliminary_check(verbose=False)
             msg2, disclosive2 = self.posthoc_check()
             msg3, disclosive3 = self.additional_checks()
+
             output: dict = {
                 "researcher": self.researcher,
                 "model_type": self.model_type,
                 "model_save_file": self.model_save_file,
                 "details": msg,
             }
+
             if (disclosive==False)and(disclosive2==False)and(disclosive3==False):
                 output["recommendation"] = f"Run file {filename} through next step of checking procedure"
             else:
                 output["recommendation"] = "Do not allow release"
                 output["reason"]= msg +msg2 +msg3       
-            #if disclosive:
-            #    output["recommendation"] = "Do not allow release"
-            #else:
-            #    output[
-            #        "recommendation"
-            #    ] = f"Run file {filename} through next step of checking procedure"
+
             json_str = json.dumps(output, indent=4)
             outputfilename = self.researcher + "_checkfile.json"
             with open(outputfilename, "a", encoding="utf-8") as file:
@@ -342,12 +336,11 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         self.ignore_items= ["model_save_file", "ignore_items"]
         self.examine_seperately_items= ["tree_"]
 
+
     def fit(self, X, y):
         """Do fit and then store model dict"""
         super().fit(X, y)
         self.savedModel = copy.deepcopy(self.__dict__)
-        
-        
 
 
 class SafeRandomForest(SafeModel, RandomForestClassifier):
@@ -365,7 +358,4 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         super().fit(self, **kwargs)
         self.savedModel = copy.deepcopy(self.__dict__)
 
-    # def __getattr__(self, attr):
-    #    if attr in self.__dict__:
-    #        return getattr(self, attr)
-    #    return getattr(self, attr)
+ 

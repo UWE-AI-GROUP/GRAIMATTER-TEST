@@ -5,8 +5,7 @@ pre-processing
 '''
 import os
 import logging
-from pkgutil import get_data
-from typing import Tuple
+from typing import Tuple, List
 from zipfile import ZipFile
 from collections import Counter
 import pandas as pd
@@ -50,14 +49,21 @@ def get_data_sklearn(
     '''
     logger.info("DATASET FOLDER = %s", data_folder)
 
+
     if dataset_name == 'mimic2-iaccd':
         return mimic_iaccd(data_folder)
     elif dataset_name == 'in-hospital-mortality':
         return in_hospital_mortality(data_folder)
     elif dataset_name == 'medical-mnist-ab-v-br-100':
-        return medical_mnist_ab_v_br(data_folder, 100)
+        return medical_mnist_loader(data_folder, 100, ['AbdomenCT', 'BreastMRI'])
     elif dataset_name == 'medical-mnist-ab-v-br-500':
-        return medical_mnist_ab_v_br(data_folder, 500)
+        return medical_mnist_loader(data_folder, 500, ['AbdomenCT', 'BreastMRI'])
+    elif dataset_name == 'medical-mnist-all-100':
+        return medical_mnist_loader(
+            data_folder,
+            100,
+            ['AbdomenCT', 'BreastMRI', 'CXR', 'ChestCT', 'Hand', 'HeadCT']
+        )
     elif dataset_name == 'indian liver':
         return indian_liver(data_folder)
     elif dataset_name == 'texas hospitals 10':
@@ -80,7 +86,7 @@ def images_to_ndarray(images_dir: str, number_to_load: int, label: int) -> Tuple
     labels = np.ones((len(np_images), 1), int) * label
     return(np_images, labels)
 
-def medical_mnist_ab_v_br(data_folder: str, n_per_class: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def medical_mnist_loader(data_folder: str, n_per_class: int, classes: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Load Medical MNIST into pandas format
     borrows heavily from: https://www.kaggle.com/harelshattenstein/medical-mnist-knn
@@ -129,23 +135,22 @@ and place it in the correct folder. It unzips the file first.
         5 : 'HeadCT'
     }
 
-    x_ab, y_ab = images_to_ndarray(
-        os.path.join(base_folder, labels_dict.get(0)),
-        n_per_class,
-        0
-    )
+    reverse_labels_dict = {v: k for k, v in labels_dict.items()}
 
-    x_br, y_br = images_to_ndarray(
-        os.path.join(base_folder, labels_dict.get(1)),
-        n_per_class,
-        1
-    )
+    for i, class_name in enumerate(classes):
+        label = reverse_labels_dict[class_name]
+        x_images, y_images = images_to_ndarray(
+            os.path.join(base_folder, class_name),
+            n_per_class,
+            label
+        )
 
-    all_x = np.vstack((x_ab, x_br))
-    all_y = np.vstack((y_ab, y_br))
-    
-    print('xshape', all_x.shape)
-    print('y shape', all_y.shape)
+        if i == 0:
+            all_x = x_images
+            all_y = y_images
+        else:
+            all_x = np.vstack((all_x, x_images))
+            all_y = np.vstack((all_y, y_images))
 
     return (pd.DataFrame(all_x), pd.DataFrame(all_y))
 
@@ -169,7 +174,7 @@ unzip it (7z) and then copy the .csv file into your data folder.
     """
         raise DataNotAvailable(help_message)
 
-    input_data = pd.read_csv(file_path)
+    input_data = pd.read_csv(file_path).head(20000)
     columns_to_drop = [
         'AE_Arrive_Date', 'AE_Arrive_HourOfDay', 'Admission_Method',
         'ICD10_Chapter_Code', 'Treatment_Function_Code', 'Length_Of_Stay_Days',

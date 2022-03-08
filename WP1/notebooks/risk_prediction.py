@@ -76,11 +76,11 @@ rfr = RandomForestRegressor()
 rfr.fit(train_x, train_y)
 predictions = rfr.predict(test_x)
 fig, ax = plt.subplots(figsize=(20, 12))
-f_col = 'max_depth'
+f_col = 'min_samples_split'
 import numpy as np
-scatter = plt.scatter(predictions, test_y, c = np.log(test_x[f_col].values), cmap="Set1")
+scatter = plt.scatter(predictions, test_y, c = test_x[f_col].values, cmap="Set1")
 legend1 = ax.legend(*scatter.legend_elements(),
-                    loc="lower left", title=f'log2 {f_col}')
+                    loc="lower left", title=f'{f_col}')
 ax.add_artist(legend1)
 
 plt.xlabel('Predicted MI AUC')

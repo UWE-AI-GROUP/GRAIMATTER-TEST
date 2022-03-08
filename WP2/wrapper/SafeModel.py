@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
+import copy
 import getpass
 import json
 import pickle
 from typing import Any
-import copy
+
 import joblib
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
 import numpy as np
 from dictdiffer import diff
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+
 
 def check_min(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
     """Checks minimum value constraint."""
@@ -57,11 +59,11 @@ def check_equal(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
 
 def check_type(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
     """Checks the type of a value."""
-    if type(cur_val).__name__ != val :
+    if type(cur_val).__name__ != val:
         disclosive = True
         msg = (
-             f"- parameter {key} = {cur_val}"
-             f" identified as different type to recommendation of  {val}."
+            f"- parameter {key} = {cur_val}"
+            f" identified as different type to recommendation of  {val}."
         )
     else:
         disclosive = False
@@ -69,30 +71,14 @@ def check_type(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
     return msg, disclosive
 
 
-def removeKey(d, key):
+def remove_key(d, key):
     r = dict(d)
     del r[key]
     return r
 
 
-def check_type(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
-    """Checks the type of a value"""
-    if type(cur_val).__name__ != val:
-        disclosive = True
-        msg = (
-            f"- parameter {key} = {cur_val}"
-            f" identified as different type than the recommended fixed value of {val}."
-        )
-    else:
-        disclosive = False
-        msg = ""
-    return msg, disclosive
-
-
-
 class SafeModel:
     """Privacy protected model base class."""
-
 
     def __init__(self) -> None:
         """Super class constructor, gets researcher name."""
@@ -147,16 +133,16 @@ class SafeModel:
             msg, disclosive = check_max(key, val, cur_val)
         elif operator == "equals":
             msg, disclosive = check_equal(key, val, cur_val)
-        elif operator =="is_type":
+        elif operator == "is_type":
             msg, disclosive = check_type(key, val, cur_val)
         else:
             msg = f"- unknown operator in parameter specification {operator}"
         if apply_constraints and disclosive:
-            if (operator=="is_type"):
-                if ( (val=="int") and (type(cur_val).__name__ == "float")):
+            if operator == "is_type":
+                if (val == "int") and (type(cur_val).__name__ == "float"):
                     self.__dict__[key] = int(self.__dict__[key])
                     msg += f"\nChanged parameter type for {key} to {val}.\n"
-                elif ( (val=="float") and (type(cur_val).__name__ == "int")):
+                elif (val == "float") and (type(cur_val).__name__ == "int"):
                     self.__dict__[key] = float(self.__dict__[key])
                     msg += f"\nChanged parameter type for {key} to {val}.\n"
                 else:
@@ -222,79 +208,82 @@ class SafeModel:
         if verbose:
             print(msg)
         return msg, disclosive
-    
-    def posthoc_check(self)->tuple[str,str]:
+
+    def posthoc_check(self) -> tuple[str, str]:
         """Checks whether moddel has bene interfered with since fit() was last run"""
-        
-        disclosive =False
+
+        disclosive = False
         msg = ""
-        #get dictionaries of parameters
-        currentModel= copy.deepcopy(self.__dict__)
-        savedModel= currentModel.pop("savedModel","Absent")
-    
-        if(savedModel=="Absent"):
-            msg= "error, model not fitted yet"
+        # get dictionaries of parameters
+        current_model = copy.deepcopy(self.__dict__)
+        saved_model = current_model.pop("savedModel", "Absent")
+
+        if saved_model == "Absent":
+            msg = "error, model not fitted yet"
             disclosive = True
-            
+
         else:
-            savedModel= dict(self.savedModel)
-            
-            #remove things we don't care about
+            saved_model = dict(self.savedModel)
+
+            # remove things we don't care about
             for item in self.ignore_items:
-                _ = currentModel.pop(item,"Absent")
-                _ = savedModel.pop(item,"Absent")
-            #break out things that need to be examined in more depth
-            #and keep in seperate lists
+                _ = current_model.pop(item, "Absent")
+                _ = saved_model.pop(item, "Absent")
+            # break out things that need to be examined in more depth
+            # and keep in seperate lists
             curr_seperate = {}
             saved_seperate = {}
             for item in self.examine_seperately_items:
-                curr_seperate[item]  = currentModel.pop(item,"Absent") 
-                saved_seperate[item] =  savedModel.pop(item,"Absent")
-    
+                curr_seperate[item] = current_model.pop(item, "Absent")
+                saved_seperate[item] = saved_model.pop(item, "Absent")
+
             # comparison on list of "simple" parameters
-            match = list(diff(currentModel,savedModel,expand=True))
-            if len(match) >0:
+            match = list(diff(current_model, saved_model, expand=True))
+            if len(match) > 0:
                 disclosive = True
-                msg = msg +f"basic parameters differ in {len(match)} places: "
-                for i in range (len(match)):
+                msg = msg + f"basic parameters differ in {len(match)} places: "
+                for i in range(len(match)):
                     msg = msg + f"\t{match[i]}"
-                    
-            #comparison of more complex structures
+
+            # comparison of more complex structures
             for item in self.examine_seperately_items:
-                if(curr_seperate[item]=="Absent" and saved_seperate[item]=="Absent"):
-                    #not sure if this is necessarily disclosive
+                if curr_seperate[item] == "Absent" and saved_seperate[item] == "Absent":
+                    # not sure if this is necessarily disclosive
                     msg = msg + f"Note that item {item} missing from both versions"
-                    
-                elif(curr_seperate[item]=="Absent" or saved_seperate[item]=="Absent"):
+
+                elif (
+                    curr_seperate[item] == "Absent" or saved_seperate[item] == "Absent"
+                ):
                     disclosive = True
-                    msg = msg = f"error, item {item} not present in both saved and current versions"
+                    msg = (
+                        msg
+                    ) = f"error, item {item} not present in both saved and current versions"
                 else:
-                    match2 = list(diff(curr_seperate[item].value,saved_seperate[item].value))
-                    if len(match2) >0:
+                    match2 = list(
+                        diff(curr_seperate[item].value, saved_seperate[item].value)
+                    )
+                    if len(match2) > 0:
                         disclosive = True
-                        msg = msg =f"looking at the structure {item} there are  {len(match2)} differences: {match2}"
+                        msg = (
+                            msg
+                        ) = f"tructure {item} has  {len(match2)} differences: {match2}"
 
-        return msg,disclosive
-                
-                
-    def additional_checks(self)->tuple[str,str]: 
-        """ placeholder function for additional posthoc checks e.g. keras"""
-        msg=""
-        disclosive=False
-        return msg,disclosive
-                
+        return msg, disclosive
 
+    def additional_checks(self) -> tuple[str, str]:
+        """placeholder function for additional posthoc checks e.g. keras"""
+        msg = ""
+        disclosive = False
+        return msg, disclosive
 
     def request_release(self, filename: str = "undefined") -> None:
         """Saves model to filename specified and creates a report for the TRE
         output checkers."""
 
-
-            
         if filename == "undefined":
             print("You must provide the name of the file you want to save your model")
             print("For security reasons, this will overwrite previous versions")
-            
+
         else:
             self.save(filename)
             msg, disclosive = self.preliminary_check(verbose=False)
@@ -308,11 +297,13 @@ class SafeModel:
                 "details": msg,
             }
 
-            if (disclosive==False)and(disclosive2==False)and(disclosive3==False):
-                output["recommendation"] = f"Run file {filename} through next step of checking procedure"
+            if ( (disclosive is False) and (disclosive2 is False) and (disclosive3 is False)):
+                output[
+                    "recommendation"
+                ] = f"Run file {filename} through next step of checking procedure"
             else:
                 output["recommendation"] = "Do not allow release"
-                output["reason"]= msg +msg2 +msg3       
+                output["reason"] = msg + msg2 + msg3
 
             json_str = json.dumps(output, indent=4)
             outputfilename = self.researcher + "_checkfile.json"
@@ -333,13 +324,12 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         DecisionTreeClassifier.__init__(self, **kwargs)
         self.model_type: str = "DecisionTreeClassifier"
         super().preliminary_check(apply_constraints=True, verbose=True)
-        self.ignore_items= ["model_save_file", "ignore_items"]
-        self.examine_seperately_items= ["tree_"]
+        self.ignore_items = ["model_save_file", "ignore_items"]
+        self.examine_seperately_items = ["tree_"]
 
-
-    def fit(self, X, y):
+    def fit(self, x, y):
         """Do fit and then store model dict"""
-        super().fit(X, y)
+        super().fit(x, y)
         self.savedModel = copy.deepcopy(self.__dict__)
 
 
@@ -357,5 +347,3 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         """Do fit and then store model dict"""
         super().fit(self, **kwargs)
         self.savedModel = copy.deepcopy(self.__dict__)
-
- 

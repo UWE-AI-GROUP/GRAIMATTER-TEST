@@ -297,7 +297,11 @@ class SafeModel:
                 "details": msg,
             }
 
-            if ( (disclosive is False) and (disclosive2 is False) and (disclosive3 is False)):
+            if (
+                (disclosive is False)
+                and (disclosive2 is False)
+                and (disclosive3 is False)
+            ):
                 output[
                     "recommendation"
                 ] = f"Run file {filename} through next step of checking procedure"
@@ -327,7 +331,7 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         self.ignore_items = ["model_save_file", "ignore_items"]
         self.examine_seperately_items = ["tree_"]
 
-    def fit(self, x, y):
+    def fit(self, x:np.ndarray, y:np.ndarray):
         """Do fit and then store model dict"""
         super().fit(x, y)
         self.savedModel = copy.deepcopy(self.__dict__)
@@ -343,7 +347,7 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         self.model_type: str = "RandomForestClassifier"
         super().preliminary_check(apply_constraints=True, verbose=True)
 
-    def fit(self, **kwargs: Any) -> None:
+    def fit(self, x:np.ndarray, y:np.ndarray) -> None:
         """Do fit and then store model dict"""
-        super().fit(self, **kwargs)
+        super().fit( x,y)
         self.savedModel = copy.deepcopy(self.__dict__)

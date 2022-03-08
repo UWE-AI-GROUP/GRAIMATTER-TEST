@@ -134,7 +134,6 @@ def run_loop(config_file: str) -> pd.DataFrame:
                 logger.info("Classifier: %s", classifier_name)
                 all_combinations = product(*experiment_params[classifier_name].values())
                 for i, combination in enumerate(all_combinations):
-                    print(dataset, r, classifier_name, combination)
                     # Turn this particular combination into a dictionary
                     params = {n: v for n, v in zip(experiment_params[classifier_name].keys(), combination)}
                     target_classifier = clf_class()

@@ -5,12 +5,13 @@ pre-processing
 '''
 import os
 import logging
-from typing import Tuple
+from typing import Tuple, List
 from zipfile import ZipFile
 from collections import Counter
 import pandas as pd
 import numpy as np
 import pylab as plt
+from sklearn.preprocessing import OneHotEncoder
 
 logging.basicConfig(
     level = "DEBUG"
@@ -48,16 +49,27 @@ def get_data_sklearn(
     '''
     logger.info("DATASET FOLDER = %s", data_folder)
 
+
     if dataset_name == 'mimic2-iaccd':
         return mimic_iaccd(data_folder)
     elif dataset_name == 'in-hospital-mortality':
         return in_hospital_mortality(data_folder)
     elif dataset_name == 'medical-mnist-ab-v-br-100':
-        return medical_mnist_ab_v_br_100(data_folder)
+        return medical_mnist_loader(data_folder, 100, ['AbdomenCT', 'BreastMRI'])
+    elif dataset_name == 'medical-mnist-ab-v-br-500':
+        return medical_mnist_loader(data_folder, 500, ['AbdomenCT', 'BreastMRI'])
+    elif dataset_name == 'medical-mnist-all-100':
+        return medical_mnist_loader(
+            data_folder,
+            100,
+            ['AbdomenCT', 'BreastMRI', 'CXR', 'ChestCT', 'Hand', 'HeadCT']
+        )
     elif dataset_name == 'indian liver':
         return indian_liver(data_folder)
     elif dataset_name == 'texas hospitals 10':
         return texas_hospitals(data_folder)
+    elif dataset_name == 'synth-ae':
+        return synth_ae(data_folder)
     else:
         raise UnknownDataset()
 
@@ -74,7 +86,7 @@ def images_to_ndarray(images_dir: str, number_to_load: int, label: int) -> Tuple
     labels = np.ones((len(np_images), 1), int) * label
     return(np_images, labels)
 
-def medical_mnist_ab_v_br_100(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def medical_mnist_loader(data_folder: str, n_per_class: int, classes: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
     Load Medical MNIST into pandas format
     borrows heavily from: https://www.kaggle.com/harelshattenstein/medical-mnist-knn
@@ -123,24 +135,78 @@ and place it in the correct folder. It unzips the file first.
         5 : 'HeadCT'
     }
 
+    reverse_labels_dict = {v: k for k, v in labels_dict.items()}
 
+    for i, class_name in enumerate(classes):
+        label = reverse_labels_dict[class_name]
+        x_images, y_images = images_to_ndarray(
+            os.path.join(base_folder, class_name),
+            n_per_class,
+            label
+        )
 
-    x_ab, y_ab = images_to_ndarray(
-        os.path.join(base_folder, labels_dict.get(0)),
-        100,
-        0
-    )
-
-    x_br, y_br = images_to_ndarray(
-        os.path.join(base_folder, labels_dict.get(0)),
-        100,
-        1
-    )
-
-    all_x = np.vstack((x_ab, x_br))
-    all_y = np.vstack((y_ab, y_br))
+        if i == 0:
+            all_x = x_images
+            all_y = y_images
+        else:
+            all_x = np.vstack((all_x, x_images))
+            all_y = np.vstack((all_y, y_images))
 
     return (pd.DataFrame(all_x), pd.DataFrame(all_y))
+
+
+def synth_ae(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    '''
+    First 20000 rows from the Synthetic A&E data from NHS England
+    https://data.england.nhs.uk/dataset/a-e-synthetic-data/resource/81b068e5-6501-4840-a880-a8e7aa56890e
+    ''' 
+
+    file_path = os.path.join(
+        data_folder,
+        'A&E Synthetic Data.csv'
+    )
+
+    if not os.path.exists(file_path):
+        help_message = f"""
+Data file {file_path} does not exist. Please download the file from:
+https://data.england.nhs.uk/dataset/a-e-synthetic-data/resource/81b068e5-6501-4840-a880-a8e7aa56890e
+unzip it (7z) and then copy the .csv file into your data folder.
+    """
+        raise DataNotAvailable(help_message)
+
+    input_data = pd.read_csv(file_path).head(20000)
+    columns_to_drop = [
+        'AE_Arrive_Date', 'AE_Arrive_HourOfDay', 'Admission_Method',
+        'ICD10_Chapter_Code', 'Treatment_Function_Code', 'Length_Of_Stay_Days',
+        'ProvID'
+    ]
+    input_data.drop(columns_to_drop, axis=1, inplace=True)
+
+    # Remove any rows with NAs in the remaining columns
+    input_data.dropna(axis=0, inplace=True)
+
+    # One-hot encode some columns
+    encode_columns = ['Age_Band', 'AE_HRG']
+    encode_data = input_data[encode_columns]
+    input_data.drop(encode_columns, axis=1, inplace=True)
+
+    oh = OneHotEncoder()
+    oh.fit(encode_data)
+    onehot_df = pd.DataFrame(
+        oh.transform(encode_data).toarray(),
+        columns=oh.get_feature_names_out(),
+        index=input_data.index
+    )
+
+    input_data = pd.concat([input_data, onehot_df], axis=1)
+
+    X = input_data.drop(['Admitted_Flag'], axis=1)
+    y = input_data[['Admitted_Flag']]
+
+    return (X, y)
+
+
+    
 
 
 def indian_liver(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -153,7 +219,6 @@ def indian_liver(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
         data_folder,
         "Indian Liver Patient Dataset (ILPD).csv"
     )
-    print(file_path, data_folder)
     if not os.path.exists(file_path):
         help_message = f"""
 Data file {file_path} does not exist. Please download fhe file from:
@@ -286,6 +351,7 @@ def texas_hospitals(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     found = [os.path.exists(file_path) for file_path in files_path]
     not_found = [file_path for file_path in files_path if not os.path.exists(file_path)]
 
+    processed_data_file = "texas_data10_rm_binary.csv"
     if not all(found):
         help_message = f"""
     Some or all data files do not exist. Please accept their terms & conditions,then download the
@@ -297,7 +363,7 @@ and place it in the correct folder.
     {not_found}
         """
         raise DataNotAvailable(help_message)
-    elif not os.path.exists(os.path.join(data_folder,"TexasHospitals","texas_data10.csv")):
+    elif not os.path.exists(os.path.join(data_folder,"TexasHospitals", processed_data_file)):
 
         logger.info("Processing Texas Hospitals data (2006-2009)")
 
@@ -358,6 +424,17 @@ and place it in the correct folder.
             tx_data = pd.concat([tx_data, df])
         #remove uncessary variables
         del df
+        
+        #Risk moratality, make it binary
+        #1 Minor
+        #2 Moderate
+        #3 Major
+        #4 Extreme  
+        tx_data.RISK_MORTALITY.astype(int)
+        tx_data.RISK_MORTALITY.replace(1,0,inplace=True)
+        tx_data.RISK_MORTALITY.replace(2,0,inplace=True)
+        tx_data.RISK_MORTALITY.replace(3,1,inplace=True)
+        tx_data.RISK_MORTALITY.replace(4,1,inplace=True)
 
         #renumber non-numerical codes for cols
         cols=['PRINC_DIAG_CODE', 'SOURCE_OF_ADMISSION', 'E_CODE_1']
@@ -380,11 +457,11 @@ and place it in the correct folder.
         #convert all data to numerical
         tx_data = tx_data.astype(int)
         #save csv file
-        tx_data.to_csv(os.path.join(data_folder, "TexasHospitals", "texas_data10.csv"))
+        tx_data.to_csv(os.path.join(data_folder, "TexasHospitals", processed_data_file))
     else:
         logger.info("Loading processed Texas Hospitals data (2006-2009) csv file.")
         #load texas data processed csv file
-        tx_data = pd.read_csv(os.path.join(data_folder, "TexasHospitals", "texas_data10.csv"))
+        tx_data = pd.read_csv(os.path.join(data_folder, "TexasHospitals", processed_data_file))
 
     # extract target
     var = 'RISK_MORTALITY'

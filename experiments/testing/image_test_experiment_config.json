@@ -1,0 +1,43 @@
+{
+    "datasets": [
+        "medical-mnist-ab-v-br-100",
+        "medical-mnist-ab-v-br-500"
+    ],
+    "classifiers" : [
+        ["sklearn.ensemble", "RandomForestClassifier"],
+        ["sklearn.gaussian_process", "GaussianProcessClassifier"],
+        ["sklearn.neural_network", "MLPClassifier"],
+        ["sklearn.neighbors", "KNeighborsClassifier"],
+        ["sklearn.svm", "SVC"],
+        ["sklearn.ensemble", "AdaBoostClassifier"]
+    ],
+    "experiment_params" : {
+        "RandomForestClassifier": {
+            "bootstrap": [true, false],
+            "min_samples_split": [2]
+        },
+        "GaussianProcessClassifier": {
+            "max_iter_predict": [50],
+            "warm_start": [false]
+        },
+        "MLPClassifier": {
+            "solver":["lbfgs"],
+            "learning_rate": ["constant"],
+            "max_iter": [400]
+        },
+        "KNeighborsClassifier": {
+            "n_neighbors": [5],
+            "weights": ["uniform"]
+        },
+        "SVC": {
+            "probability": [true]
+        },
+        "AdaBoostClassifier": {
+            "algorithm":["SAMME"]
+        }
+    },
+    "results_filename": "experiments/testing/image_test_results.csv",
+    "n_reps": 5,
+    "mia_classifier": ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+}

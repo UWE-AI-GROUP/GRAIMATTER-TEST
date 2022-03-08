@@ -58,13 +58,14 @@ hyp_params_oh = hyp_params_oh.merge(temp, how='left', on='full_id')
 # %%
 features = target_metrics.drop('dataset', axis=1)\
     .merge(hyp_params_oh, how='left', on='full_id')\
-    .drop(['target_FAR', 'target_PPV', 'full_id'], axis=1)
+    .drop([ 'full_id'], axis=1)
 
 features.max_depth[features.max_depth.isna()] = 200
 target = mia_metrics[['mia_AUC', 'dataset']].copy()
 
 # %%
 # Random train test split
+plt.rc('font', size=24) 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 train_x, test_x, train_y, test_y = train_test_split(
@@ -99,8 +100,8 @@ for i, test_dataset in enumerate(datasets):
     test_y = target[target.dataset == test_dataset].copy()
     rfr.fit(train_x.drop('dataset', axis=1), train_y.drop('dataset', axis=1))
     predictions = rfr.predict(test_x.drop('dataset', axis=1))
-    plt.figure()
-    plt.plot(predictions, test_y.drop('dataset', axis=1), 'ko', color=[0, 0, 0, 0.2])
+    plt.figure(figsize=(20, 12))
+    plt.plot(predictions, test_y.drop('dataset', axis=1), 'ko', color=[0, 0, 0])
     plt.xlabel('Predicted MI AUC')
     plt.ylabel('Actual MIA AUC')
     plt.title(f'{test_dataset} held out')

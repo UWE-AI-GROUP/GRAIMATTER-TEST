@@ -101,6 +101,10 @@ class PATE_GAN:
 
                     if self.conditional:
                         category = torch.multinomial(class_ratios,  inputs.size()[0], replacement=True).unsqueeze(1).double()
+                        print(class_ratios)
+                        print(inputs.size())
+                        print(z)
+                        print(category.shape)
                         fake = self.generator(torch.cat([z.double(), category], dim=1))
                         output = self.teacher_disc[i].forward(torch.cat([fake.detach(), category], dim=1))
                     else:

@@ -20,6 +20,8 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 print(PROJECT_ROOT)
 sys.path.append(PROJECT_ROOT)
 from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable
+from WP1.notebooks.scenarios import *
+from WP1.notebooks.metrics import get_metrics
 
 logger = logging.getLogger(__file__)
 
@@ -134,7 +136,6 @@ def run_loop(config_file: str) -> pd.DataFrame:
                 logger.info("Classifier: %s", classifier_name)
                 all_combinations = product(*experiment_params[classifier_name].values())
                 for i, combination in enumerate(all_combinations):
-                    print(dataset, r, classifier_name, combination)
                     # Turn this particular combination into a dictionary
                     params = {n: v for n, v in zip(experiment_params[classifier_name].keys(), combination)}
                     target_classifier = clf_class()

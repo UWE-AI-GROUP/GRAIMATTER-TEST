@@ -54,8 +54,34 @@ class ExampleWrapper(GenericEstimator):
         return self.random_forest.predict_proba(test_features)
 
     def predict(self, test_features: Any) -> np.ndarray:
-        print(self.random_forest.predict(test_features).shape)
         return self.random_forest.predict(test_features)
 
     def set_params(self, **kwargs):
         self.random_forest.set_params(**kwargs)
+
+class BadClassifier(GenericEstimator):
+    '''
+    Example of a really bad classifier that makes random predictions
+    Binary only
+    '''
+    def __init__(self, **kwargs):
+        self.classes = [0, 1]
+        # Following doesn't do anything, just shows how to access the value here
+        self.random_pointless_thing = kwargs['pointless_param']
+
+    def fit(self, train_features:Any, train_labels: Any):
+        pass
+
+    def set_params(self, **kwargs):
+        pass
+
+    def predict(self, test_features: Any) -> np.ndarray:
+        n_test_examples, _ = test_features.shape
+        return np.random.choice(self.classes, n_test_examples)
+
+    def predict_proba(self, test_features: Any) -> np.ndarray:
+        n_test_examples, _ = test_features.shape
+        probs = np.zeros((n_test_examples, len(self.classes)), np.float)
+        probs[:, 0] = np.random.rand(n_test_examples)
+        probs[:, 1] = 1 - probs[:, 0]
+        return probs

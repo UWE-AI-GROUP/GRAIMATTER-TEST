@@ -8,6 +8,7 @@ import warnings
 import importlib
 import hashlib
 import logging
+import argparse
 import pandas as pd
 from tqdm.contrib.itertools import product
 import sklearn.datasets as skl_datasets
@@ -15,6 +16,8 @@ import sklearn.datasets as skl_datasets
 
 from scenarios import *
 from metrics import get_metrics
+
+
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 print(PROJECT_ROOT)
@@ -75,9 +78,9 @@ class ResultsEntry():
                     **self.shadow_metrics
                 }, orient='index').T
             )
+                    
 
-
-def run_loop(config_file: str) -> pd.DataFrame:
+def run_loop(config_file: str, append: bool) -> pd.DataFrame:
     '''
     Run the experimental loop defined in the json config_file. Return
     a dataframe of results (which is also saved as a file)
@@ -108,14 +111,21 @@ def run_loop(config_file: str) -> pd.DataFrame:
 
     scenarios = config['scenarios']
 
-    results_df = pd.DataFrame()
-
     if not sys.warnoptions:
         warnings.simplefilter("once")
         #MPLClassifir is giving a lot of warnings. 
         # For each repetition are the same, so it will only show the same warning once.
-
-
+            
+    if append:
+        #load full_id from results file to check whether certains combinations already exists.
+        tmp = pd.read_csv(results_filename, usecols=['model_data_param_id', 'repetition'])
+        existing_experiments = {(fid,rep):'' for fid,rep in list(zip(tmp.model_data_param_id, tmp.repetition))}
+        handle = open(results_filename, "a")
+    else:
+        handle = open(results_filename, "w")
+    
+    df = pd.DataFrame()
+    
     for dataset in datasets:
         logger.info("Starting datasset %s", dataset)
         #load the data
@@ -130,155 +140,170 @@ def run_loop(config_file: str) -> pd.DataFrame:
             #split into training, shadow model and validation data
             X_target_train, X_shadow_train, X_test, y_target_train, y_shadow_train, y_test = split_target_data(X.values, y.values.flatten(), r_state=r)
             
+            results_df = pd.DataFrame()
+
             for classifier_name, clf_class in classifiers.items():
                 logger.info("Classifier: %s", classifier_name)
                 all_combinations = product(*experiment_params[classifier_name].values())
                 for i, combination in enumerate(all_combinations):
                     # Turn this particular combination into a dictionary
                     params = {n: v for n, v in zip(experiment_params[classifier_name].keys(), combination)}
-                    target_classifier = clf_class()
-                    target_classifier.set_params(**params)
 
-                    # Train the target model
-                    target_classifier.fit(X_target_train, y_target_train.ravel())#convert that array shape to (n, ) (i.e. flatten it) -- Fix warning
-
-                    # Get target metrics
-                    target_metrics = {f"target_{key}": val for key, val in get_metrics(target_classifier, X_test, y_test).items()}
-                    target_train_metrics = {f"target_train_{key}": val for key, val in get_metrics(target_classifier, X_target_train, y_target_train).items()}
-                    target_metrics = {**target_metrics, **target_train_metrics}
-                
                     hashstr = f'{dataset} {classifier_name} {str(params)}'
                     model_data_param_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
+
+                    #check if this already exist in results file when append==True
+                    if append and (model_data_param_id,r) not in existing_experiments:
+                        hashstr = f'{str(params)}'
+                        param_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
+
+                        target_classifier = clf_class()
+                        target_classifier.set_params(**params)
+
+                        # Train the target model
+                        target_classifier.fit(X_target_train, y_target_train.ravel())#convert that array shape to (n, ) (i.e. flatten it) -- Fix warning
+
+                        # Get target metrics
+                        target_metrics = {f"target_{key}": val for key, val in get_metrics(target_classifier, X_test, y_test).items()}
+                        target_train_metrics = {f"target_train_{key}": val for key, val in get_metrics(target_classifier, X_target_train, y_target_train).items()}
+                        target_metrics = {**target_metrics, **target_train_metrics}
                     
-                    hashstr = f'{str(params)}'
-                    param_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
-                    
-                    ##########################################
-                    #######   Worst case scenario     ########
-                    ##########################################
-                    if "WorstCase" in scenarios:
-                        scenario = "WorstCase"
-                        mi_test_x, mi_test_y, mi_clf = worst_case_mia(
-                            target_classifier,
-                            X_target_train,
-                            X_test,
-                            mia_classifier=mia_classifier()
-                        )
-                        # Get MIA metrics
-                        mia_metrics = {f"mia_{key}": val for key, val in get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
+                        ##########################################
+                        #######   Worst case scenario     ########
+                        ##########################################
+                        if "WorstCase" in scenarios:
+                            scenario = "WorstCase"
+                            mi_test_x, mi_test_y, mi_clf = worst_case_mia(
+                                target_classifier,
+                                X_target_train,
+                                X_test,
+                                mia_classifier=mia_classifier()
+                            )
+                            # Get MIA metrics
+                            mia_metrics = {f"mia_{key}": val for key, val in get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
 
-                        #Create ID for dataset classifier parameters scenario (but not repetition/random split)
-                        hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
-                        full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
+                            #Create ID for dataset classifier parameters scenario (but not repetition/random split)
+                            hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
+                            full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
 
-                        new_results = ResultsEntry(
-                            full_id, model_data_param_id, param_id,
-                            dataset,
-                            scenario,
-                            classifier_name,
-                            attack_classifier_name=mia_classifier_name,
-                            repetition=r,
-                            params=params,
-                            target_metrics=target_metrics,
-                            mia_metrics=mia_metrics
-                        )
+                            new_results = ResultsEntry(
+                                full_id, model_data_param_id, param_id,
+                                dataset,
+                                scenario,
+                                classifier_name,
+                                attack_classifier_name=mia_classifier_name,
+                                repetition=r,
+                                params=params,
+                                target_metrics=target_metrics,
+                                mia_metrics=mia_metrics
+                            )
 
-                        results_df = pd.concat([results_df, new_results.to_dataframe()], ignore_index=True)
+                            results_df = pd.concat([results_df, new_results.to_dataframe()], ignore_index=True)
 
 
-                    ##########################################
-                    #######   Salem scenario 1        ########
-                    ##########################################
-                    if "Salem1" in scenarios:
-                        scenario = "Salem1"
-                        mi_test_x, mi_test_y, mi_clf, shadow_model, X_shadow_test, y_shadow_test = salem(
-                            target_classifier,
-                            classifiers[classifier_name](**params),
-                            X_target_train,
-                            X_shadow_train,
-                            y_shadow_train,
-                            X_test,
-                            mia_classifier=mia_classifier()
-                        )
+                        ##########################################
+                        #######   Salem scenario 1        ########
+                        ##########################################
+                        if "Salem1" in scenarios:
+                            scenario = "Salem1"
+                            mi_test_x, mi_test_y, mi_clf, shadow_model, X_shadow_test, y_shadow_test = salem(
+                                target_classifier,
+                                classifiers[classifier_name](**params),
+                                X_target_train,
+                                X_shadow_train,
+                                y_shadow_train,
+                                X_test,
+                                mia_classifier=mia_classifier()
+                            )
 
-                        # Get Shadow and MIA metrics
-                        shadow_metrics = {f"shadow_{key}": val for key, val in get_metrics(shadow_model, X_shadow_test, y_shadow_test).items()}
-                        mia_metrics = {f"mia_{key}": val for key, val in get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
+                            # Get Shadow and MIA metrics
+                            shadow_metrics = {f"shadow_{key}": val for key, val in get_metrics(shadow_model, X_shadow_test, y_shadow_test).items()}
+                            mia_metrics = {f"mia_{key}": val for key, val in get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
 
-                        #Create ID for dataset classifier parameters scenario (but not repetition/random split)
-                        hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
-                        full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
+                            #Create ID for dataset classifier parameters scenario (but not repetition/random split)
+                            hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
+                            full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
 
-                        new_results = ResultsEntry(
-                            full_id, model_data_param_id, param_id,
-                            dataset,
-                            scenario,
-                            classifier_name,
-                            shadow_dataset='Same distribution',
-                            shadow_classifier_name=classifier_name,
-                            attack_classifier_name=mia_classifier_name,
-                            repetition=r,
-                            params=params,
-                            target_metrics=target_metrics,
-                            mia_metrics=mia_metrics,
-                            shadow_metrics=shadow_metrics
-                        )
+                            new_results = ResultsEntry(
+                                full_id, model_data_param_id, param_id,
+                                dataset,
+                                scenario,
+                                classifier_name,
+                                shadow_dataset='Same distribution',
+                                shadow_classifier_name=classifier_name,
+                                attack_classifier_name=mia_classifier_name,
+                                repetition=r,
+                                params=params,
+                                target_metrics=target_metrics,
+                                mia_metrics=mia_metrics,
+                                shadow_metrics=shadow_metrics
+                            )
 
-                        results_df = pd.concat([results_df, new_results.to_dataframe()], ignore_index=True)
+                            results_df = pd.concat([results_df, new_results.to_dataframe()], ignore_index=True)
 
-                    ##########################################
-                    #######   Salem scenario 2        ########
-                    ##########################################
-                    if "Salem2" in scenarios:
-                        shadow_dataset = 'Breast cancer'
-                        scenario = "Salem2"
+                        ##########################################
+                        #######   Salem scenario 2        ########
+                        ##########################################
+                        if "Salem2" in scenarios:
+                            shadow_dataset = 'Breast cancer'
+                            scenario = "Salem2"
 
-                        X_breast_cancer, y_breast_cancer = skl_datasets.load_breast_cancer(return_X_y=True)
+                            X_breast_cancer, y_breast_cancer = skl_datasets.load_breast_cancer(return_X_y=True)
 
-                        mi_test_x, mi_test_y, mi_clf, shadow_model, X_shadow_test, y_shadow_test = salem(
-                            target_classifier,
-                            classifiers[classifier_name](**params),
-                            X_target_train,
-                            X_breast_cancer,
-                            y_breast_cancer,
-                            X_test,
-                            mia_classifier=mia_classifier()
-                        )
+                            mi_test_x, mi_test_y, mi_clf, shadow_model, X_shadow_test, y_shadow_test = salem(
+                                target_classifier,
+                                classifiers[classifier_name](**params),
+                                X_target_train,
+                                X_breast_cancer,
+                                y_breast_cancer,
+                                X_test,
+                                mia_classifier=mia_classifier()
+                            )
 
-                        # Get Shadow and MIA metrics
-                        shadow_metrics = {f"shadow_{key}": val for key, val in get_metrics(shadow_model, X_shadow_test, y_shadow_test).items()}
-                        mia_metrics = {f"mia_{key}": val for key, val in get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
+                            # Get Shadow and MIA metrics
+                            shadow_metrics = {f"shadow_{key}": val for key, val in get_metrics(shadow_model, X_shadow_test, y_shadow_test).items()}
+                            mia_metrics = {f"mia_{key}": val for key, val in get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
 
-                        #Create ID for dataset classifier parameters scenario (but not repetition/random split)
-                        hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
-                        full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
+                            #Create ID for dataset classifier parameters scenario (but not repetition/random split)
+                            hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
+                            full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
 
-                        new_results = ResultsEntry(
-                            full_id, model_data_param_id, param_id,
-                            dataset,
-                            scenario,
-                            classifier_name,
-                            shadow_classifier_name=classifier_name,
-                            shadow_dataset=shadow_dataset,
-                            attack_classifier_name=mia_classifier_name,
-                            repetition=r,
-                            params=params,
-                            target_metrics=target_metrics,
-                            shadow_metrics=shadow_metrics,
-                            mia_metrics=mia_metrics
-                        )
+                            new_results = ResultsEntry(
+                                full_id, model_data_param_id, param_id,
+                                dataset,
+                                scenario,
+                                classifier_name,
+                                shadow_classifier_name=classifier_name,
+                                shadow_dataset=shadow_dataset,
+                                attack_classifier_name=mia_classifier_name,
+                                repetition=r,
+                                params=params,
+                                target_metrics=target_metrics,
+                                shadow_metrics=shadow_metrics,
+                                mia_metrics=mia_metrics
+                            )
 
-                        results_df = pd.concat([results_df, new_results.to_dataframe()], ignore_index=True)
+                            results_df = pd.concat([results_df, new_results.to_dataframe()], ignore_index=True)
     
-    # Save the results
-    results_df.to_csv(results_filename, index=False)
+            # Save the results
+            results_df.to_csv(handle, index=False) #save after each repetition
+    handle.close()
 
 def main():
     '''
     Invoke the loop
     '''
-    config_file = sys.argv[1]
-    run_loop(config_file)
+    #config_file = sys.argv[1]
+    parser = argparse.ArgumentParser(description="Run predictions with the parameters defined in the config file. Default: overwrite results file.")
+    parser.add_argument(action='store', dest='config_filename', help='json formatted file that contain hyper-parameter for loop search. It is assumed the file is located in "experiments" directory, so please provide path and filename, e.g. RF/randomForest_config.json')
+    parser.add_argument('--append', action='store_true', help='It checks if there is a results file and checks which combination of hyper-parameters need to run. Default: append=False.')
+
+    args = parser.parse_args()
+    print(args)
+    config_file = args.config_filename
+    append = args.append
+    
+    run_loop(config_file, append)
 
 if __name__ == '__main__':
     main()

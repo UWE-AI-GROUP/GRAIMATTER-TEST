@@ -2,7 +2,6 @@
 results_loader.py -- code to help with loading and analysing the results .csv files
 '''
 
-import sys
 import json
 import logging
 from typing import Tuple
@@ -85,11 +84,12 @@ def load_results_csv(
 
         # Do the endoding
         one_hot_encoder = OneHotEncoder()
-        results_df.drop(cat_cols, axis=1, inplace=True)
         encoded = pd.DataFrame(
             one_hot_encoder.fit_transform(results_df[cat_cols].copy()).toarray(),
             columns=one_hot_encoder.get_feature_names_out()
         )
+        results_df.drop(cat_cols, axis=1, inplace=True)
+
 
         # Merge the binary features back in
         encoded['full_id'] = results_df['full_id'].copy()

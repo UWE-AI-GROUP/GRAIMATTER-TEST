@@ -1,0 +1,23 @@
+{
+    "datasets": [
+        "mimic2-iaccd",
+        "in-hospital-mortality",
+        "indian liver"
+    ],
+    "classifiers" : [
+        ["sklearn.svm", "SVC"]
+    ],
+    "experiment_params" : {
+        "SVC": {
+            "C": [0.001, 0.1, 1, 10],
+            "kernel": ["rbf"],
+            "gamma": [0.1, 1, 10],
+            "probability": [true]
+        }
+    },
+    "results_filename": "experiments/SVC/svc_loop_results.csv",
+    "n_reps": 1,
+    "mia_classifier": 
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+}

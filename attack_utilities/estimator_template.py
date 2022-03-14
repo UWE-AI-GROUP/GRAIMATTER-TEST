@@ -44,8 +44,8 @@ class ExampleWrapper(GenericEstimator):
     Example for how to make a class that will fit in. This is just a wrapper for the sklearn
     Random Forest, but could be anything.
     '''
-    def __init__(self):
-        self.random_forest = RandomForestClassifier()
+    def __init__(self, **kwargs):
+        self.random_forest = RandomForestClassifier(**kwargs)
 
     def fit(self, train_features: Any, train_labels: Any):
         self.random_forest.fit(train_features, train_labels)

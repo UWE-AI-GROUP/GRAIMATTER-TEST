@@ -1,0 +1,25 @@
+{
+    "datasets": [
+        "indian liver"
+    ],
+    "classifiers" : [
+        ["synth_conditional", "pategan_classifier"],
+        ["sklearn.ensemble", "RandomForestClassifier"]
+    ],
+    "experiment_params" : {
+        "pategan_classifier": {
+            "n_s": [1],
+            "batch_size": [10],
+            "k": [50],
+            "epsilon": [5,100]
+        },
+        "RandomForestClassifier": {
+            "bootstrap": [true, false],
+            "min_samples_split": [2, 10]
+        }
+    },
+    "results_filename": "synth_loop_results.csv",
+    "n_reps": 5,
+    "mia_classifier": ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+}

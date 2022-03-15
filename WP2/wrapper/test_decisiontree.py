@@ -113,3 +113,24 @@ def test_decisiontree_save():
     with open("dt_test.sav", "rb") as file:
         sav_model = joblib.load(file)
     assert sav_model.score(x, y) == 0.9470198675496688
+    
+    
+    
+def test_decisiontree_hacked_postfit():
+    """SafeDecisionTree changes made to parameters after fit() called."""
+    x, y = get_data()
+    model = SafeDecisionTree(random_state=1, min_samples_leaf=1)
+    model.min_samples_leaf=1
+    model.fit(x, y)
+    assert model.score(x, y) == 1.0
+    model.min_samples_leaf=5
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
+    assert msg == correct_msg
+    assert disclosive is False
+    msg2, disclosive2 = model.posthoc_check()
+    correct_msg2 = ("Warning: basic parameters differ in 1 places:\n"
+                    "parameter min_samples_leaf changed from 1 to 5 after model was fitted\n"
+                   )
+    assert msg2 == correct_msg2
+    assert disclosive2 is True

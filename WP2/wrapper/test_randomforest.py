@@ -36,6 +36,7 @@ def test_randomforest_recommended():
     model = SafeRandomForest(random_state=1)
     model.min_samples_leaf = 6
     model.fit(x, y)
+    print(f"model.dict={model.__dict__}")
     assert model.score(x, y) == 0.9668874172185431
     msg, disclosive = model.preliminary_check()
     correct_msg = "Model parameters are within recommended ranges.\n"
@@ -108,3 +109,24 @@ def test_randomforest_save():
     with open("rf_test.sav", "rb") as file:
         sav_model = joblib.load(file)
     assert sav_model.score(x, y) == 0.6622516556291391
+
+    
+def test_randomforest_hacked_postfit():
+    """SafeRandomForest changes made to parameters after fit() called."""
+    x, y = get_data()
+    model = SafeRandomForest(random_state=1)
+    model.bootstrap=False
+    model.fit(x, y)
+    assert model.score(x, y) == 0.9735099337748344
+    model.bootstrap= True
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
+    assert msg == correct_msg
+    assert disclosive is False
+    msg2, disclosive2 = model.posthoc_check()
+    correct_msg2 = ("Warning: basic parameters differ in 1 places:\n"
+                    "parameter bootstrap changed from False to True after model was fitted\n"
+                   )
+    print(msg2)
+    assert msg2 == correct_msg2
+    assert disclosive2 is True

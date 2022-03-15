@@ -13,6 +13,7 @@ import numpy as np
 from dictdiffer import diff
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree._tree import Tree as sklearn_tree
 
 
 def check_min(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
@@ -63,7 +64,7 @@ def check_type(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
         disclosive = True
         msg = (
             f"- parameter {key} = {cur_val}"
-            f" identified as different type to recommendation of  {val}."
+            f" identified as different type to recommendation of {val}."
         )
     else:
         disclosive = False
@@ -210,7 +211,7 @@ class SafeModel:
         return msg, disclosive
 
     def posthoc_check(self) -> tuple[str, str]:
-        """Checks whether moddel has bene interfered with since fit() was last run"""
+        """Checks whether moddel has been interfered with since fit() was last run"""
 
         disclosive = False
         msg = ""
@@ -219,11 +220,13 @@ class SafeModel:
         saved_model = current_model.pop("savedModel", "Absent")
 
         if saved_model == "Absent":
-            msg = "error, model not fitted yet"
+            msg = "Error: user has not called fit() method or has deleted saved values. Do not release."
             disclosive = True
 
         else:
             saved_model = dict(self.savedModel)
+            #in case fit has been called twice
+            _ = saved_model.pop("savedModel", "Absent")
 
             # remove things we don't care about
             for item in self.ignore_items:
@@ -241,32 +244,61 @@ class SafeModel:
             match = list(diff(current_model, saved_model, expand=True))
             if len(match) > 0:
                 disclosive = True
-                msg = msg + f"basic parameters differ in {len(match)} places: "
+                msg += f"Warning: basic parameters differ in {len(match)} places:\n"
                 for i in range(len(match)):
-                    msg = msg + f"\t{match[i]}"
+                    if match[i][0]=='change':
+                        msg +=  f"parameter {match[i][1]} changed from {match[i][2][1]} "
+                        msg +=  f"to {match[i][2][0]} after model was fitted\n"
+                    else:
+                        msg += f"{match[i]}" 
+                    
 
             # comparison of more complex structures
             for item in self.examine_seperately_items:
                 if curr_seperate[item] == "Absent" and saved_seperate[item] == "Absent":
                     # not sure if this is necessarily disclosive
-                    msg = msg + f"Note that item {item} missing from both versions"
+                    msg += f"Note that item {item} missing from both versions"
 
-                elif (
-                    curr_seperate[item] == "Absent" or saved_seperate[item] == "Absent"
-                ):
+                elif ( (curr_seperate[item] == "Absent") and  not
+                        (saved_seperate[item] == "Absent")):
                     disclosive = True
-                    msg = (
-                        msg
-                    ) = f"error, item {item} not present in both saved and current versions"
-                else:
-                    match2 = list(
-                        diff(curr_seperate[item].value, saved_seperate[item].value)
-                    )
-                    if len(match2) > 0:
-                        disclosive = True
-                        msg = (
-                            msg
-                        ) = f"tructure {item} has  {len(match2)} differences: {match2}"
+                    msg += f"Error, item {item} present in  saved but not current model"
+                elif ( ( saved_seperate[item] == "Absent") and not 
+                       ( curr_seperate[item] == "Absent" )): 
+                    disclosive = True
+                    msg += f"Error, item {item} present in current but not saved model"
+                else: #TODO move this into additional checks
+                    if type(curr_seperate[item])== list:
+                        if ( len(curr_seperate[item]) != len( saved_seperate[item])):
+                            msg +=f"Warning: different counts of values for parameter {item}"
+                            disclosive= True
+                        else:
+                            for i in range( len(saved_seperate[item])):
+                                difference = list(diff(curr_seperate[item][i], saved_seperate[item][i]))
+                                if( len(difference)>0):
+                                    msg += f"Warning: at least one non-matching value for parameter list {item}"
+                                    disclosive=True
+                                    break
+
+                    
+                    elif type(curr_seperate[item])== DecisionTreeClassifier:
+                        diffs_list = list(
+                            diff(curr_seperate[item], saved_seperate[item])
+                        )
+                        if len(diffs_list) > 0:
+                            disclosive = True
+                            msg += f"structure {item} has  {len(diffs_list)} differences: {diffs_list}"
+                        
+                    elif type(curr_seperate[item])==sklearn_tree: 
+                        print(f"item {curr_seperate[item]} has type {type(curr_seperate[item])}")
+                        diffs_list = list(
+                            diff(curr_seperate[item].value, saved_seperate[item].value)
+                        )
+                        if len(diffs_list) > 0:
+                            disclosive = True
+                            msg += f"structure {item} has  {len(diffs_list)} differences: {diffs_list}"
+                    else:
+                        pass
 
         return msg, disclosive
 
@@ -346,6 +378,24 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         RandomForestClassifier.__init__(self, **kwargs)
         self.model_type: str = "RandomForestClassifier"
         super().preliminary_check(apply_constraints=True, verbose=True)
+        self.ignore_items = ["model_save_file", "ignore_items","estimators_","base_estimator_","base_estimator"]
+        self.examine_seperately_items = []
+        
+        
+    def additional_checks(self) -> tuple[str, str]:
+        """placeholder function for additional posthoc checks e.g. keras"""
+        msg = ""
+        disclosive = False
+        
+        try:
+            if type(self.base_estimator) != type (self.savedModel['base_estimator_']):
+                msg = "Warning: model was fitted with different base estimator type"
+                disclosive = True           
+        except AttributeError:
+            msg= "Error: model has not been fitted to data"
+            disclosive=True
+        
+        return msg, disclosive
 
     def fit(self, x:np.ndarray, y:np.ndarray) -> None:
         """Do fit and then store model dict"""

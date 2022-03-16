@@ -115,13 +115,17 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
 
     if append:
         #load full_id from results file to check whether certains combinations already exists.
-        tmp = pd.read_csv(results_filename, usecols=['model_data_param_id', 'repetition'])
+        results_df = pd.read_csv(results_filename)
         existing_experiments = set(
-            [(fid, rep) for fid,rep in zip(tmp['model_data_param_id'], tmp['repetition'])]
+            [
+                (fid, rep) for fid,rep in zip(
+                    results_df['model_data_param_id'], results_df['repetition']
+                )
+            ]
         )
-        handle = open(results_filename, "a", encoding='utf-8')
     else:
-        handle = open(results_filename, "w", encoding='utf-8')
+        results_df = pd.DataFrame()
+
 
     for dataset in datasets:
         logger.info("Starting datasset %s", dataset)
@@ -141,8 +145,6 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                     data_labels.values.flatten(),
                     r_state=repetition
                 )
-
-            results_df = pd.DataFrame()
 
             for classifier_name, clf_class in classifiers.items():
                 logger.info("Classifier: %s", classifier_name)
@@ -309,10 +311,8 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                                 [results_df, new_results.to_dataframe()],
                                 ignore_index=True
                             )
-
-            # Save the results
-            results_df.to_csv(handle, index=False) #save after each repetition
-    handle.close()
+            # Save after each repetition
+            results_df.to_csv(results_filename, index=False)
 
 def main():
     '''

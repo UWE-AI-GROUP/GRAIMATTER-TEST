@@ -86,6 +86,7 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
     '''
 
     logger.info("Running experiments with config: %s", config_file)
+    logger.info("Append: %s", append)
     with open(config_file, 'r', encoding='utf-8') as config_handle:
         config = json.loads(config_handle.read())
 
@@ -125,7 +126,10 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                 )
             ]
         )
+        logger.info("Instantiaed results file")
     else:
+        logger.info("Created empty dataframe")
+        existing_experiments = set()
         results_df = pd.DataFrame()
 
 
@@ -160,7 +164,7 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                     model_data_param_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
 
                     #check if this already exist in results file when append==True
-                    if append and (model_data_param_id, repetition) not in existing_experiments:
+                    if (model_data_param_id, repetition) not in existing_experiments:
                         hashstr = f'{str(params)}'
                         param_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
 

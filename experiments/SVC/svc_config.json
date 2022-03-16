@@ -1,6 +1,5 @@
 {
     "datasets": [
-        "synth-ae",
         "mimic2-iaccd",
         "in-hospital-mortality",
         "indian liver"
@@ -18,7 +17,7 @@
         }
     },
     "results_filename": "experiments/SVC/SVC_results.csv",
-    "n_reps": 5,
+    "n_reps": 1,
     "mia_classifier": 
         ["sklearn.ensemble", "RandomForestClassifier"],
     "scenarios": ["WorstCase", "Salem1", "Salem2"]

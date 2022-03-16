@@ -138,8 +138,8 @@ def run_loop(config_file: str) -> pd.DataFrame:
                 for i, combination in enumerate(all_combinations):
                     # Turn this particular combination into a dictionary
                     params = {n: v for n, v in zip(experiment_params[classifier_name].keys(), combination)}
-                    target_classifier = clf_class()
-                    target_classifier.set_params(**params)
+                    target_classifier = clf_class(**params)
+                    # target_classifier.set_params(**params)
 
                     # Train the target model
                     target_classifier.fit(X_target_train, y_target_train.ravel())#convert that array shape to (n, ) (i.e. flatten it) -- Fix warning

@@ -1,7 +1,7 @@
 '''
 results_loader.py -- code to help with loading and analysing the results .csv files
 '''
-
+import os
 import json
 import logging
 from typing import Tuple
@@ -16,7 +16,8 @@ def load_results_csv(
     config_filename: str,
     one_hot_encode: bool=True,
     impute_missing: bool=True,
-    impute_vals: Tuple = IMPUTE_VALS) -> pd.DataFrame:
+    impute_vals: Tuple = IMPUTE_VALS,
+    project_root_folder: str = None) -> pd.DataFrame:
     '''
     load_results_csv
     Load a results csv file from the associated config. Options for imputing missing
@@ -37,8 +38,12 @@ def load_results_csv(
     with open(config_filename, 'r', encoding='utf-8') as file_handle:
         config = json.load(file_handle)
 
-    logging.info("Attempting to load results from %s", config['results_filename'])
-    results_df = pd.read_csv(config['results_filename'])
+    if project_root_folder is None:
+        results_filename = config['results_filename']
+    else:
+        results_filename = os.path.join(project_root_folder, config['results_filename'])
+    logging.info("Attempting to load results from %s", results_filename)
+    results_df = pd.read_csv(results_filename)
 
     logging.info("Loaded %d rows", len(results_df))
 

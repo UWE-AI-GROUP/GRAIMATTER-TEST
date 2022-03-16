@@ -1,6 +1,7 @@
 {
     "datasets": [
-        "medical-mnist-ab-v-br-100"
+        "medical-mnist-ab-v-br-100",
+        "medical-mnist-ab-v-br-500"
     ],
     "classifiers" : [
         ["sklearn.ensemble", "RandomForestClassifier"],
@@ -35,7 +36,7 @@
             "algorithm":["SAMME"]
         }
     },
-    "results_filename": "image_test_results.csv",
+    "results_filename": "experiments/testing/image_test_results.csv",
     "n_reps": 5,
     "mia_classifier": ["sklearn.ensemble", "RandomForestClassifier"],
     "scenarios": ["WorstCase", "Salem1", "Salem2"]

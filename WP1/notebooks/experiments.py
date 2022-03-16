@@ -20,7 +20,6 @@ from metrics import get_metrics
 
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-print(PROJECT_ROOT)
 sys.path.append(PROJECT_ROOT)
 from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable
 
@@ -119,12 +118,10 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
     if append:
         #load full_id from results file to check whether certains combinations already exists.
         tmp = pd.read_csv(results_filename, usecols=['model_data_param_id', 'repetition'])
-        existing_experiments = {(fid,rep):'' for fid,rep in list(zip(tmp.model_data_param_id, tmp.repetition))}
+        existing_experiments = {(fid, rep):'' for fid,rep in list(zip(tmp.model_data_param_id, tmp.repetition))}
         handle = open(results_filename, "a")
     else:
         handle = open(results_filename, "w")
-    
-    df = pd.DataFrame()
     
     for dataset in datasets:
         logger.info("Starting datasset %s", dataset)
@@ -132,7 +129,6 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
         try:
             X, y = get_data_sklearn(dataset)
         except DataNotAvailable as e:
-            print(e)
             continue
 
         for r in range(n_reps):
@@ -299,7 +295,6 @@ def main():
     parser.add_argument('--append', action='store_true', help='It checks if there is a results file and checks which combination of hyper-parameters need to run. Default: append=False.')
 
     args = parser.parse_args()
-    print(args)
     config_file = args.config_filename
     append = args.append
     

@@ -14,14 +14,12 @@ from tqdm.contrib.itertools import product
 import sklearn.datasets as skl_datasets
 
 
-from scenarios import *
-from metrics import get_metrics
-
-
+from scenarios import worst_case_mia, salem, split_target_data # pylint: disable=import-error
+from metrics import get_metrics # pylint: disable=import-error
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(PROJECT_ROOT)
-from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable
+from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable # pylint: disable = wrong-import-position
 
 logger = logging.getLogger(__file__)
 
@@ -61,7 +59,7 @@ class ResultsEntry():
         self.target_metrics = target_metrics
         self.shadow_metrics = shadow_metrics
         self.mia_metrics = mia_metrics
-    
+
 
     def to_dataframe(self):
         '''
@@ -77,7 +75,7 @@ class ResultsEntry():
                     **self.shadow_metrics
                 }, orient='index').T
             )
-                    
+
 
 def run_loop(config_file: str, append: bool) -> pd.DataFrame:
     '''
@@ -86,8 +84,8 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
     '''
 
     logger.info("Running experiments with config: %s", config_file)
-    with open(config_file, 'r') as f:
-        config = json.loads(f.read())
+    with open(config_file, 'r', encoding='utf-8') as config_handle:
+        config = json.loads(config_handle.read())
 
     datasets = config['datasets']
     classifier_strings = config['classifiers']
@@ -112,44 +110,53 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
 
     if not sys.warnoptions:
         warnings.simplefilter("once")
-        #MPLClassifir is giving a lot of warnings. 
+        #MPLClassifir is giving a lot of warnings.
         # For each repetition are the same, so it will only show the same warning once.
-            
+
     if append:
         #load full_id from results file to check whether certains combinations already exists.
         tmp = pd.read_csv(results_filename, usecols=['model_data_param_id', 'repetition'])
-        existing_experiments = {(fid, rep):'' for fid,rep in list(zip(tmp.model_data_param_id, tmp.repetition))}
-        handle = open(results_filename, "a")
+        existing_experiments = set(
+            [(fid, rep) for fid,rep in zip(tmp['model_data_param_id'], tmp['repetition'])]
+        )
+        handle = open(results_filename, "a", encoding='utf-8')
     else:
-        handle = open(results_filename, "w")
-    
+        handle = open(results_filename, "w", encoding='utf-8')
+
     for dataset in datasets:
         logger.info("Starting datasset %s", dataset)
         #load the data
         try:
-            X, y = get_data_sklearn(dataset)
-        except DataNotAvailable as e:
+            data_features, data_labels = get_data_sklearn(dataset)
+        except DataNotAvailable as data_exception:
+            logger.error(data_exception)
             continue
 
-        for r in range(n_reps):
-            logger.info("Rep %d", r)
+        for repetition in range(n_reps):
+            logger.info("Rep %d", repetition)
             #split into training, shadow model and validation data
-            X_target_train, X_shadow_train, X_test, y_target_train, y_shadow_train, y_test = split_target_data(X.values, y.values.flatten(), r_state=r)
-            
+            x_target_train, x_shadow_train, x_test, y_target_train, y_shadow_train, y_test = \
+                split_target_data(
+                    data_features.values,
+                    data_labels.values.flatten(),
+                    r_state=repetition
+                )
+
             results_df = pd.DataFrame()
 
             for classifier_name, clf_class in classifiers.items():
                 logger.info("Classifier: %s", classifier_name)
                 all_combinations = product(*experiment_params[classifier_name].values())
-                for i, combination in enumerate(all_combinations):
+                for _, combination in enumerate(all_combinations):
                     # Turn this particular combination into a dictionary
-                    params = {n: v for n, v in zip(experiment_params[classifier_name].keys(), combination)}
+                    params = {n: v for n, v in \
+                        zip(experiment_params[classifier_name].keys(), combination)}
 
                     hashstr = f'{dataset} {classifier_name} {str(params)}'
                     model_data_param_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
 
                     #check if this already exist in results file when append==True
-                    if append and (model_data_param_id,r) not in existing_experiments:
+                    if append and (model_data_param_id, repetition) not in existing_experiments:
                         hashstr = f'{str(params)}'
                         param_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
 
@@ -157,28 +164,33 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                         target_classifier.set_params(**params)
 
                         # Train the target model
-                        target_classifier.fit(X_target_train, y_target_train.ravel())#convert that array shape to (n, ) (i.e. flatten it) -- Fix warning
+                        target_classifier.fit(x_target_train, y_target_train)
 
                         # Get target metrics
-                        target_metrics = {f"target_{key}": val for key, val in get_metrics(target_classifier, X_test, y_test).items()}
-                        target_train_metrics = {f"target_train_{key}": val for key, val in get_metrics(target_classifier, X_target_train, y_target_train).items()}
+                        target_metrics = {f"target_{key}": val for key, val in \
+                            get_metrics(target_classifier, x_test, y_test).items()}
+                        target_train_metrics = {f"target_train_{key}": val for key, val in \
+                            get_metrics(target_classifier, x_target_train, y_target_train).items()}
                         target_metrics = {**target_metrics, **target_train_metrics}
-                    
+
                         ##########################################
                         #######   Worst case scenario     ########
                         ##########################################
+
                         if "WorstCase" in scenarios:
                             scenario = "WorstCase"
                             mi_test_x, mi_test_y, mi_clf = worst_case_mia(
                                 target_classifier,
-                                X_target_train,
-                                X_test,
+                                x_target_train,
+                                x_test,
                                 mia_classifier=mia_classifier()
                             )
                             # Get MIA metrics
-                            mia_metrics = {f"mia_{key}": val for key, val in get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
+                            mia_metrics = {f"mia_{key}": val for key, val in \
+                                get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
 
-                            #Create ID for dataset classifier parameters scenario (but not repetition/random split)
+                            # Create ID for dataset classifier parameters scenario
+                            #(but not repetition/random split)
                             hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
                             full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
 
@@ -188,35 +200,42 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                                 scenario,
                                 classifier_name,
                                 attack_classifier_name=mia_classifier_name,
-                                repetition=r,
+                                repetition=repetition,
                                 params=params,
                                 target_metrics=target_metrics,
                                 mia_metrics=mia_metrics
                             )
 
-                            results_df = pd.concat([results_df, new_results.to_dataframe()], ignore_index=True)
+                            results_df = pd.concat(
+                                [results_df, new_results.to_dataframe()],
+                                ignore_index=True
+                            )
 
 
                         ##########################################
                         #######   Salem scenario 1        ########
                         ##########################################
+
                         if "Salem1" in scenarios:
                             scenario = "Salem1"
-                            mi_test_x, mi_test_y, mi_clf, shadow_model, X_shadow_test, y_shadow_test = salem(
+                            mi_test_x, mi_test_y, mi_clf, shadow_model, x_shadow_test, y_shadow_test = salem( # pylint: disable = line-too-long
                                 target_classifier,
                                 classifiers[classifier_name](**params),
-                                X_target_train,
-                                X_shadow_train,
+                                x_target_train,
+                                x_shadow_train,
                                 y_shadow_train,
-                                X_test,
+                                x_test,
                                 mia_classifier=mia_classifier()
                             )
 
                             # Get Shadow and MIA metrics
-                            shadow_metrics = {f"shadow_{key}": val for key, val in get_metrics(shadow_model, X_shadow_test, y_shadow_test).items()}
-                            mia_metrics = {f"mia_{key}": val for key, val in get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
+                            shadow_metrics = {f"shadow_{key}": val for key, val in \
+                                get_metrics(shadow_model, x_shadow_test, y_shadow_test).items()}
+                            mia_metrics = {f"mia_{key}": val for key, val in \
+                                get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
 
-                            #Create ID for dataset classifier parameters scenario (but not repetition/random split)
+                            # Create ID for dataset classifier parameters scenario
+                            # (but not repetition/random split)
                             hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
                             full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
 
@@ -228,39 +247,46 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                                 shadow_dataset='Same distribution',
                                 shadow_classifier_name=classifier_name,
                                 attack_classifier_name=mia_classifier_name,
-                                repetition=r,
+                                repetition=repetition,
                                 params=params,
                                 target_metrics=target_metrics,
                                 mia_metrics=mia_metrics,
                                 shadow_metrics=shadow_metrics
                             )
 
-                            results_df = pd.concat([results_df, new_results.to_dataframe()], ignore_index=True)
+                            results_df = pd.concat(
+                                [results_df, new_results.to_dataframe()],
+                                ignore_index=True
+                            )
 
                         ##########################################
                         #######   Salem scenario 2        ########
                         ##########################################
+
                         if "Salem2" in scenarios:
                             shadow_dataset = 'Breast cancer'
                             scenario = "Salem2"
 
-                            X_breast_cancer, y_breast_cancer = skl_datasets.load_breast_cancer(return_X_y=True)
+                            x_breast_cancer, y_breast_cancer = skl_datasets.load_breast_cancer(return_X_y=True) # pylint: disable = line-too-long
 
-                            mi_test_x, mi_test_y, mi_clf, shadow_model, X_shadow_test, y_shadow_test = salem(
+                            mi_test_x, mi_test_y, mi_clf, shadow_model, x_shadow_test, y_shadow_test = salem( # pylint: disable = line-too-long
                                 target_classifier,
                                 classifiers[classifier_name](**params),
-                                X_target_train,
-                                X_breast_cancer,
+                                x_target_train,
+                                x_breast_cancer,
                                 y_breast_cancer,
-                                X_test,
+                                x_test,
                                 mia_classifier=mia_classifier()
                             )
 
                             # Get Shadow and MIA metrics
-                            shadow_metrics = {f"shadow_{key}": val for key, val in get_metrics(shadow_model, X_shadow_test, y_shadow_test).items()}
-                            mia_metrics = {f"mia_{key}": val for key, val in get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
+                            shadow_metrics = {f"shadow_{key}": val for key, val in \
+                                get_metrics(shadow_model, x_shadow_test, y_shadow_test).items()}
+                            mia_metrics = {f"mia_{key}": val for key, val in \
+                                get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
 
-                            #Create ID for dataset classifier parameters scenario (but not repetition/random split)
+                            # Create ID for dataset classifier parameters scenario
+                            # (but not repetition/random split)
                             hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
                             full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
 
@@ -272,15 +298,18 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                                 shadow_classifier_name=classifier_name,
                                 shadow_dataset=shadow_dataset,
                                 attack_classifier_name=mia_classifier_name,
-                                repetition=r,
+                                repetition=repetition,
                                 params=params,
                                 target_metrics=target_metrics,
                                 shadow_metrics=shadow_metrics,
                                 mia_metrics=mia_metrics
                             )
 
-                            results_df = pd.concat([results_df, new_results.to_dataframe()], ignore_index=True)
-    
+                            results_df = pd.concat(
+                                [results_df, new_results.to_dataframe()],
+                                ignore_index=True
+                            )
+
             # Save the results
             results_df.to_csv(handle, index=False) #save after each repetition
     handle.close()
@@ -289,14 +318,33 @@ def main():
     '''
     Invoke the loop
     '''
-    parser = argparse.ArgumentParser(description="Run predictions with the parameters defined in the config file. Default: overwrite results file.")
-    parser.add_argument(action='store', dest='config_filename', help='json formatted file that contain hyper-parameter for loop search. It is assumed the file is located in "experiments" directory, so please provide path and filename, e.g. RF/randomForest_config.json')
-    parser.add_argument('--append', action='store_true', help='It checks if there is a results file and checks which combination of hyper-parameters need to run. Default: append=False.')
+    parser = argparse.ArgumentParser(description=(
+        'Run predictions with the parameters defined in the config file.'
+        ' Default: overwrite results file.'
+        )
+    )
+    parser.add_argument(
+        action='store',
+        dest='config_filename',
+        help=(
+            'json formatted file that contain hyper-parameter for loop search. '
+            'It is assumed the file is located in "experiments" directory, so please provide path '
+            'and filename, e.g. RF/randomForest_config.json'
+        )
+    )
+    parser.add_argument(
+        '--append',
+        action='store_true',
+        help=(
+            'It checks if there is a results file and checks which combination of '
+            'hyper-parameters need to run. Default: append=False.'
+        )
+    )
 
     args = parser.parse_args()
     config_file = args.config_filename
     append = args.append
-    
+
     run_loop(config_file, append)
 
 if __name__ == '__main__':

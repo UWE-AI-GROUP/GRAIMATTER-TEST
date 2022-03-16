@@ -3,9 +3,10 @@ Code to experiment with risk prediction
 '''
 
 # %%
+from json import load
 import os
+import sys
 import logging
-from random import Random
 import pylab as plt
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
@@ -20,19 +21,22 @@ logger.setLevel(logging.INFO)
 
 PROJECT_ROOT_FOLDER = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 logger.info(PROJECT_ROOT_FOLDER)
+sys.path.append(PROJECT_ROOT_FOLDER)
+
+from results_analysis.results_loader import load_results_csv
 
 %matplotlib inline
 
-# %% Load the results file
-RESULTS_CSV_FILE = os.path.join(
-    PROJECT_ROOT_FOLDER,
-    'experiments/RF/Random_Forest_loop_results.csv'
-)
 # %%
-# Load the results into a dataframe
+CONFIG_FILE = os.path.join(
+    PROJECT_ROOT_FOLDER,
+    'experiments', 'RF', 'randomForest_config.json'
+)
+
+all_results = load_results_csv(CONFIG_FILE, project_root_folder=PROJECT_ROOT_FOLDER)
+# %%
 # Keep only the chosen scenario
 # Remove results from image datasets as they seem to behave completely differently
-all_results = pd.read_csv(RESULTS_CSV_FILE)
 all_results = all_results[all_results.scenario == 'WorstCase'].copy()
 all_results = all_results[all_results.dataset != "medical-mnist-ab-v-br-100"].copy()
 all_results = all_results[all_results.dataset != "medical-mnist-ab-v-br-500"].copy()
@@ -41,47 +45,21 @@ all_results.reset_index(inplace=True)
 
 # %%
 # Tease apart the different bits of the table
-mia_metrics = all_results[[col for col in all_results.columns if col.startswith('mia')] + ['full_id', 'dataset']]
-target_metrics = all_results[[col for col in all_results.columns if col.startswith('target')] + ['full_id', 'dataset']].drop('target_classifier', axis=1)
-hyp_params = all_results[
-    [
-        'bootstrap', 'min_samples_split', 'min_samples_leaf', 'n_estimators',
-        'criterion', 'max_depth', 'class_weight', 'full_id', 'dataset'
-    ]
+mia_cols = [col for col in all_results.columns if col.startswith('mia')]
+id_cols = [col for col in all_results.columns if '_id' in col]
+shadow_cols = [col for col in all_results.columns if col.startswith('shadow')]
+cols_to_remove = [
+    'scenario',
+    'target_classifier',
+    'repetition',
+    'attack_classifier'
 ]
-# %%
-# Need to one-hot encode any object columns
-# Find the non-numeric columns (skipping some we know we don't want to encode)
-column_names = hyp_params.columns
-column_dtype = hyp_params.dtypes
-cat_cols = []
-for i, col_name in enumerate(column_names):
-    if "_id" in col_name:
-        continue # don't encode IDs
-    if "dataset" in col_name:
-        continue # don't encode dataset
-    d_type = column_dtype[col_name]
-    if d_type == "int64" or d_type == "float64":
-        continue
-    cat_cols.append(col_name)
 
-oh = OneHotEncoder()
-temp = oh.fit_transform(hyp_params[cat_cols]).toarray()
-temp = pd.DataFrame(temp, columns=oh.get_feature_names_out())
-temp['full_id'] = hyp_params.full_id.copy()
-hyp_params_oh = hyp_params.drop(columns=cat_cols)
-hyp_params_oh = hyp_params_oh.merge(temp, how='left', on='full_id')
-# %%
-# Merge the target metrics with the hyper-params
-features = target_metrics.drop('dataset', axis=1)\
-    .merge(hyp_params_oh, how='left', on='full_id')\
-    .drop([ 'full_id'], axis=1)
-
-# Impute for the feature with NAs
-features.max_depth[features.max_depth.isna()] = 200
-
-# Define the target for prediction
-target = mia_metrics[['mia_AUC', 'dataset']].copy()
+target = all_results[['mia_AUC', 'dataset']].copy()
+features = all_results.drop(
+    mia_cols + cols_to_remove + id_cols + shadow_cols,
+    axis=1
+)
 
 # %%
 # Code to train and test with random stratification across all rows

@@ -289,7 +289,6 @@ def main():
     '''
     Invoke the loop
     '''
-    #config_file = sys.argv[1]
     parser = argparse.ArgumentParser(description="Run predictions with the parameters defined in the config file. Default: overwrite results file.")
     parser.add_argument(action='store', dest='config_filename', help='json formatted file that contain hyper-parameter for loop search. It is assumed the file is located in "experiments" directory, so please provide path and filename, e.g. RF/randomForest_config.json')
     parser.add_argument('--append', action='store_true', help='It checks if there is a results file and checks which combination of hyper-parameters need to run. Default: append=False.')

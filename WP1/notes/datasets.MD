@@ -18,6 +18,9 @@ Uses transfer learning (original network trained on imagenet) to perform multicl
 
 [64 x 64 images](https://www.kaggle.com/andrewmvd/medical-mnist)
 
+### Medical MNIST
+
+Medical MNIST 2 https://medmnist.com/
 
 ### Non medical:  faces datasets
 Cohen-kanade https://ieeexplore.ieee.org/document/5543262 

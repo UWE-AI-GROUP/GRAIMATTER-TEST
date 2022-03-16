@@ -19,7 +19,9 @@ from metrics import get_metrics # pylint: disable=import-error
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(PROJECT_ROOT)
-from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable # pylint: disable = wrong-import-position
+from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable
+from WP1.notebooks.scenarios import *
+from WP1.notebooks.metrics import get_metrics
 
 logger = logging.getLogger(__file__)
 

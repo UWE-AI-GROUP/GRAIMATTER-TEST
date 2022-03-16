@@ -9,7 +9,7 @@
     ],
     "experiment_params" : {
         "SVC": {  
-            "kernel": ["linear", "poly", "rbf", "sigmoid"],
+            "kernel": ["linear", "poly", "rbf"],
             "C": [0.001, 0.1, 1, 10, 100],
             "gamma": [0.001, 0.1, 1, 10, 100],
             "probability":[true],

@@ -1,0 +1,24 @@
+{
+    "datasets": [
+        "mimic2-iaccd",
+        "in-hospital-mortality"
+    ],
+    "classifiers" : [
+        ["attack_utilities.estimator_template", "BadClassifier"],
+        ["attack_utilities.estimator_template", "ExampleWrapper"]
+    ],
+    "experiment_params" : {
+        "ExampleWrapper": {
+            "min_samples_split": [2, 5, 10],
+            "max_depth": [2, 5, 10, null]
+        },
+        "BadClassifier": {
+            "pointless_param": [1, 2]
+        }
+    },
+    "results_filename": "experiments/template_example/example_results.csv",
+    "n_reps": 1,
+    "mia_classifier": 
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+}

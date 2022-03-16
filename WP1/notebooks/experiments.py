@@ -164,8 +164,7 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                         hashstr = f'{str(params)}'
                         param_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
 
-                        target_classifier = clf_class()
-                        target_classifier.set_params(**params)
+                        target_classifier = clf_class(**params)
 
                         # Train the target model
                         target_classifier.fit(x_target_train, y_target_train)

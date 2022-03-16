@@ -9,14 +9,14 @@
     ],
     "experiment_params" : {
         "SVC": {  
-            "kernel": ["linear", "poly", "rbf"],
+            "kernel": ["rbf"],
             "C": [0.001, 0.1, 1, 10, 100],
             "gamma": [0.001, 0.1, 1, 10, 100],
             "probability":[true],
             "class_weight": [null, "balanced"]
         }
     },
-    "results_filename": "experiments/SVC/SVC_results.csv",
+    "results_filename": "experiments/SVC/SVC_rbf_results.csv",
     "n_reps": 1,
     "mia_classifier": 
         ["sklearn.ensemble", "RandomForestClassifier"],

@@ -3,10 +3,7 @@
         "synth-ae",
         "mimic2-iaccd",
         "in-hospital-mortality",
-        "medical-mnist-ab-v-br-100",
-        "medical-mnist-ab-v-br-500",
-        "indian liver",
-        "texas hospitals 10"
+        "indian liver"
     ],
     "classifiers" : [
         ["sklearn.svm", "SVC"]
@@ -14,10 +11,10 @@
     "experiment_params" : {
         "SVC": {  
             "kernel": ["linear", "poly", "rbf", "sigmoid"],
-            "shrinking": [true, false],
-            "tol":[0.01, 0.001, 0.0001],
-            "decision_function_shape":["ovo", "ovr"],
-            "probability":[true]
+            "C": [0.001, 0.1, 1, 10, 100],
+            "gamma": [0.001, 0.1, 1, 10, 100],
+            "probability":[true],
+            "class_weight": [null, "balanced"]
         }
     },
     "results_filename": "experiments/SVC/SVC_results.csv",

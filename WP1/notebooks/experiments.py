@@ -111,10 +111,10 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
 
     scenarios = config['scenarios']
 
-    if not sys.warnoptions:
-        warnings.simplefilter("once")
-        #MPLClassifir is giving a lot of warnings.
-        # For each repetition are the same, so it will only show the same warning once.
+    # if not sys.warnoptions:
+    #     warnings.simplefilter("once")
+    #     #MPLClassifir is giving a lot of warnings.
+    #     # For each repetition are the same, so it will only show the same warning once.
 
     if append:
         #load full_id from results file to check whether certains combinations already exists.
@@ -172,7 +172,7 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
 
                         # Train the target model
                         target_classifier.fit(x_target_train, y_target_train)
-
+                        
                         # Get target metrics
                         target_metrics = {f"target_{key}": val for key, val in \
                             get_metrics(target_classifier, x_test, y_test).items()}

@@ -52,7 +52,7 @@ def get_metrics(clf,
     metrics['F1score'] = div(2*metrics['PPV']*metrics['TPR'], metrics['PPV']+metrics['TPR'], 0)#harmonic mean of precision and sensitivity
     metrics['Advantage'] = float(abs(metrics['TPR']-metrics['FPR']))
     #calculate AUC of model
-    y_pred_proba = clf.predict_proba(X_test)[::,1]
+    y_pred_proba = clf.predict_proba(X_test)[:, 1]
     metrics['AUC'] = round(roc_auc_score(y_test, y_pred_proba),8)
     
     

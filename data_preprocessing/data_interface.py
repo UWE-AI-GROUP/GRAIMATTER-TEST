@@ -11,7 +11,7 @@ from collections import Counter
 import pandas as pd
 import numpy as np
 import pylab as plt
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 logging.basicConfig(
     level = "DEBUG"
@@ -49,6 +49,26 @@ def get_data_sklearn(
     '''
     logger.info("DATASET FOLDER = %s", data_folder)
 
+    if dataset_name.startswith("standard"):
+        sub_name = dataset_name.split("standard")[1].strip()
+        x, y = get_data_sklearn(sub_name)
+        for column in x.columns:
+            col_mean = x[column].mean()
+            col_std = np.sqrt(x[column].var())
+            x[column] = x[column] - col_mean
+            x[column] = x[column] / col_std
+        return x, y
+
+    if dataset_name.startswith("minmax"):
+        sub_name = dataset_name.split("minmax")[1].strip()
+        x, y = get_data_sklearn(sub_name)
+        for column in x.columns:
+            col_min = x[column].min()
+            col_range = x[column].max() - col_min
+            x[column] = x[column] - col_min
+            x[column] = x[column] / col_range
+        return x, y
+
 
     if dataset_name == 'mimic2-iaccd':
         return mimic_iaccd(data_folder)
@@ -70,8 +90,11 @@ def get_data_sklearn(
         return texas_hospitals(data_folder)
     elif dataset_name == 'synth-ae':
         return synth_ae(data_folder)
+    elif dataset_name == 'synth-ae-small':
+        x, y = synth_ae(data_folder)
+        return x.head(200), y.head(200)
     else:
-        raise UnknownDataset()
+        raise UnknownDataset(dataset_name)
 
 
 
@@ -242,6 +265,9 @@ and place it in the correct folder.
     liver_labels = liver_data['class']
     liver_data.drop(['class'], axis=1, inplace=True)
 
+    label_encoder = LabelEncoder()
+    encoded_labels = label_encoder.fit_transform(liver_labels.values)
+    liver_labels = pd.DataFrame({'class': encoded_labels})
     return (liver_data, liver_labels)
 
 
@@ -271,6 +297,10 @@ and place it in the correct folder. It works with either the zip file or uncompr
     target = 'outcome'
     labels = clean_data[target]
     features = clean_data.drop([target], axis=1)
+
+    label_encoder = LabelEncoder()
+    encoded_labels = label_encoder.fit_transform(labels.values)
+    labels = pd.DataFrame({'outcome': encoded_labels})
 
     return (features, labels)
 
@@ -319,6 +349,11 @@ Please download from https://physionet.org/content/mimic2-iaccd/1.0/full_cohort_
     target = 'censor_flg'
     y = input_data[target]
     X = input_data.drop([target], axis=1)
+
+    label_encoder = LabelEncoder()
+    encoded_labels = label_encoder.fit_transform(y.values)
+    y = pd.DataFrame({'censor_flag': encoded_labels})
+
 
     return (X, y)
 
@@ -468,5 +503,10 @@ and place it in the correct folder.
     labels = tx_data[var]
     # Drop the column that contains the labels
     tx_data.drop([var], axis=1, inplace=True)
+
+    label_encoder = LabelEncoder()
+    encoded_labels = label_encoder.fit_transform(labels.values)
+    labels = pd.DataFrame({var: encoded_labels})
+
 
     return(tx_data, labels)

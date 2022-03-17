@@ -1,8 +1,8 @@
 {
     "datasets": [
-        "mimic2-iaccd",
-        "in-hospital-mortality",
-        "indian liver"
+        "minmax mimic2-iaccd",
+        "minmax in-hospital-mortality",
+        "minmax indian liver"
     ],
     "classifiers" : [
         ["sklearn.svm", "SVC"]
@@ -10,7 +10,7 @@
     "experiment_params" : {
         "SVC": {  
             "kernel": ["rbf"],
-            "C": [0.001, 0.1, 1, 10, 100],
+            "C": [0.001, 0.01, 0.1, 1],
             "gamma": [0.001, 0.1, 1, 10, 100],
             "probability":[true],
             "class_weight": [null, "balanced"]

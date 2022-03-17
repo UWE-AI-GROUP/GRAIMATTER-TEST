@@ -3,6 +3,8 @@ from sklearn.metrics import confusion_matrix
 from typing import Any, Iterable, Optional
 from sklearn.metrics import roc_auc_score
 
+VAR_THRESH = 1e-2
+
 def div(x,y, default):
     if y!=0:
         return round(float(x/y),8)
@@ -55,5 +57,7 @@ def get_metrics(clf,
     y_pred_proba = clf.predict_proba(X_test)[:, 1]
     metrics['AUC'] = round(roc_auc_score(y_test, y_pred_proba),8)
     
+    # Add some things useful for debugging / filtering
+    metrics['pred_prob_var'] = y_pred_proba.var()
     
     return metrics

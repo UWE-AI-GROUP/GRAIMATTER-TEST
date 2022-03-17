@@ -13,7 +13,7 @@ import numpy as np
 from dictdiffer import diff
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.tree._tree import Tree as sklearn_tree
+from sklearn.tree._tree import Tree
 
 
 def check_min(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
@@ -211,7 +211,7 @@ class SafeModel:
         return msg, disclosive
 
     def posthoc_check(self) -> tuple[str, str]:
-        """Checks whether moddel has been interfered with since fit() was last run"""
+        """Checks whether model has been interfered with since fit() was last run"""
 
         disclosive = False
         msg = ""
@@ -220,12 +220,13 @@ class SafeModel:
         saved_model = current_model.pop("savedModel", "Absent")
 
         if saved_model == "Absent":
-            msg = "Error: user has not called fit() method or has deleted saved values. Do not release."
+            msg = "Error: user has not called fit() method or has deleted saved values."
+            msg += "Recommendation: Do not release."
             disclosive = True
 
         else:
             saved_model = dict(self.savedModel)
-            #in case fit has been called twice
+            # in case fit has been called twice
             _ = saved_model.pop("savedModel", "Absent")
 
             # remove things we don't care about
@@ -233,7 +234,7 @@ class SafeModel:
                 _ = current_model.pop(item, "Absent")
                 _ = saved_model.pop(item, "Absent")
             # break out things that need to be examined in more depth
-            # and keep in seperate lists
+            # and keep in separate lists
             curr_seperate = {}
             saved_seperate = {}
             for item in self.examine_seperately_items:
@@ -246,66 +247,69 @@ class SafeModel:
                 disclosive = True
                 msg += f"Warning: basic parameters differ in {len(match)} places:\n"
                 for i in range(len(match)):
-                    if match[i][0]=='change':
-                        msg +=  f"parameter {match[i][1]} changed from {match[i][2][1]} "
-                        msg +=  f"to {match[i][2][0]} after model was fitted\n"
+                    if match[i][0] == "change":
+                        msg += f"parameter {match[i][1]} changed from {match[i][2][1]} "
+                        msg += f"to {match[i][2][0]} after model was fitted\n"
                     else:
-                        msg += f"{match[i]}" 
-                    
+                        msg += f"{match[i]}"
 
             # comparison of more complex structures
+            # in the super class we just check these model-specific items exist
+            # in both current and saved copies
             for item in self.examine_seperately_items:
                 if curr_seperate[item] == "Absent" and saved_seperate[item] == "Absent":
                     # not sure if this is necessarily disclosive
                     msg += f"Note that item {item} missing from both versions"
 
-                elif ( (curr_seperate[item] == "Absent") and  not
-                        (saved_seperate[item] == "Absent")):
+                elif (curr_seperate[item] == "Absent") and not (
+                    saved_seperate[item] == "Absent"
+                ):
                     disclosive = True
                     msg += f"Error, item {item} present in  saved but not current model"
-                elif ( ( saved_seperate[item] == "Absent") and not 
-                       ( curr_seperate[item] == "Absent" )): 
+                elif (saved_seperate[item] == "Absent") and not (
+                    curr_seperate[item] == "Absent"
+                ):
                     disclosive = True
                     msg += f"Error, item {item} present in current but not saved model"
-                else: #TODO move this into additional checks
-                    if type(curr_seperate[item])== list:
-                        if ( len(curr_seperate[item]) != len( saved_seperate[item])):
-                            msg +=f"Warning: different counts of values for parameter {item}"
-                            disclosive= True
-                        else:
-                            for i in range( len(saved_seperate[item])):
-                                difference = list(diff(curr_seperate[item][i], saved_seperate[item][i]))
-                                if( len(difference)>0):
-                                    msg += f"Warning: at least one non-matching value for parameter list {item}"
-                                    disclosive=True
-                                    break
-
-                    
-                    elif type(curr_seperate[item])== DecisionTreeClassifier:
-                        diffs_list = list(
-                            diff(curr_seperate[item], saved_seperate[item])
-                        )
-                        if len(diffs_list) > 0:
-                            disclosive = True
-                            msg += f"structure {item} has  {len(diffs_list)} differences: {diffs_list}"
-                        
-                    elif type(curr_seperate[item])==sklearn_tree: 
-                        print(f"item {curr_seperate[item]} has type {type(curr_seperate[item])}")
-                        diffs_list = list(
-                            diff(curr_seperate[item].value, saved_seperate[item].value)
-                        )
-                        if len(diffs_list) > 0:
-                            disclosive = True
-                            msg += f"structure {item} has  {len(diffs_list)} differences: {diffs_list}"
-                    else:
-                        pass
+                else:
+                    msg2, disclosive2 = self.additional_checks(
+                        curr_seperate, saved_seperate
+                    )
+                    if len(msg2) > 0:
+                        msg += msg2
+                    if disclosive2:
+                        disclosive = True
 
         return msg, disclosive
 
-    def additional_checks(self) -> tuple[str, str]:
+    def additional_checks(
+        self, curr_seperate: dict, saved_seperate: dict
+    ) -> tuple[str, str]:
         """placeholder function for additional posthoc checks e.g. keras"""
+        """this version just checks that any lists have the same contents"""
+        # posthoc checking makes sure that the two dicts have the same set of keys
+        # as defined in the list self.examine_seperately
+
         msg = ""
         disclosive = False
+        for item in self.examine_seperately_items:
+            if isinstance(curr_seperate[item], list):
+                if len(curr_seperate[item]) != len(saved_seperate[item]):
+                    msg += f"Warning: different counts of values for parameter {item}"
+                    disclosive = True
+                else:
+                    for i in range(len(saved_seperate[item])):
+                        difference = list(
+                            diff(curr_seperate[item][i], saved_seperate[item][i])
+                        )
+                        if len(difference) > 0:
+                            msg += (
+                                f"Warning: at least one non-matching value"
+                                f"for parameter list {item}"
+                            )
+                            disclosive = True
+                            break
+
         return msg, disclosive
 
     def request_release(self, filename: str = "undefined") -> None:
@@ -320,7 +324,6 @@ class SafeModel:
             self.save(filename)
             msg, disclosive = self.preliminary_check(verbose=False)
             msg2, disclosive2 = self.posthoc_check()
-            msg3, disclosive3 = self.additional_checks()
 
             output: dict = {
                 "researcher": self.researcher,
@@ -329,17 +332,13 @@ class SafeModel:
                 "details": msg,
             }
 
-            if (
-                (disclosive is False)
-                and (disclosive2 is False)
-                and (disclosive3 is False)
-            ):
+            if (disclosive is False) and (disclosive2 is False):
                 output[
                     "recommendation"
                 ] = f"Run file {filename} through next step of checking procedure"
             else:
                 output["recommendation"] = "Do not allow release"
-                output["reason"] = msg + msg2 + msg3
+                output["reason"] = msg + msg2
 
             json_str = json.dumps(output, indent=4)
             outputfilename = self.researcher + "_checkfile.json"
@@ -363,7 +362,29 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         self.ignore_items = ["model_save_file", "ignore_items"]
         self.examine_seperately_items = ["tree_"]
 
-    def fit(self, x:np.ndarray, y:np.ndarray):
+    def additional_checks(
+        self, curr_seperate: dict, saved_seperate: dict
+    ) -> tuple[str, str]:
+        """Decision Tree-specific checks"""
+
+        # call the super function to deal with any items that are lists
+        # just in case we add any in the future
+        msg, disclosive = super().additional_checks(curr_seperate, saved_seperate)
+
+        # now deal with the decisin-tree specific things
+        # which for now means the attribute "tree_" which is a sklearn tree
+        for item in self.examine_seperately_items:
+            if isinstance(curr_seperate[item], Tree):
+                # print(f"item {curr_seperate[item]} has type {type(curr_seperate[item])}")
+                diffs_list = list(
+                    diff(curr_seperate[item].value, saved_seperate[item].value)
+                )
+                if len(diffs_list) > 0:
+                    disclosive = True
+                    msg += f"structure {item} has  {len(diffs_list)} differences: {diffs_list}"
+        return msg, disclosive
+
+    def fit(self, x: np.ndarray, y: np.ndarray):
         """Do fit and then store model dict"""
         super().fit(x, y)
         self.savedModel = copy.deepcopy(self.__dict__)
@@ -378,26 +399,44 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         RandomForestClassifier.__init__(self, **kwargs)
         self.model_type: str = "RandomForestClassifier"
         super().preliminary_check(apply_constraints=True, verbose=True)
-        self.ignore_items = ["model_save_file", "ignore_items","estimators_","base_estimator_","base_estimator"]
-        self.examine_seperately_items = []
-        
-        
-    def additional_checks(self) -> tuple[str, str]:
-        """placeholder function for additional posthoc checks e.g. keras"""
-        msg = ""
-        disclosive = False
-        
-        try:
-            if type(self.base_estimator) != type (self.savedModel['base_estimator_']):
-                msg = "Warning: model was fitted with different base estimator type"
-                disclosive = True           
-        except AttributeError:
-            msg= "Error: model has not been fitted to data"
-            disclosive=True
-        
+        self.ignore_items = [
+            "model_save_file",
+            "ignore_items",
+            "estimators_",
+            "base_estimator_",
+        ]
+        self.examine_seperately_items = ["base_estimator"]
+
+    def additional_checks(
+        self, curr_seperate: dict, saved_seperate: dict
+    ) -> tuple[str, str]:
+        """Random Forest-specific checks"""
+
+        # call the super function to deal with any items that are lists
+        # just in case we add any in the future
+        msg, disclosive = super().additional_checks(curr_seperate, saved_seperate)
+
+        # now the relevant random-forest specific things
+        for item in self.examine_seperately_items:
+            if item == "base_estimator":
+                try:
+                    the_type = type(self.base_estimator)
+                    if not isinstance(self.savedModel["base_estimator_"], the_type):
+                        msg += "Warning: model was fitted with different base estimator type"
+                        disclosive = True
+                except AttributeError:
+                    msg += "Error: model has not been fitted to data"
+                    disclosive = True
+
+            elif isinstance(curr_seperate[item], DecisionTreeClassifier):
+                diffs_list = list(diff(curr_seperate[item], saved_seperate[item]))
+                if len(diffs_list) > 0:
+                    disclosive = True
+                    msg += f"structure {item} has  {len(diffs_list)} differences: {diffs_list}"
+
         return msg, disclosive
 
-    def fit(self, x:np.ndarray, y:np.ndarray) -> None:
+    def fit(self, x: np.ndarray, y: np.ndarray) -> None:
         """Do fit and then store model dict"""
-        super().fit( x,y)
+        super().fit(x, y)
         self.savedModel = copy.deepcopy(self.__dict__)

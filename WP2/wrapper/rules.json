@@ -32,18 +32,17 @@
             }
         ]
     },
-       "KerasModel": {
+    "KerasModel": {
         "rules": [
             {
-                        "keyword": "optimizer",
-                        "operator": "is_type",
-                        "value": "tensorflow_privacy.privacy.optimizers.dp_optimizer_keras.make_keras_optimizer_class.<locals>.DPOptimizerClass"
-            }     
+                "keyword": "optimizer",
+                "operator": "is_type",
+                "value": "tensorflow_privacy.privacy.optimizers.dp_optimizer_keras.make_keras_optimizer_class.<locals>.DPOptimizerClass"
+            }
         ]
     },
-    
-    "tf_DPModel":{
-       "rules": [
+    "tf_DPModel": {
+        "rules": [
             {
                 "operator": "and",
                 "subexpr": [
@@ -60,10 +59,5 @@
                 ]
             }
         ]
-        
     }
-
-
-
-
 }

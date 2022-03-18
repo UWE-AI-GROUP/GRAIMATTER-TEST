@@ -87,6 +87,8 @@ class SafeModel:
         self.model = None
         self.saved_model = None
         self.model_save_file: str = "None"
+        self.ignore_items: list[str] = []
+        self.examine_seperately_items: list[str] = []
         self.filename: str = "None"
         self.researcher: str = "None"
         try:

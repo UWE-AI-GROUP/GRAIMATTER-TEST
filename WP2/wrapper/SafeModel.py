@@ -290,9 +290,7 @@ class SafeModel:
         """Placeholder function for additional posthoc checks e.g. keras this
         version just checks that any lists have the same contents"""
         # posthoc checking makes sure that the two dicts have the same set of
-        # keys
-        # as defined in the list self.examine_separately
-
+        # keys as defined in the list self.examine_separately
         msg = ""
         disclosive = False
         for item in self.examine_seperately_items:
@@ -312,7 +310,6 @@ class SafeModel:
                             )
                             disclosive = True
                             break
-
         return msg, disclosive
 
     def request_release(self, filename: str = "undefined") -> None:
@@ -364,11 +361,9 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         self, curr_separate: dict, saved_separate: dict
     ) -> tuple[str, str]:
         """Decision Tree-specific checks"""
-
         # call the super function to deal with any items that are lists
         # just in case we add any in the future
         msg, disclosive = super().additional_checks(curr_separate, saved_separate)
-
         # now deal with the decision-tree specific things
         # which for now means the attribute "tree_" which is a sklearn tree
         for item in self.examine_seperately_items:
@@ -409,11 +404,9 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         self, curr_separate: dict, saved_separate: dict
     ) -> tuple[str, str]:
         """Random Forest-specific checks"""
-
         # call the super function to deal with any items that are lists
         # just in case we add any in the future
         msg, disclosive = super().additional_checks(curr_separate, saved_separate)
-
         # now the relevant random-forest specific things
         for item in self.examine_seperately_items:
             if item == "base_estimator":
@@ -425,13 +418,11 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
                 except AttributeError:
                     msg += "Error: model has not been fitted to data"
                     disclosive = True
-
             elif isinstance(curr_separate[item], DecisionTreeClassifier):
                 diffs_list = list(diff(curr_separate[item], saved_separate[item]))
                 if len(diffs_list) > 0:
                     disclosive = True
-                    msg += f"structure {item} has  {len(diffs_list)} differences: {diffs_list}"
-
+                    msg += f"structure {item} has {len(diffs_list)} differences: {diffs_list}"
         return msg, disclosive
 
     def fit(self, x: np.ndarray, y: np.ndarray) -> None:

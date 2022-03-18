@@ -178,7 +178,7 @@ and place it in the correct folder. It unzips the file first.
     return (pd.DataFrame(all_x), pd.DataFrame(all_y))
 
 
-def synth_ae(data_folder: str, nrows: int=5000) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def synth_ae(data_folder: str, n_rows: int=5000) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
     First norws (default 5000) rows from the Synthetic A&E data from NHS England
     https://data.england.nhs.uk/dataset/a-e-synthetic-data/resource/81b068e5-6501-4840-a880-a8e7aa56890e
@@ -197,7 +197,7 @@ unzip it (7z) and then copy the .csv file into your data folder.
     """
         raise DataNotAvailable(help_message)
 
-    input_data = pd.read_csv(file_path, nrows = 5000)#.head(20000)
+    input_data = pd.read_csv(file_path, nrows = n_rows)
     columns_to_drop = [
         'AE_Arrive_Date', 'AE_Arrive_HourOfDay', 'Admission_Method',
         'ICD10_Chapter_Code', 'Treatment_Function_Code', 'Length_Of_Stay_Days',

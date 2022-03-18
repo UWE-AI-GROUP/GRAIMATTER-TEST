@@ -91,8 +91,8 @@ def get_data_sklearn(
     elif dataset_name == 'synth-ae':
         return synth_ae(data_folder)
     elif dataset_name == 'synth-ae-small':
-        x, y = synth_ae(data_folder)
-        return x.head(200), y.head(200)
+        x, y = synth_ae(data_folder, 200)
+        return x, y
     else:
         raise UnknownDataset(dataset_name)
 
@@ -178,15 +178,15 @@ and place it in the correct folder. It unzips the file first.
     return (pd.DataFrame(all_x), pd.DataFrame(all_y))
 
 
-def synth_ae(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def synth_ae(data_folder: str, n_rows: int=5000) -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
-    First 20000 rows from the Synthetic A&E data from NHS England
+    First norws (default 5000) rows from the Synthetic A&E data from NHS England
     https://data.england.nhs.uk/dataset/a-e-synthetic-data/resource/81b068e5-6501-4840-a880-a8e7aa56890e
     ''' 
 
     file_path = os.path.join(
         data_folder,
-        'A&E Synthetic Data.csv'
+        'AE_England_synthetic.csv' #'A&E Synthetic Data.csv'
     )
 
     if not os.path.exists(file_path):
@@ -197,7 +197,7 @@ unzip it (7z) and then copy the .csv file into your data folder.
     """
         raise DataNotAvailable(help_message)
 
-    input_data = pd.read_csv(file_path).head(20000)
+    input_data = pd.read_csv(file_path, nrows = n_rows)
     columns_to_drop = [
         'AE_Arrive_Date', 'AE_Arrive_HourOfDay', 'Admission_Method',
         'ICD10_Chapter_Code', 'Treatment_Function_Code', 'Length_Of_Stay_Days',
@@ -363,22 +363,22 @@ def texas_hospitals(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     Texas Hospitals Dataset
     (https://www.dshs.texas.gov/THCIC/Hospitals/Download.shtm)
     '''
-    file_list = ["PUDF_1Q2006_tab-delimited.zip",
-                 "PUDF_1Q2007_tab-delimited.zip",
-                 "PUDF_1Q2008_tab-delimited.zip",
-                 "PUDF_1Q2009_tab-delimited.zip",
-                 "PUDF_2Q2006_tab-delimited.zip",
-                 "PUDF_2Q2007_tab-delimited.zip",
-                 "PUDF_2Q2008_tab-delimited.zip",
-                 "PUDF_2Q2009_tab-delimited.zip",
-                 "PUDF_3Q2006_tab-delimited.zip",
-                 "PUDF_3Q2007_tab-delimited.zip",
-                 "PUDF_3Q2008_tab-delimited.zip",
-                 "PUDF_3Q2009_tab-delimited.zip",
-                 "PUDF_4Q2006_tab-delimited.zip",
-                 "PUDF_4Q2007_tab-delimited.zip",
-                 "PUDF_4Q2008_tab-delimited.zip",
-                 "PUDF_4Q2009_tab-delimited.zip"]
+    file_list = ["PUDF-1Q2006-tab-delimited.zip",
+                 "PUDF-1Q2007-tab-delimited.zip",
+                 "PUDF-1Q2008-tab-delimited.zip",
+                 "PUDF-1Q2009-tab-delimited.zip",
+                 "PUDF-2Q2006-tab-delimited.zip",
+                 "PUDF-2Q2007-tab-delimited.zip",
+                 "PUDF-2Q2008-tab-delimited.zip",
+                 "PUDF-2Q2009-tab-delimited.zip",
+                 "PUDF-3Q2006-tab-delimited.zip",
+                 "PUDF-3Q2007-tab-delimited.zip",
+                 "PUDF-3Q2008-tab-delimited.zip",
+                 "PUDF-3Q2009-tab-delimited.zip",
+                 "PUDF-4Q2006-tab-delimited.zip",
+                 "PUDF-4Q2007-tab-delimited.zip",
+                 "PUDF-4Q2008-tab-delimited.zip",
+                 "PUDF-4Q2009-tab-delimited.zip"]
 
     files_path = [os.path.join(
         data_folder,"TexasHospitals",f) for f in file_list]

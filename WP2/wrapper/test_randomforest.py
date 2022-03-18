@@ -1,10 +1,10 @@
-"""This module contains unit tests for the SafeRandomForest wrapper."""
+"""This module contains unit tests for the SafeRandomForestClassifier."""
 
 import pickle
 
 import joblib
 import numpy as np
-from SafeModel import SafeRandomForest
+from SafeModel import SafeRandomForestClassifier
 from sklearn import datasets
 
 
@@ -19,9 +19,9 @@ def get_data():
 
 
 def test_randomforest_unchanged():
-    """SafeRandomForest using recommended values."""
+    """SafeRandomForestClassifier using recommended values."""
     x, y = get_data()
-    model = SafeRandomForest(random_state=1)
+    model = SafeRandomForestClassifier(random_state=1)
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
     msg, disclosive = model.preliminary_check()
@@ -31,11 +31,12 @@ def test_randomforest_unchanged():
 
 
 def test_randomforest_recommended():
-    """SafeRandomForest using recommended values."""
+    """SafeRandomForestClassifier using recommended values."""
     x, y = get_data()
-    model = SafeRandomForest(random_state=1)
+    model = SafeRandomForestClassifier(random_state=1)
     model.min_samples_leaf = 6
     model.fit(x, y)
+    print(f"model.dict={model.__dict__}")
     assert model.score(x, y) == 0.9668874172185431
     msg, disclosive = model.preliminary_check()
     correct_msg = "Model parameters are within recommended ranges.\n"
@@ -44,9 +45,9 @@ def test_randomforest_recommended():
 
 
 def test_randomforest_unsafe_1():
-    """SafeRandomForest with unsafe changes."""
+    """SafeRandomForestClassifier with unsafe changes."""
     x, y = get_data()
-    model = SafeRandomForest(random_state=1)
+    model = SafeRandomForestClassifier(random_state=1)
     model.bootstrap = False
     model.fit(x, y)
     assert model.score(x, y) == 0.9735099337748344
@@ -61,8 +62,8 @@ def test_randomforest_unsafe_1():
 
 
 def test_randomforest_unsafe_2():
-    """SafeRandomForest with unsafe changes."""
-    model = SafeRandomForest(random_state=1)
+    """SafeRandomForestClassifier with unsafe changes."""
+    model = SafeRandomForestClassifier(random_state=1)
     model.bootstrap = True
     model.min_samples_leaf = 2
     msg, disclosive = model.preliminary_check()
@@ -76,8 +77,8 @@ def test_randomforest_unsafe_2():
 
 
 def test_randomforest_unsafe_3():
-    """SafeRandomForest with unsafe changes."""
-    model = SafeRandomForest(random_state=1)
+    """SafeRandomForestClassifier with unsafe changes."""
+    model = SafeRandomForestClassifier(random_state=1)
     model.bootstrap = False
     model.min_samples_leaf = 2
     msg, disclosive = model.preliminary_check()
@@ -93,9 +94,9 @@ def test_randomforest_unsafe_3():
 
 
 def test_randomforest_save():
-    """SafeRandomForest model saving."""
+    """SafeRandomForestClassifier model saving."""
     x, y = get_data()
-    model = SafeRandomForest(random_state=1, min_samples_leaf=50)
+    model = SafeRandomForestClassifier(random_state=1, min_samples_leaf=50)
     model.fit(x, y)
     assert model.score(x, y) == 0.6622516556291391
     # test pickle
@@ -108,3 +109,25 @@ def test_randomforest_save():
     with open("rf_test.sav", "rb") as file:
         sav_model = joblib.load(file)
     assert sav_model.score(x, y) == 0.6622516556291391
+
+
+def test_randomforest_hacked_postfit():
+    """SafeRandomForestClassifier changes made to parameters after fit() called."""
+    x, y = get_data()
+    model = SafeRandomForestClassifier(random_state=1)
+    model.bootstrap = False
+    model.fit(x, y)
+    assert model.score(x, y) == 0.9735099337748344
+    model.bootstrap = True
+    msg, disclosive = model.preliminary_check()
+    correct_msg = "Model parameters are within recommended ranges.\n"
+    assert msg == correct_msg
+    assert disclosive is False
+    msg2, disclosive2 = model.posthoc_check()
+    correct_msg2 = (
+        "Warning: basic parameters differ in 1 places:\n"
+        "parameter bootstrap changed from False to True after model was fitted\n"
+    )
+    print(msg2)
+    assert msg2 == correct_msg2
+    assert disclosive2 is True

@@ -3,13 +3,13 @@
         "rules": [
             {
                 "keyword": "min_samples_leaf",
-                "operator": "min",
-                "value": 5
+                "operator": "is_type",
+                "value": "int"
             },
             {
                 "keyword": "min_samples_leaf",
-                "operator": "max",
-                "value": 500
+                "operator": "min",
+                "value": 5
             }
         ]
     },
@@ -27,6 +27,34 @@
                         "keyword": "min_samples_leaf",
                         "operator": "min",
                         "value": 5
+                    }
+                ]
+            }
+        ]
+    },
+    "KerasModel": {
+        "rules": [
+            {
+                "keyword": "optimizer",
+                "operator": "is_type",
+                "value": "tensorflow_privacy.privacy.optimizers.dp_optimizer_keras.make_keras_optimizer_class.<locals>.DPOptimizerClass"
+            }
+        ]
+    },
+    "tf_DPModel": {
+        "rules": [
+            {
+                "operator": "and",
+                "subexpr": [
+                    {
+                        "keyword": "l2_norm_clip",
+                        "operator": "min",
+                        "value": 1.0
+                    },
+                    {
+                        "keyword": "noise_multiplier",
+                        "operator": "min",
+                        "value": 0.5
                     }
                 ]
             }

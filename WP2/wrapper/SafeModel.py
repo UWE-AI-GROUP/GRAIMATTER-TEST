@@ -72,12 +72,6 @@ def check_type(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
     return msg, disclosive
 
 
-def remove_key(d, key):
-    r = dict(d)
-    del r[key]
-    return r
-
-
 class SafeModel:
     """Privacy protected model base class."""
 

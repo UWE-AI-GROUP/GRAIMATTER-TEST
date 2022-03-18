@@ -91,8 +91,8 @@ def get_data_sklearn(
     elif dataset_name == 'synth-ae':
         return synth_ae(data_folder)
     elif dataset_name == 'synth-ae-small':
-        x, y = synth_ae(data_folder)
-        return x.head(200), y.head(200)
+        x, y = synth_ae(data_folder, 200)
+        return x, y
     else:
         raise UnknownDataset(dataset_name)
 

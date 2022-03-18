@@ -1,0 +1,23 @@
+{
+    "datasets": [
+        "mimic2-iaccd",
+        "in-hospital-mortality",
+        "indian liver",
+        "texas hospitals 10",
+        "synth-ae"
+    ],
+    "classifiers" : [
+        ["sklearn.ensemble", "AdaBoostClassifier"]
+    ],
+    "experiment_params" : {
+      "AdaBoostClassifier": {
+         "n_estimators":[25,50,100,200,400],
+         "algorithm": ["SAMME", "SAMME.R"]
+        }
+    },
+    "results_filename": "experiments/AdaBoost_results.csv",
+    "n_reps": 5,
+    "mia_classifier":
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+}

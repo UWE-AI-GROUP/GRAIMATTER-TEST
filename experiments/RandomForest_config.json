@@ -1,0 +1,28 @@
+{
+    "datasets": [
+        "mimic2-iaccd",
+        "in-hospital-mortality",
+        "indian liver",
+        "texas hospitals 10",
+        "synth-ae"
+    ],
+    "classifiers" : [
+        ["sklearn.ensemble", "RandomForestClassifier"]
+    ],
+    "experiment_params" : {
+        "RandomForestClassifier": {
+            "bootstrap": [true, false],
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 2, 5, 10],
+            "n_estimators": [10, 50, 100],
+            "criterion": ["gini","entropy"],
+            "max_depth": [2, 5, 10, null],
+            "class_weight": [null, "balanced"]
+        }
+    },
+    "results_filename": "experiments/Random_Forest_loop_results.csv",
+    "n_reps": 5,
+    "mia_classifier": 
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+}

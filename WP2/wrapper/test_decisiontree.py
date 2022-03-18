@@ -1,10 +1,10 @@
-"""This module contains unit tests for the SafeDecisionTree wrapper."""
+"""This module contains unit tests for the SafeDecisionTreeClassifier."""
 
 import pickle
 
 import joblib
 import numpy as np
-from SafeModel import SafeDecisionTree
+from SafeModel import SafeDecisionTreeClassifier
 from sklearn import datasets
 
 
@@ -19,9 +19,9 @@ def get_data():
 
 
 def test_decisiontree_unchanged():
-    """SafeDecisionTree using unchanged values."""
+    """SafeDecisionTreeClassifier using unchanged values."""
     x, y = get_data()
-    model = SafeDecisionTree(random_state=1)
+    model = SafeDecisionTreeClassifier(random_state=1)
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
     msg, disclosive = model.preliminary_check()
@@ -31,9 +31,9 @@ def test_decisiontree_unchanged():
 
 
 def test_decisiontree_safe_recommended():
-    """SafeDecisionTree using recommended values."""
+    """SafeDecisionTreeClassifier using recommended values."""
     x, y = get_data()
-    model = SafeDecisionTree(random_state=1)
+    model = SafeDecisionTreeClassifier(random_state=1)
     model.min_samples_leaf = 5
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
@@ -44,9 +44,9 @@ def test_decisiontree_safe_recommended():
 
 
 def test_decisiontree_safe_1():
-    """SafeDecisionTree with safe changes."""
+    """SafeDecisionTreeClassifier with safe changes."""
     x, y = get_data()
-    model = SafeDecisionTree(random_state=1)
+    model = SafeDecisionTreeClassifier(random_state=1)
     model.min_samples_leaf = 10
     model.fit(x, y)
     assert model.score(x, y) == 0.9536423841059603
@@ -57,9 +57,9 @@ def test_decisiontree_safe_1():
 
 
 def test_decisiontree_safe_2():
-    """SafeDecisionTree with safe changes."""
+    """SafeDecisionTreeClassifier with safe changes."""
     x, y = get_data()
-    model = SafeDecisionTree(random_state=1, min_samples_leaf=10)
+    model = SafeDecisionTreeClassifier(random_state=1, min_samples_leaf=10)
     model.fit(x, y)
     assert model.score(x, y) == 0.9536423841059603
     msg, disclosive = model.preliminary_check()
@@ -69,9 +69,9 @@ def test_decisiontree_safe_2():
 
 
 def test_decisiontree_unsafe_1():
-    """SafeDecisionTree with unsafe changes."""
+    """SafeDecisionTreeClassifier with unsafe changes."""
     x, y = get_data()
-    model = SafeDecisionTree(random_state=1)
+    model = SafeDecisionTreeClassifier(random_state=1)
     model.min_samples_leaf = 1
     model.fit(x, y)
     assert model.score(x, y) == 1
@@ -86,9 +86,9 @@ def test_decisiontree_unsafe_1():
 
 
 def test_decisiontree_unsafe_2():
-    """SafeDecisionTree with unsafe changes - automatically fixed."""
+    """SafeDecisionTreeClassifier with unsafe changes - automatically fixed."""
     x, y = get_data()
-    model = SafeDecisionTree(random_state=1, min_samples_leaf=1)
+    model = SafeDecisionTreeClassifier(random_state=1, min_samples_leaf=1)
     model.fit(x, y)
     assert model.score(x, y) == 0.9668874172185431
     msg, disclosive = model.preliminary_check()
@@ -98,9 +98,9 @@ def test_decisiontree_unsafe_2():
 
 
 def test_decisiontree_save():
-    """SafeDecisionTree model saving."""
+    """SafeDecisionTreeClassifier model saving."""
     x, y = get_data()
-    model = SafeDecisionTree(random_state=1, min_samples_leaf=50)
+    model = SafeDecisionTreeClassifier(random_state=1, min_samples_leaf=50)
     model.fit(x, y)
     assert model.score(x, y) == 0.9470198675496688
     # test pickle
@@ -116,9 +116,9 @@ def test_decisiontree_save():
 
 
 def test_decisiontree_hacked_postfit():
-    """SafeDecisionTree changes made to parameters after fit() called."""
+    """SafeDecisionTreeClassifier changes made to parameters after fit() called."""
     x, y = get_data()
-    model = SafeDecisionTree(random_state=1, min_samples_leaf=1)
+    model = SafeDecisionTreeClassifier(random_state=1, min_samples_leaf=1)
     model.min_samples_leaf = 1
     model.fit(x, y)
     assert model.score(x, y) == 1.0

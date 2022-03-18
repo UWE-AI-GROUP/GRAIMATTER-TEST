@@ -345,7 +345,7 @@ class SafeModel:
         return self.model_type + " with parameters: " + str(self.__dict__)
 
 
-class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
+class SafeDecisionTreeClassifier(SafeModel, DecisionTreeClassifier):
     """Privacy protected Decision Tree classifier."""
 
     def __init__(self, **kwargs: Any) -> None:
@@ -383,7 +383,7 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         self.saved_model = copy.deepcopy(self.__dict__)
 
 
-class SafeRandomForest(SafeModel, RandomForestClassifier):
+class SafeRandomForestClassifier(SafeModel, RandomForestClassifier):
     """Privacy protected Random Forest classifier."""
 
     def __init__(self, **kwargs: Any) -> None:

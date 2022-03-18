@@ -374,7 +374,7 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
                 )
                 if len(diffs_list) > 0:
                     disclosive = True
-                    msg += f"structure {item} has  {len(diffs_list)} differences: {diffs_list}"
+                    msg += f"structure {item} has {len(diffs_list)} differences: {diffs_list}"
         return msg, disclosive
 
     def fit(self, x: np.ndarray, y: np.ndarray):

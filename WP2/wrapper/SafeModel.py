@@ -285,9 +285,10 @@ class SafeModel:
     def additional_checks(
         self, curr_seperate: dict, saved_seperate: dict
     ) -> tuple[str, str]:
-        """placeholder function for additional posthoc checks e.g. keras"""
-        """this version just checks that any lists have the same contents"""
-        # posthoc checking makes sure that the two dicts have the same set of keys
+        """Placeholder function for additional posthoc checks e.g. keras this
+        version just checks that any lists have the same contents"""
+        # posthoc checking makes sure that the two dicts have the same set of
+        # keys
         # as defined in the list self.examine_seperately
 
         msg = ""

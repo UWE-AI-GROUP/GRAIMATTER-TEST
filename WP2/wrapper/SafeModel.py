@@ -228,11 +228,11 @@ class SafeModel:
                 _ = saved_model.pop(item, "Absent")
             # break out things that need to be examined in more depth
             # and keep in separate lists
-            curr_seperate = {}
-            saved_seperate = {}
+            curr_separate = {}
+            saved_separate = {}
             for item in self.examine_seperately_items:
-                curr_seperate[item] = current_model.pop(item, "Absent")
-                saved_seperate[item] = saved_model.pop(item, "Absent")
+                curr_separate[item] = current_model.pop(item, "Absent")
+                saved_separate[item] = saved_model.pop(item, "Absent")
 
             # comparison on list of "simple" parameters
             match = list(diff(current_model, saved_model, expand=True))
@@ -250,23 +250,23 @@ class SafeModel:
             # in the super class we just check these model-specific items exist
             # in both current and saved copies
             for item in self.examine_seperately_items:
-                if curr_seperate[item] == "Absent" and saved_seperate[item] == "Absent":
+                if curr_separate[item] == "Absent" and saved_separate[item] == "Absent":
                     # not sure if this is necessarily disclosive
                     msg += f"Note that item {item} missing from both versions"
 
-                elif (curr_seperate[item] == "Absent") and not (
-                    saved_seperate[item] == "Absent"
+                elif (curr_separate[item] == "Absent") and not (
+                    saved_separate[item] == "Absent"
                 ):
                     disclosive = True
                     msg += f"Error, item {item} present in  saved but not current model"
-                elif (saved_seperate[item] == "Absent") and not (
-                    curr_seperate[item] == "Absent"
+                elif (saved_separate[item] == "Absent") and not (
+                    curr_separate[item] == "Absent"
                 ):
                     disclosive = True
                     msg += f"Error, item {item} present in current but not saved model"
                 else:
                     msg2, disclosive2 = self.additional_checks(
-                        curr_seperate, saved_seperate
+                        curr_separate, saved_separate
                     )
                     if len(msg2) > 0:
                         msg += msg2
@@ -276,25 +276,25 @@ class SafeModel:
         return msg, disclosive
 
     def additional_checks(
-        self, curr_seperate: dict, saved_seperate: dict
+        self, curr_separate: dict, saved_separate: dict
     ) -> tuple[str, str]:
         """Placeholder function for additional posthoc checks e.g. keras this
         version just checks that any lists have the same contents"""
         # posthoc checking makes sure that the two dicts have the same set of
         # keys
-        # as defined in the list self.examine_seperately
+        # as defined in the list self.examine_separately
 
         msg = ""
         disclosive = False
         for item in self.examine_seperately_items:
-            if isinstance(curr_seperate[item], list):
-                if len(curr_seperate[item]) != len(saved_seperate[item]):
+            if isinstance(curr_separate[item], list):
+                if len(curr_separate[item]) != len(saved_separate[item]):
                     msg += f"Warning: different counts of values for parameter {item}"
                     disclosive = True
                 else:
-                    for i in range(len(saved_seperate[item])):
+                    for i in range(len(saved_separate[item])):
                         difference = list(
-                            diff(curr_seperate[item][i], saved_seperate[item][i])
+                            diff(curr_separate[item][i], saved_separate[item][i])
                         )
                         if len(difference) > 0:
                             msg += (
@@ -357,21 +357,21 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
         self.examine_seperately_items = ["tree_"]
 
     def additional_checks(
-        self, curr_seperate: dict, saved_seperate: dict
+        self, curr_separate: dict, saved_separate: dict
     ) -> tuple[str, str]:
         """Decision Tree-specific checks"""
 
         # call the super function to deal with any items that are lists
         # just in case we add any in the future
-        msg, disclosive = super().additional_checks(curr_seperate, saved_seperate)
+        msg, disclosive = super().additional_checks(curr_separate, saved_separate)
 
-        # now deal with the decisin-tree specific things
+        # now deal with the decision-tree specific things
         # which for now means the attribute "tree_" which is a sklearn tree
         for item in self.examine_seperately_items:
-            if isinstance(curr_seperate[item], Tree):
-                # print(f"item {curr_seperate[item]} has type {type(curr_seperate[item])}")
+            if isinstance(curr_separate[item], Tree):
+                # print(f"item {curr_separate[item]} has type {type(curr_separate[item])}")
                 diffs_list = list(
-                    diff(curr_seperate[item].value, saved_seperate[item].value)
+                    diff(curr_separate[item].value, saved_separate[item].value)
                 )
                 if len(diffs_list) > 0:
                     disclosive = True
@@ -402,13 +402,13 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
         self.examine_seperately_items = ["base_estimator"]
 
     def additional_checks(
-        self, curr_seperate: dict, saved_seperate: dict
+        self, curr_separate: dict, saved_separate: dict
     ) -> tuple[str, str]:
         """Random Forest-specific checks"""
 
         # call the super function to deal with any items that are lists
         # just in case we add any in the future
-        msg, disclosive = super().additional_checks(curr_seperate, saved_seperate)
+        msg, disclosive = super().additional_checks(curr_separate, saved_separate)
 
         # now the relevant random-forest specific things
         for item in self.examine_seperately_items:
@@ -422,8 +422,8 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
                     msg += "Error: model has not been fitted to data"
                     disclosive = True
 
-            elif isinstance(curr_seperate[item], DecisionTreeClassifier):
-                diffs_list = list(diff(curr_seperate[item], saved_seperate[item]))
+            elif isinstance(curr_separate[item], DecisionTreeClassifier):
+                diffs_list = list(diff(curr_separate[item], saved_separate[item]))
                 if len(diffs_list) > 0:
                     disclosive = True
                     msg += f"structure {item} has  {len(diffs_list)} differences: {diffs_list}"

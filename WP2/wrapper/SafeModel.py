@@ -85,6 +85,7 @@ class SafeModel:
         """Super class constructor, gets researcher name."""
         self.model_type: str = "None"
         self.model = None
+        self.saved_model = None
         self.model_save_file: str = "None"
         self.filename: str = "None"
         self.researcher: str = "None"
@@ -217,7 +218,7 @@ class SafeModel:
         msg = ""
         # get dictionaries of parameters
         current_model = copy.deepcopy(self.__dict__)
-        saved_model = current_model.pop("savedModel", "Absent")
+        saved_model = current_model.pop("saved_model", "Absent")
 
         if saved_model == "Absent":
             msg = "Error: user has not called fit() method or has deleted saved values."
@@ -225,9 +226,9 @@ class SafeModel:
             disclosive = True
 
         else:
-            saved_model = dict(self.savedModel)
+            saved_model = dict(self.saved_model)
             # in case fit has been called twice
-            _ = saved_model.pop("savedModel", "Absent")
+            _ = saved_model.pop("saved_model", "Absent")
 
             # remove things we don't care about
             for item in self.ignore_items:
@@ -388,7 +389,7 @@ class SafeDecisionTree(SafeModel, DecisionTreeClassifier):
     def fit(self, x: np.ndarray, y: np.ndarray):
         """Do fit and then store model dict"""
         super().fit(x, y)
-        self.savedModel = copy.deepcopy(self.__dict__)
+        self.saved_model = copy.deepcopy(self.__dict__)
 
 
 class SafeRandomForest(SafeModel, RandomForestClassifier):
@@ -422,7 +423,7 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
             if item == "base_estimator":
                 try:
                     the_type = type(self.base_estimator)
-                    if not isinstance(self.savedModel["base_estimator_"], the_type):
+                    if not isinstance(self.saved_model["base_estimator_"], the_type):
                         msg += "Warning: model was fitted with different base estimator type"
                         disclosive = True
                 except AttributeError:
@@ -440,4 +441,4 @@ class SafeRandomForest(SafeModel, RandomForestClassifier):
     def fit(self, x: np.ndarray, y: np.ndarray) -> None:
         """Do fit and then store model dict"""
         super().fit(x, y)
-        self.savedModel = copy.deepcopy(self.__dict__)
+        self.saved_model = copy.deepcopy(self.__dict__)

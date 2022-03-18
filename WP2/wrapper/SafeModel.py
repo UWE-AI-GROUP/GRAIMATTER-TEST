@@ -159,9 +159,9 @@ class SafeModel:
         disclosive: bool = False
         msg: str = ""
         for arg in rule["subexpr"]:
-            op_msg, op_disclosive = self.__check_model_param(arg, apply_constraints)
-            msg += op_msg
-            if op_disclosive:
+            m, d = self.__check_model_param(arg, apply_constraints)
+            msg += m
+            if d:
                 disclosive = True
         return msg, disclosive
 
@@ -170,9 +170,9 @@ class SafeModel:
         disclosive: bool = True
         msg: str = ""
         for arg in rule["subexpr"]:
-            op_msg, op_disclosive = self.__check_model_param(arg, False)
-            msg += op_msg
-            if not op_disclosive:
+            m, d = self.__check_model_param(arg, False)
+            msg += m
+            if not d:
                 disclosive = False
         return msg, disclosive
 
@@ -187,17 +187,13 @@ class SafeModel:
         for rule in rules:
             operator = rule["operator"]
             if operator == "and":
-                op_msg, op_disclosive = self.__check_model_param_and(
-                    rule, apply_constraints
-                )
+                m, d = self.__check_model_param_and(rule, apply_constraints)
             elif operator == "or":
-                op_msg, op_disclosive = self.__check_model_param_or(rule)
+                m, d = self.__check_model_param_or(rule)
             else:
-                op_msg, op_disclosive = self.__check_model_param(
-                    rule, apply_constraints
-                )
-            msg += op_msg
-            if op_disclosive:
+                m, d = self.__check_model_param(rule, apply_constraints)
+            msg += m
+            if d:
                 disclosive = True
         if disclosive:
             msg = "WARNING: model parameters may present a disclosure risk:\n" + msg

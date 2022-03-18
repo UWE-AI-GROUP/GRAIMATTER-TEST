@@ -114,6 +114,27 @@ class SafeModel:
             rules = parsed[self.model_type]
         return rules["rules"]
 
+    def __apply_constraints(
+        self, operator: str, key: str, val: Any, cur_val: Any
+    ) -> str:
+        """Applies a safe rule for a given parameter."""
+        if operator == "is_type":
+            if (val == "int") and (type(cur_val).__name__ == "float"):
+                self.__dict__[key] = int(self.__dict__[key])
+                msg = f"\nChanged parameter type for {key} to {val}.\n"
+            elif (val == "float") and (type(cur_val).__name__ == "int"):
+                self.__dict__[key] = float(self.__dict__[key])
+                msg = f"\nChanged parameter type for {key} to {val}.\n"
+            else:
+                msg = (
+                    f"Nothing currently implemented to change type of parameter {key} "
+                    f"from {type(cur_val).__name__} to {val}.\n"
+                )
+        else:
+            setattr(self, key, val)
+            msg = f"\nChanged parameter {key} = {val}.\n"
+        return msg
+
     def __check_model_param(
         self, rule: dict, apply_constraints: bool
     ) -> tuple[str, bool]:
@@ -136,19 +157,7 @@ class SafeModel:
         else:
             msg = f"- unknown operator in parameter specification {operator}"
         if apply_constraints and disclosive:
-            if operator == "is_type":
-                if (val == "int") and (type(cur_val).__name__ == "float"):
-                    self.__dict__[key] = int(self.__dict__[key])
-                    msg += f"\nChanged parameter type for {key} to {val}.\n"
-                elif (val == "float") and (type(cur_val).__name__ == "int"):
-                    self.__dict__[key] = float(self.__dict__[key])
-                    msg += f"\nChanged parameter type for {key} to {val}.\n"
-                else:
-                    msg += f"Nothing currently implemented to change type of parameter {key} "
-                    msg += f"from {type(cur_val).__name__} to {val}.\n"
-            else:
-                setattr(self, key, val)
-                msg += f"\nChanged parameter {key} = {val}.\n"
+            msg += self.__apply_constraints(operator, key, val, cur_val)
         return msg, disclosive
 
     def __check_model_param_and(

@@ -318,31 +318,26 @@ class SafeModel:
     def request_release(self, filename: str = "undefined") -> None:
         """Saves model to filename specified and creates a report for the TRE
         output checkers."""
-
         if filename == "undefined":
             print("You must provide the name of the file you want to save your model")
             print("For security reasons, this will overwrite previous versions")
-
         else:
             self.save(filename)
-            msg, disclosive = self.preliminary_check(verbose=False)
-            msg2, disclosive2 = self.posthoc_check()
-
+            msg_prel, disclosive_prel = self.preliminary_check(verbose=False)
+            msg_post, disclosive_post = self.posthoc_check()
             output: dict = {
                 "researcher": self.researcher,
                 "model_type": self.model_type,
                 "model_save_file": self.model_save_file,
-                "details": msg,
+                "details": msg_prel,
             }
-
-            if (disclosive is False) and (disclosive2 is False):
+            if not disclosive_prel and not disclosive_post:
                 output[
                     "recommendation"
                 ] = f"Run file {filename} through next step of checking procedure"
             else:
                 output["recommendation"] = "Do not allow release"
-                output["reason"] = msg + msg2
-
+                output["reason"] = msg_prel + msg_post
             json_str = json.dumps(output, indent=4)
             outputfilename = self.researcher + "_checkfile.json"
             with open(outputfilename, "a", encoding="utf-8") as file:

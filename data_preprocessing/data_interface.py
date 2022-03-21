@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 import pylab as plt
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.datasets import fetch_openml
 
 logging.basicConfig(
     level = "DEBUG"
@@ -93,8 +94,29 @@ def get_data_sklearn(
     elif dataset_name == 'synth-ae-small':
         x, y = synth_ae(data_folder, 200)
         return x, y
+    elif dataset_name == 'nursery':
+        return nursery(data_folder)
     else:
         raise UnknownDataset(dataset_name)
+
+
+def nursery(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    '''
+    The sklearn nursery dataset
+    '''
+    
+    data = fetch_openml(data_id=26, as_frame=True)
+
+    target_encoder = LabelEncoder()
+    target_vals = target_encoder.fit_transform(data.target.values)
+    target_dataframe = pd.DataFrame({'target': target_vals})
+
+    feature_encoder = OneHotEncoder()
+    X_encoded = feature_encoder.fit_transform(data.data).toarray()
+    feature_dataframe = pd.DataFrame(X_encoded, columns=feature_encoder.get_feature_names_out())
+    
+
+    return feature_dataframe, target_dataframe
 
 
 

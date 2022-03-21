@@ -1,7 +1,6 @@
 '''
 Template for how to put any estimator into the experimental pipeline
 '''
-from random import Random
 from typing import Any
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier

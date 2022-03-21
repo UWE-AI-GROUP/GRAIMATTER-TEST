@@ -19,7 +19,7 @@
             "penalty": ["l1", "l2"]
         }
     },
-    "results_filename": "experiments/SVC/SVC_poly_results.csv",
+    "results_filename": "experiments/SVC_linear_results.csv",
     "n_reps": 5,
     "mia_classifier": 
         ["sklearn.ensemble", "RandomForestClassifier"],

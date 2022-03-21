@@ -4,7 +4,6 @@ experiments.py - utilities used within experiments
 import json
 import os
 import sys
-import warnings
 import importlib
 import hashlib
 import logging

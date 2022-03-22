@@ -22,7 +22,7 @@ class TestDPSVC(unittest.TestCase):
 
         dpsvc.fit(mimic_features.values[:100, :], mimic_labels.values[:100, :].flatten())
         svc.fit(mimic_features.values[:100, :], mimic_labels.values[:100, :].flatten())
-        
+
         test_features = mimic_features.values[101:201, :]
         dp_predictions = dpsvc.predict(test_features)
         sv_predictions = svc.predict(test_features)
@@ -35,5 +35,3 @@ class TestDPSVC(unittest.TestCase):
 
         # Check that the two models have equal shape
         self.assertTupleEqual(dp_predprob.shape, sv_predprob.shape)
-
-        

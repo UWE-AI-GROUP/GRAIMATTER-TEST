@@ -1,7 +1,6 @@
 '''
 Template for how to put any estimator into the experimental pipeline
 '''
-from random import Random
 from typing import Any
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -23,10 +22,10 @@ class GenericEstimator:
         in test_features, and one column per class.
         '''
         raise NotImplementedError
-    
+
     def predict(self, test_features: Any) -> np.ndarray:
         '''
-        Produce hard predictions. Results should be a numpy ndarray with shape (n,) where n is the 
+        Produce hard predictions. Results should be a numpy ndarray with shape (n,) where n is the
         number of rows in test_features
         '''
         raise NotImplementedError

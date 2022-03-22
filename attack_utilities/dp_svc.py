@@ -6,17 +6,17 @@ from typing import Any
 import numpy as np
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
+from estimator_template import GenericEstimator
 
 local_logger = logging.getLogger(__file__)
 
 
 
-from estimator_template import GenericEstimator
 
 # pylint: disable = invalid-name
 
 class DPSVC(GenericEstimator):
-    ## Wrapper for differentially private SVM 
+    ## Wrapper for differentially private SVM
     ##
     ## James Liley
     ## 21/03/22
@@ -28,7 +28,7 @@ class DPSVC(GenericEstimator):
 
     Essentially approximates an infinite-dimensional latent space (and corresponding kernel) with
     a finite dimensional latent space, and adds noise to the normal to the separating hyperplane
-    in this latent space. 
+    in this latent space.
 
     Only currently implemented for a radial basis kernel, but could be extended.
 
@@ -39,20 +39,20 @@ class DPSVC(GenericEstimator):
     - computes the separating hyperplane in this latent space with normal w
     - then adds Laplacian noise to w and returns it along with the map to the latent space.
 
-    The SKlearn SVM (see https://scikit-learn.org/stable/modules/svm.html#mathematical-formulation) 
-    minimises the function 
+    The SKlearn SVM (see https://scikit-learn.org/stable/modules/svm.html#mathematical-formulation)
+    minimises the function
 
     (1/2) ||w||_2 + C sum(zeta_i)
 
-    where 1-zeta_i≤ y_i (w phi(x_i) + b), where phi maps x to the latent space and zeta_i ≥ 0. 
+    where 1-zeta_i≤ y_i (w phi(x_i) + b), where phi maps x to the latent space and zeta_i ≥ 0.
     This is equivalent to minimising
 
-    (1/2) ||w||_2 + C/n sum(l(y_i,f_w(x_i))) 
+    (1/2) ||w||_2 + C/n sum(l(y_i,f_w(x_i)))
 
     where l(x,y)=n*max(0,1- x.y), which is n-Lipschitz continuous in y (given x is in {-1,1})
 
     """
-    
+
     def __init__(self, C=1., gamma='scale', dhat=1000, eps=10, **kwargs):
         self.svc = None
         self.gamma = gamma
@@ -185,8 +185,8 @@ class DPSVC(GenericEstimator):
             elif key == 'dhat':
                 self.dhat = value
             else:
-                local_logger.warn("Unsupported parameter: %s", key)
-        
+                local_logger.warning("Unsupported parameter: %s", key)
+
     def predict(self, test_features: Any) -> np.ndarray:
         '''
         Make predictions
@@ -218,9 +218,10 @@ class DPSVC(GenericEstimator):
 
         return pred_probs
 
+# TODO: move out to an example notebook
 def main():
     '''
-    Example 
+    Example
     '''
     import pylab as plt
 
@@ -250,8 +251,8 @@ def main():
         r = np.zeros((x.shape[0],y.shape[0]))
         for i in range(x.shape[0]):
             for j in range(y.shape[0]):
-                r[i,j] = rbf(x[i,:], y[j,:],gamma) 
-        return r    
+                r[i,j] = rbf(x[i,:], y[j,:],gamma)
+        return r
 
 
     # Basic SVM fitted using RBF
@@ -268,7 +269,8 @@ def main():
     c1=clf1.predict(test_gram)
     p1=clf1.predict_proba(test_gram)
 
-    # DP version with no DP level (predicted labels equivalent to clf1; predicted probabilities will not be)
+    # DP version with no DP level (predicted labels equivalent to clf1;
+    # predicted probabilities will not be)
     clf2 = DPSVC(eps=-1, dhat=dhat, gamma=gamma)
     # clf2.set_params(eps=-1, dhat=dhat, C=C, gamma=gamma)
     clf2.fit(X,y)
@@ -290,18 +292,20 @@ def main():
     # Plot p0 vs p1: finite-dimensional approximator works OK
     plt.subplot(1, 3, 1)
     plt.style.use('seaborn-whitegrid')
-    plt.plot(p0, p1, 'o', color='black');
+    plt.plot(p0, p1, 'o', color='black')
 
-    # Plot p1 vs p2: logistic-regression based predict_proba is roughly equivalent to Platt scaling, at least here
+    # Plot p1 vs p2: logistic-regression based predict_proba is roughly equivalent to Platt
+    # scaling, at least here
     plt.subplot(1, 3, 2)
     plt.style.use('seaborn-whitegrid')
-    plt.plot(p1, p2, 'o', color='black');
+    plt.plot(p1, p2, 'o', color='black')
 
-    # Plot p2 vs p3: enforcing differential privacy means we don't match very well. Set higher DP level, 
-    #  higher N, or lower C to match better.
+    # Plot p2 vs p3: enforcing differential privacy means we don't match very well.
+    # Set higher DP level,
+    # higher N, or lower C to match better.
     plt.subplot(1, 3, 3)
     plt.style.use('seaborn-whitegrid')
-    plt.plot(p2, p3, 'o', color='black');
+    plt.plot(p2, p3, 'o', color='black')
 
     plt.show()
 

@@ -56,6 +56,7 @@ class DPSVC(GenericEstimator):
     def __init__(self, C=1., gamma='scale', dhat=1000, eps=10, **kwargs):
         self.svc = None
         self.gamma = gamma
+        self.dpsvc_gamma = None
         self.dhat = dhat
         self.eps = eps
         self.C = C
@@ -135,12 +136,13 @@ class DPSVC(GenericEstimator):
         elif self.gamma == 'auto':
             self.gamma = 1. / n_features
 
-        local_logger.info("Gamma = %f", self.gamma)
+
+        self.dpsvc_gamma = 1. / np.sqrt(2. * self.gamma) # alternative parameterisation
+        local_logger.info("Gamma = %f (dp parameterisation = %f)", self.gamma, self.dpsvc_gamma)
 
         # Draw dhat random vectors rho from Fourier transform of RBF
         # (which is Gaussian with SD 1/gamma)
-        # self.rho = np.random.normal(0, 1. / self.gamma, (self.dhat, n_features))
-        self.rho = np.random.normal(0, np.sqrt(2. * self.gamma), (self.dhat, n_features))
+        self.rho = np.random.normal(0, 1. / self.dpsvc_gamma, (self.dhat, n_features))
         local_logger.info("Sampled rho")
 
         # Fit support vector machine
@@ -236,10 +238,10 @@ def main():
     y1 = np.random.binomial(1,logistic(np.matmul(X1,coef)),n).flatten()
 
     # Parameters
-    gamma=10.   # Kernel width
+    gamma=1.   # Kernel width
     C=1        # Penalty term
     dhat=500   # Dimension of approximator
-    eps=500    # DP level (not very private)
+    eps=500     # DP level (not very private)
 
     # Kernel for approximator: equivalent to rbf.
     def rbf(x,y,gamma=1):

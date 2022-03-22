@@ -2,7 +2,9 @@
     "datasets": [
         "minmax mimic2-iaccd",
         "minmax in-hospital-mortality",
-        "minmax indian liver"
+        "minmax indian liver",
+        "minmax synth-ae",
+        "minmax texas hospitals 10"
     ],
     "classifiers" : [
         ["xgboost", "XGBClassifier"]
@@ -17,7 +19,7 @@
         }
     },
     "results_filename": "experiments/xgboost/xgboost_results.csv",
-    "n_reps": 1,
+    "n_reps": 5,
     "mia_classifier": 
         ["sklearn.ensemble", "RandomForestClassifier"],
     "scenarios": ["WorstCase", "Salem1", "Salem2"]

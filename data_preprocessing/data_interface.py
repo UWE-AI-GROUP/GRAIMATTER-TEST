@@ -12,6 +12,12 @@ import pandas as pd
 import numpy as np
 import pylab as plt
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.datasets import fetch_openml
+
+
+# Following is to stop pylint always sqwarking at pandas things
+# pylint: disable = no-member, unsubscriptable-object
+
 
 logging.basicConfig(
     level = "DEBUG"
@@ -51,23 +57,23 @@ def get_data_sklearn(
 
     if dataset_name.startswith("standard"):
         sub_name = dataset_name.split("standard")[1].strip()
-        x, y = get_data_sklearn(sub_name)
-        for column in x.columns:
-            col_mean = x[column].mean()
-            col_std = np.sqrt(x[column].var())
-            x[column] = x[column] - col_mean
-            x[column] = x[column] / col_std
-        return x, y
+        feature_df, target_df = get_data_sklearn(sub_name)
+        for column in feature_df.columns:
+            col_mean = feature_df[column].mean()
+            col_std = np.sqrt(feature_df[column].var())
+            feature_df[column] = feature_df[column] - col_mean
+            feature_df[column] = feature_df[column] / col_std
+        return feature_df, target_df
 
     if dataset_name.startswith("minmax"):
         sub_name = dataset_name.split("minmax")[1].strip()
-        x, y = get_data_sklearn(sub_name)
-        for column in x.columns:
-            col_min = x[column].min()
-            col_range = x[column].max() - col_min
-            x[column] = x[column] - col_min
-            x[column] = x[column] / col_range
-        return x, y
+        feature_df, target_df = get_data_sklearn(sub_name)
+        for column in feature_df.columns:
+            col_min = feature_df[column].min()
+            col_range = feature_df[column].mafeature_df() - col_min
+            feature_df[column] = feature_df[column] - col_min
+            feature_df[column] = feature_df[column] / col_range
+        return feature_df, target_df
 
 
     if dataset_name == 'mimic2-iaccd':
@@ -93,8 +99,29 @@ def get_data_sklearn(
     elif dataset_name == 'synth-ae-small':
         x, y = synth_ae(data_folder, 200)
         return x, y
+    elif dataset_name == 'nursery':
+        return nursery(data_folder)
     else:
         raise UnknownDataset(dataset_name)
+
+
+def nursery(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    '''
+    The sklearn nursery dataset
+    '''
+
+    data = fetch_openml(data_id=26, as_frame=True)
+
+    target_encoder = LabelEncoder()
+    target_vals = target_encoder.fit_transform(data['target'].values)
+    target_dataframe = pd.DataFrame({'target': target_vals})
+
+    feature_encoder = OneHotEncoder()
+    x_encoded = feature_encoder.fit_transform(data['data']).toarray()
+    feature_dataframe = pd.DataFrame(x_encoded, columns=feature_encoder.get_feature_names_out())
+    
+
+    return feature_dataframe, target_dataframe
 
 
 
@@ -227,9 +254,6 @@ unzip it (7z) and then copy the .csv file into your data folder.
     y = input_data[['Admitted_Flag']]
 
     return (X, y)
-
-
-    
 
 
 def indian_liver(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -459,12 +483,12 @@ and place it in the correct folder.
             tx_data = pd.concat([tx_data, df])
         #remove uncessary variables
         del df
-        
+
         #Risk moratality, make it binary
         #1 Minor
         #2 Moderate
         #3 Major
-        #4 Extreme  
+        #4 Extreme
         tx_data.RISK_MORTALITY.astype(int)
         tx_data.RISK_MORTALITY.replace(1,0,inplace=True)
         tx_data.RISK_MORTALITY.replace(2,0,inplace=True)
@@ -483,7 +507,7 @@ and place it in the correct folder.
                 )
             )
             for i, x in enumerate(tmp):
-                tx_data[col].replace(x, n+i, inplace=True)
+                tx_data[col].replace(x, n + i, inplace=True)
         del tmp, n
         #set index
         tx_data.set_index('RECORD_ID', inplace=True)

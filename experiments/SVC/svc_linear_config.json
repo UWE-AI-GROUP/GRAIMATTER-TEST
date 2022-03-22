@@ -7,16 +7,14 @@
         "minmax synth-ae"
     ],
     "classifiers" : [
-        ["sklearn.svm", "LinearSVC"]
+        ["sklearn.svm", "SVC"]
     ],
     "experiment_params" : {
         "SVC": {  
+            "kernel": ["linear"],
             "C": [0.001, 0.01, 0.1, 1],
             "probability": [true],
-            "class_weight": [null, "balanced"],
-            "dual": [false],
-            "loss": ["hinge", "squared_hinge"],
-            "penalty": ["l1", "l2"]
+            "class_weight": [null, "balanced"]
         }
     },
     "results_filename": "experiments/SVC_linear_results.csv",

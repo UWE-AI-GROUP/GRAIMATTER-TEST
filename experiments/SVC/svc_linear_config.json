@@ -7,18 +7,19 @@
         "minmax synth-ae"
     ],
     "classifiers" : [
-        ["sklearn.svm", "SVC"]
+        ["sklearn.svm", "LinearSVC"]
     ],
     "experiment_params" : {
         "SVC": {  
-            "kernel": ["rbf"],
             "C": [0.001, 0.01, 0.1, 1],
-            "gamma": [0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
-            "probability":[true],
-            "class_weight": [null, "balanced"]
+            "probability": [true],
+            "class_weight": [null, "balanced"],
+            "dual": [false],
+            "loss": ["hinge", "squared_hinge"],
+            "penalty": ["l1", "l2"]
         }
     },
-    "results_filename": "experiments/SVC_rbf_results.csv",
+    "results_filename": "experiments/SVC_linear_results.csv",
     "n_reps": 5,
     "mia_classifier": 
         ["sklearn.ensemble", "RandomForestClassifier"],

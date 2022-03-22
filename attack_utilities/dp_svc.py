@@ -139,7 +139,8 @@ class DPSVC(GenericEstimator):
 
         # Draw dhat random vectors rho from Fourier transform of RBF
         # (which is Gaussian with SD 1/gamma)
-        self.rho = np.random.normal(0, 1. / self.gamma, (self.dhat, n_features))
+        # self.rho = np.random.normal(0, 1. / self.gamma, (self.dhat, n_features))
+        self.rho = np.random.normal(0, np.sqrt(2. * self.gamma), (self.dhat, n_features))
         local_logger.info("Sampled rho")
 
         # Fit support vector machine

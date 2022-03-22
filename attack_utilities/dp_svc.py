@@ -59,10 +59,7 @@ class DPSVC(GenericEstimator):
         self.dhat = dhat
         self.eps = eps
         self.C = C
-        if self.eps > 0:
-            self.lambdaval = (2**2.5) * self.C * np.sqrt(self.dhat) / self.eps
-        else:
-            self.lambdaval = 0
+        self.lambdaval = None
         self.rho = None
         self.support = None
         self.platt_transform = LogisticRegression()
@@ -126,6 +123,11 @@ class DPSVC(GenericEstimator):
                         "labels = 0 and 1"
                     )
                 )
+
+        if self.eps > 0:
+            self.lambdaval = (2**2.5) * self.C * np.sqrt(self.dhat) / self.eps
+        else:
+            self.lambdaval = 0
 
         # Mimic sklearn skale and auto params
         if self.gamma == 'scale':
@@ -219,7 +221,7 @@ def main():
     '''
     import pylab as plt
 
-    n=40 # number of samples
+    n=100 # number of samples
     p=3 # number of features
 
     def logistic(x):
@@ -233,7 +235,7 @@ def main():
     y1 = np.random.binomial(1,logistic(np.matmul(X1,coef)),n).flatten()
 
     # Parameters
-    gamma=1    # Kernel width
+    gamma=10.   # Kernel width
     C=1        # Penalty term
     dhat=500   # Dimension of approximator
     eps=500    # DP level (not very private)
@@ -256,27 +258,31 @@ def main():
     p0=clf0.predict_proba(X1)
 
     # SVM fitted using approximate finite-dimensional RBF kernel
-    clf1 = SVC(probability=True,kernel=rbf_svm, gamma=gamma, C=C)
-    clf1.fit(X, y)
-    c1=clf1.predict(X1)
-    p1=clf1.predict_proba(X1)
+    clf1 = SVC(probability=True,kernel="precomputed", C=C)
+    gram_matrix = rbf_svm(X, X, gamma=gamma)
+    clf1.fit(gram_matrix, y)
+    test_gram = rbf_svm(X1, X, gamma=gamma)
+    c1=clf1.predict(test_gram)
+    p1=clf1.predict_proba(test_gram)
 
     # DP version with no DP level (predicted labels equivalent to clf1; predicted probabilities will not be)
-    clf2 = DPSVC()
-    clf2.set_params(eps=-1, dhat=dhat, C=C, gamma=gamma)
+    clf2 = DPSVC(eps=-1, dhat=dhat, gamma=gamma)
+    # clf2.set_params(eps=-1, dhat=dhat, C=C, gamma=gamma)
     clf2.fit(X,y)
     c2=clf2.predict(X1)
     p2=clf2.predict_proba(X1)
 
     # DP version with DP level (approximate)
-    clf3 = DPSVC()
-    clf3.set_params(eps=eps, dhat=dhat, C=C, gamma=gamma)
+    clf3 = DPSVC(eps=eps, dhat=dhat, C=C, gamma=gamma)
+    # clf3.set_params(eps=eps, dhat=dhat, C=C, gamma=gamma)
     clf3.fit(X,y)
     c3=clf3.predict(X1)
     p3=clf3.predict_proba(X1)
 
     # Values
-    print([c0,c1,c2,c3])
+    pred_zip = zip(c0, c1, c2, c3)
+    for a, b, c, d in pred_zip:
+        print(a, b,c, d)
 
     # Plot p0 vs p1: finite-dimensional approximator works OK
     plt.subplot(1, 3, 1)

@@ -1,17 +1,18 @@
 # GRAIMatter WP 1+2 meeting agenda
 ## March 24, 2022
 
-1. Apologies
+1. Apologies - Simon, Alba
 2. WP1 Update
 	- Hyperparameter/model loop experiments
     + Ongoing work to include boosted trees, SVMs, and SDGs
+    + DP SVC working within the loop (some initial results here: https://github.com/jim-smith/GRAIMatter/pull/116)
     + Adding additional attack scenario comprising SDG-based shadow data as discussed last week
 3. WP2 Update
        - Attribute Inference experiments
        
 4. Shared
     - sanity checking the precision of datasets
-    - do/should we preprocess datasets (standard scaling etc)
+    - do/should we preprocess datasets (standard scaling etc) [comment from SR: kind of have to for some methods, e.g. SVM, and a researcher could easily add it as part of the trained model]
 5. Logistic
   - In-person work at end of April
 6. AOB

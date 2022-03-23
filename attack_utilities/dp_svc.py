@@ -6,7 +6,7 @@ from typing import Any
 import numpy as np
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
-from estimator_template import GenericEstimator
+from attack_utilities.estimator_template import GenericEstimator
 
 local_logger = logging.getLogger(__file__)
 
@@ -69,38 +69,36 @@ class DPSVC(GenericEstimator):
         self.intercept = None
         self.noisy_weights = None
 
-    @staticmethod
-    def dot1(x, y):
-        '''
-        this is the diagonal elements of x.y^t
-        '''
-        return np.sum(x * y, axis=1)
-
-
-
-    def phi_hat(self, s):
-        '''TBC'''
-        st = np.outer(np.ones(self.dhat), s)
-        vt1 = DPSVC.dot1(self.rho, st)
+    
+    def phi_hat(self, input_vector):
+        '''Project a single feature'''
+        vt1 = (self.rho * input_vector).sum(axis=1)
         vt = (self.dhat**(-0.5)) * np.column_stack((np.cos(vt1), np.sin(vt1)))
         return vt.reshape(2*self.dhat)
 
-    def k_hat(self, x, y):
+    def phi_hat_multi(self, input_features):
         '''
-        Define finite=dimensional kernel corresponding to phi_hat
+        Compute feature space for a matrix of inputs
         '''
-        return np.dot(self.phi_hat(x), self.phi_hat(y))
+        # TODO: could this be vectorised?
+        n_data, _ = input_features.shape
+        phi_hat = np.zeros((n_data, 2*self.dhat), float)
+        for i in range(n_data):
+            phi_hat[i, :] = self.phi_hat(input_features[i, :])
+        return phi_hat
 
-    def k_hat_svm(self, x, y):
+    def k_hat_svm(self, x, y=None):
         '''
         Define the version which is sent to sklearn.svm. AFAICT python/numpy
         doesn't have an 'outer' for arbitrary functions.
         '''
-        gram_matrix = np.zeros((x.shape[0],y.shape[0]))
-        for i in range(x.shape[0]):
-            for j in range(y.shape[0]):
-                gram_matrix[i,j] = self.k_hat(x[i,:], y[j,:])
-        return gram_matrix
+        phi_hat_x = self.phi_hat_multi(x)
+        if y is None:
+            phi_hat_y = phi_hat_x
+        else:
+            phi_hat_y = self.phi_hat_multi(y)
+        return np.dot(phi_hat_x, phi_hat_y.T)
+        
 
     def fit(self, train_features: Any, train_labels: Any) -> None:
         '''
@@ -146,9 +144,11 @@ class DPSVC(GenericEstimator):
         local_logger.info("Sampled rho")
 
         # Fit support vector machine
+        # Create the gram matrix to pass to SVC
+        gram_matrix = self.k_hat_svm(train_features)
         logging.info("Fitting base SVM")
-        self.svc=SVC(kernel=self.k_hat_svm, C=self.C)
-        self.svc.fit(train_features, train_labels)
+        self.svc=SVC(kernel="precomputed", C=self.C)
+        self.svc.fit(gram_matrix, train_labels)
 
 
         # Get separating hyperplane and intercept
@@ -187,33 +187,27 @@ class DPSVC(GenericEstimator):
             else:
                 local_logger.warning("Unsupported parameter: %s", key)
 
+    def _raw_outputs(self, test_features: Any) -> np.ndarray:
+        '''
+        Get the raw output, used by predict and predict_proba
+        '''
+        projected_features = self.phi_hat_multi(test_features)
+        out = np.dot(projected_features, self.noisy_weights) + self.intercept
+        return out
+
+
     def predict(self, test_features: Any) -> np.ndarray:
         '''
         Make predictions
         '''
-        n_data, _ = test_features.shape
-        # Return values
-        outn = np.zeros(n_data)
-        for i in range(n_data):
-            outn[i] = np.dot(self.phi_hat(test_features[i,:]), self.noisy_weights) +\
-                self.intercept
-
-        out = 1 * (outn > 0)
+        out = self._raw_outputs(test_features)
+        out = 1 * (out > 0)
         return out # Predictions
 
     def predict_proba(self, test_features: Any) -> np.ndarray:
         '''
         Predictive probabilities
         '''
-
-        n_data, _ = test_features.shape
-        # Return values
-        outn=np.zeros(n_data)
-        for i in range(n_data):
-            outn[i] = np.dot(self.phi_hat(test_features[i, :]), self.noisy_weights) +\
-                self.intercept
-
-        # Push through logistic regression model
-        pred_probs = self.platt_transform.predict_proba(outn.reshape(-1, 1))
-
+        out = self._raw_outputs(test_features)
+        pred_probs = self.platt_transform.predict_proba(out.reshape(-1, 1))
         return pred_probs

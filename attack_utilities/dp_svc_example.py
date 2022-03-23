@@ -6,10 +6,14 @@ Shows how to run the code and plots comparitive predictive probabilities between
 - sklearn SVC with DP
 '''
 # %%
+import os
+import sys
 import pylab as plt
 import numpy as np
 from sklearn.svm import SVC
-from dp_svc import DPSVC
+ROOT_PROJECT_FOLDER = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(ROOT_PROJECT_FOLDER)
+from attack_utilities.dp_svc import DPSVC
 
 
 %matplotlib inline

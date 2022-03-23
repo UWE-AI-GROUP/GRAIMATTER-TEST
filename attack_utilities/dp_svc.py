@@ -9,7 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from attack_utilities.estimator_template import GenericEstimator
 
 local_logger = logging.getLogger(__file__)
-
+local_logger.setLevel(logging.WARNING)
 
 
 
@@ -146,7 +146,7 @@ class DPSVC(GenericEstimator):
         # Fit support vector machine
         # Create the gram matrix to pass to SVC
         gram_matrix = self.k_hat_svm(train_features)
-        logging.info("Fitting base SVM")
+        local_logger.info("Fitting base SVM")
         self.svc=SVC(kernel="precomputed", C=self.C)
         self.svc.fit(gram_matrix, train_labels)
 

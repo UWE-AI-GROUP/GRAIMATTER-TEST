@@ -11,8 +11,9 @@
        - Attribute Inference experiments
        
 4. Shared
+    - Need to start thinking about what (if any) recommendations we currently have (for April 21st DARE meeting)
     - sanity checking the precision of datasets
-    - do/should we preprocess datasets (standard scaling etc) [comment from SR: kind of have to for some methods, e.g. SVM, and a researcher could easily add it as part of the trained model]
+    - do/should we preprocess datasets (standard scaling etc) [comment from SR: kind of have to for some methods, e.g. SVM (standard kernels don't make much sense if features exist on wildly different scales) and a researcher could easily add it as part of the trained model]
 5. Logistic
   - In-person work at end of April
 6. AOB

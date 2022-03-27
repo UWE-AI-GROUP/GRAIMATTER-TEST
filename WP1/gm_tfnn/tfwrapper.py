@@ -3,6 +3,11 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Model, Sequential
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+
+from tensorflow_privacy.privacy.analysis.compute_noise_from_budget_lib import compute_noise
+from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
+
+
 from typing import List
 
 

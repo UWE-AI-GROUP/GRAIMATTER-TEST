@@ -50,6 +50,5 @@ async def post_predict(input_data: InputData):
     POST request prediction method
     '''
     input_df = pd.DataFrame(input_data.dict(), index=[1])
-    print(input_df.head())
     probs = random_forest.predict_proba(input_df)
     return {'stroke_risk': probs[0, 1]}

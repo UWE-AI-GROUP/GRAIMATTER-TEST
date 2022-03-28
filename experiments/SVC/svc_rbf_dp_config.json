@@ -1,0 +1,30 @@
+{
+    "datasets": [
+        "minmax mimic2-iaccd",
+        "minmax in-hospital-mortality",
+        "minmax indian liver"
+    ],
+    "classifiers" : [
+        ["attack_utilities.dp_svc", "DPSVC"],
+        ["sklearn.svm", "SVC"]
+    ],
+    "experiment_params" : {
+        "SVC": {  
+            "kernel": ["rbf"],
+            "C": [0.001, 0.01, 0.1, 1],
+            "gamma": [0.001, 0.1, 1, 10, "scale"],
+            "probability":[true]
+        },
+        "DPSVC": {  
+            "C": [0.001, 0.01, 0.1, 1],
+            "gamma": [0.001, 0.1, 1, 10, "scale"],
+            "dhat": [5, 10, 100, 500],
+            "eps": [5, 50, 500]
+        }
+    },
+    "results_filename": "experiments/SVC/SVC_rbf_dp_results.csv",
+    "n_reps": 1,
+    "mia_classifier": 
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+}

@@ -10,7 +10,7 @@
         "pategan_classifier": {
             "n_s": [1],
             "batch_size": [10],
-            "k": [50],
+            "k": [5],
             "epsilon": [5,100]
         },
         "RandomForestClassifier": {
@@ -19,7 +19,7 @@
         }
     },
     "results_filename": "synth_loop_results.csv",
-    "n_reps": 5,
+    "n_reps": 2,
     "mia_classifier": ["sklearn.ensemble", "RandomForestClassifier"],
-    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+    "scenarios": ["WorstCase"]
 }

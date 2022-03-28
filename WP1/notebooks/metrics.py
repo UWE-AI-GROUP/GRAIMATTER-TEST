@@ -35,6 +35,7 @@ def get_metrics(clf,
     """
     metrics = {}
     y_pred = clf.predict(X_test)
+    print(y_pred)
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
     #print('tn', tn, 'fp',fp,'fn', fn,'tp', tp)
     #np.seterr(divide='ignore')#disable divided by 0 errors

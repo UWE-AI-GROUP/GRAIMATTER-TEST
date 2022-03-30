@@ -5,6 +5,7 @@ pre-processing
 '''
 import os
 import logging
+from pkgutil import get_data
 from typing import Tuple, List
 from zipfile import ZipFile
 from collections import Counter
@@ -74,6 +75,18 @@ def get_data_sklearn(
             feature_df[column] = feature_df[column] - col_min
             feature_df[column] = feature_df[column] / col_range
         return feature_df, target_df
+
+    if dataset_name.startswith("round"):
+        sub_name = dataset_name.split("round")[1].strip()
+        print(sub_name)
+        feature_df, target_df = get_data_sklearn(sub_name)
+        column_dtype = feature_df.dtypes # pylint: disable = no-member
+
+        for i, column in enumerate(feature_df.columns):
+            if column_dtype[i] == "float64":
+                feature_df[column] = feature_df[column].round(decimals=3)
+        return feature_df, target_df
+
 
 
     if dataset_name == 'mimic2-iaccd':

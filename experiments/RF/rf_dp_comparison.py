@@ -10,13 +10,10 @@ import pandas as pd
 import pylab as plt
 from sklearn.neighbors import KernelDensity
 import numpy as np
-
-font = {'family' : 'normal',
-        'weight' : 'bold',
-        'size'   : 32}
-plt.rc('font', **font)
-
 %matplotlib inline
+
+plt.rcParams.update({'font.size': 24})
+
 
 WORKING_FOLDER = os.path.dirname(__file__)
 print(WORKING_FOLDER)
@@ -36,14 +33,26 @@ datasets = [
 scenario = "WorstCase"
 metric = 'mia_AUC'
 # %%
+
+def filter_df(df, conditions):
+    return_df = df.copy()
+    for condition_col, condition_val in conditions.items():
+        return_df = return_df[return_df[condition_col] == condition_val]
+    return return_df
+
+
 result_df = pd.DataFrame()
 for dataset in datasets:
-    unrounded = unrounded_results[
-        (unrounded_results['dataset'] == dataset) * (unrounded_results['scenario'] == scenario)
-    ][['param_id', metric]].copy()
+    conditions = {
+       'dataset': dataset,
+        'scenario': scenario,
+        'min_samples_leaf': 1
+    }
+    unrounded = filter_df(unrounded_results, conditions)[['param_id', metric]].copy()
     r_dataset = f'round {dataset}'
+    conditions['dataset'] = r_dataset
     rounded = rounded_results[
-        (rounded_results['dataset'] == r_dataset) * (rounded_results['scenario'] == scenario)
+        (rounded_results['dataset'] == r_dataset) * (rounded_results['scenario'] == scenario) * (rounded_results['min_samples_leaf'] == 1)
     ][['param_id', metric]].copy()
     rounded['mia_AUC_rounded'] = rounded['mia_AUC']
     rounded.drop('mia_AUC', axis=1, inplace=True)
@@ -69,6 +78,7 @@ for dataset in datasets:
     plt.ylim(-0.1, np.exp(logprob).max()*1.1)
     plt.xlabel('mia AUC rounded minus mia AUC unrounded')
     plt.title(f'{dataset}, mean = {x_dat[:, 0].mean():.4f}')
+    plt.savefig(f"{dataset.replace(' ','_')}_round.png")
 # %%
 
 # %%

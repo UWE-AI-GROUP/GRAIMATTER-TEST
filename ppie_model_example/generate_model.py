@@ -68,6 +68,13 @@ train_x, val_x, train_y, val_y = train_test_split(features, target, train_size=N
 # %% Train model
 random_forest = RandomForestClassifier()
 random_forest.fit(train_x, train_y)
+
+random_forest_bad = RandomForestClassifier(
+    bootstrap=False,
+    min_samples_split=2,
+    min_samples_leaf=1, 
+    max_depth=200
+)
 # %% Validate
 pred_probs = random_forest.predict_proba(val_x)
 auc = roc_auc_score(val_y, pred_probs[:, 1])

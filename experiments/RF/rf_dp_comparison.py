@@ -44,16 +44,15 @@ def filter_df(df, conditions):
 result_df = pd.DataFrame()
 for dataset in datasets:
     conditions = {
-       'dataset': dataset,
+        'dataset': dataset,
         'scenario': scenario,
-        'min_samples_leaf': 1
+        'min_samples_leaf': 1,
+        'bootstrap': False
     }
     unrounded = filter_df(unrounded_results, conditions)[['param_id', metric]].copy()
     r_dataset = f'round {dataset}'
     conditions['dataset'] = r_dataset
-    rounded = rounded_results[
-        (rounded_results['dataset'] == r_dataset) * (rounded_results['scenario'] == scenario) * (rounded_results['min_samples_leaf'] == 1)
-    ][['param_id', metric]].copy()
+    rounded = filter_df(rounded_results, conditions)[['param_id', metric]].copy()
     rounded['mia_AUC_rounded'] = rounded['mia_AUC']
     rounded.drop('mia_AUC', axis=1, inplace=True)
     temp = pd.merge(unrounded, rounded, how = 'outer', on = 'param_id')
@@ -70,7 +69,7 @@ for dataset in datasets:
     kde.fit(x_dat)
 
     # score_samples returns the log of the probability density
-    x = np.arange(-0.3, 0.3, 0.01)
+    x = np.arange(-0.3, 0.3, 0.001)
     logprob = kde.score_samples(x[:, None])
     plt.figure(figsize=(16, 10))
     plt.fill_between(x, np.exp(logprob), alpha=0.5)

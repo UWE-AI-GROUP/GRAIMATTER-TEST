@@ -31,7 +31,7 @@ def filter_df(df, conditions):
 conditions = {
     'dataset': 'mimic2-iaccd',
 }
-metric = 'mia_TPR'
+metric = 'mia_AUC'
 # %%
 scenario_specifics = {}
 
@@ -52,9 +52,9 @@ for row, dataset in enumerate(datasets):
         scenario_specifics[scenario].drop(metric, axis=1, inplace=True)
     for s1 in list(scenario_specifics.keys())[:-1]:
         for s2 in list(scenario_specifics.keys())[1:]:
-            index += 1
             if s1 == s2:
                 continue
+            index += 1
             diff = pd.merge(
                 scenario_specifics[s1],
                 scenario_specifics[s2],
@@ -64,10 +64,10 @@ for row, dataset in enumerate(datasets):
             col1 = f'{s1}_{metric}'
             col2 = f'{s2}_{metric}'
             diff_vals = diff[col1] - diff[col2]
-            print(index)
             plt.subplot(nrows, ncols, index)
             plt.hist(diff_vals)
             plt.xlabel(f'{s1} {metric} minus {s2} {metric}')
-            plt.title(f"{conditions['dataset']} (mean = {diff_vals.mean():.3f})")
+            plt.title(f"{conditions['dataset']} {metric} (mean = {diff_vals.mean():.3f})")
             plt.plot([0, 0], plt.ylim(), 'k--')
+plt.savefig(f'{metric}_grid.png')
 # %%

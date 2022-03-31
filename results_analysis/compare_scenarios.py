@@ -31,7 +31,7 @@ def filter_df(df, conditions):
 conditions = {
     'dataset': 'mimic2-iaccd',
 }
-metric = 'mia_TPR'
+metric = 'mia_Advantage'
 # %%
 scenario_specifics = {}
 
@@ -72,7 +72,6 @@ for row, dataset in enumerate(datasets):
 plt.savefig(f'{metric}_hist_grid.png')
 
 # %%
-datasets = ['mimic2-iaccd', 'in-hospital-mortality', 'indian liver']
 nrows = len(datasets)
 n_scenario_pairs = int((3 * (3 - 1)) / 2)
 ncols = n_scenario_pairs

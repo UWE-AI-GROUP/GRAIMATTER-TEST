@@ -7,8 +7,9 @@ from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense,
 from tensorflow_privacy.privacy.analysis.compute_noise_from_budget_lib import compute_noise
 from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
 
+from scipy.special import softmax
 
-from typing import List
+from typing import List, Optional
 
 
 def config_generator(config_grid: dict) -> List[dict]:
@@ -48,19 +49,24 @@ class TFClassifier:
     model = None
 
     def __init__(self,
-                 conv=False,
-                 conv_sizes=[64,],
-                 conv_kernel_size=[3,3],
-                 conv_activation='relu',
-                 regularizer=None,
-                 dropout_rate=0.0,
-                 dense_sizes=[64,],
-                 dense_activation='relu',
-                 output_activation='softmax',
-                 optimizer='adam',
-                 loss='categorical_crossentropy',
-                 batch_size='32',
-                 epochs=1):
+                 conv: bool = False,
+                 conv_sizes: list = [64,],
+                 conv_kernel_size: list =[3,3],
+                 conv_activation: str = 'relu',
+                 regularizer: Optional[str] = None,
+                 dropout_rate: float = 0.0,
+                 dense_sizes: list = [64,],
+                 dense_activation: str = 'relu',
+                 learning_rate: float = 1e-3,
+                 batch_size: int = 32,
+                 epochs: int = 1,
+                 # DP-Patch
+                 use_dp: bool = False,
+                 l2_norm_clip: float = 1.0,
+                 epsilon: float = 1.0,
+                 delta: float = 1e-5,
+                 microbatches: int = 32
+                ):
 
         self.conv = conv
         self.conv_sizes = conv_sizes
@@ -70,13 +76,17 @@ class TFClassifier:
         self.dropout_rate = dropout_rate
         self.dense_sizes = dense_sizes
         self.dense_activation = dense_activation
-        self.output_activation = output_activation
-        self.optimizer = optimizer
-        self.loss = loss
+        self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.epochs = epochs
+        # DP-Patch
+        self.use_dp = use_dp
+        self.l2_norm_clip = l2_norm_clip
+        self.epsilon = epsilon
+        self.delta = delta
+        self.microbatches = microbatches
 
-    def _build_network(self, feature_shape, n_classes):
+    def _build_network(self, dataset_size, feature_shape, n_classes):        
         input_layer = Input(shape=feature_shape)
         x = input_layer
 
@@ -96,17 +106,34 @@ class TFClassifier:
                       kernel_regularizer=self.regularizer)(x)
             x = Dropout(self.dropout_rate)(x)
 
-        output_layer = Dense(n_classes, activation=self.output_activation)(x)
+        output_layer = Dense(n_classes)(x)
+        
+        loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+        
+        if self.use_dp:
+            noise_multiplier = compute_noise(dataset_size, 
+                                             self.batch_size, 
+                                             self.epsilon, 
+                                             self.epochs, 
+                                             self.delta, 
+                                             1e-12)
+            optimizer = DPKerasAdamOptimizer(
+                            l2_norm_clip=self.l2_norm_clip,
+                            noise_multiplier=noise_multiplier,
+                            num_microbatches=self.microbatches,
+                            learning_rate=self.learning_rate)
+        else:
+            optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
         self.model = Model(input_layer, output_layer)
-        self.model.compile(optimizer=self.optimizer, loss=self.loss, metrics=['accuracy'])
+        self.model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
 
     def fit(self, x: np.ndarray, y: np.ndarray):
 
         feature_shape = x[0].shape
         n_classes = np.max(y) + 1
 
-        self._build_network(feature_shape, n_classes)
+        self._build_network(len(x), feature_shape, n_classes)
 
         _y = np.eye(n_classes)[y]
         self.model.fit(x, _y,
@@ -118,7 +145,8 @@ class TFClassifier:
         return np.argmax(self.model.predict(x), axis=1)
 
     def predict_proba(self, x: np.ndarray):
-        return self.model.predict(x)
+        logits = self.model.predict(x)
+        return softmax(logits, axis=1)
 
     def summary(self):
         if self.model is not None:

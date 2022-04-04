@@ -18,7 +18,12 @@
 			"dense_activation": ["relu"],
 			"learning_rate": [0.001],
 			"batch_size": [32, 64],
-			"epochs": [1]
+			"epochs": [1],
+			"use_dp": [true],
+			"l2_norm_clip": [1.0, 2.5],
+			"epsilon": [0.1, 0.5, 1.0, 3.0, 5.0],
+			"delta": [0.000001],
+			"microbatches": [32, 1]
         }
     },
     "results_filename": "experiments/TFNN/TensorFlowNeuralNetwork_images_loop_results.csv",

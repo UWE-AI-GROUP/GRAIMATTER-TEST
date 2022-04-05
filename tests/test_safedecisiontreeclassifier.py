@@ -4,8 +4,9 @@ import pickle
 
 import joblib
 import numpy as np
-from SafeModel import SafeDecisionTreeClassifier
 from sklearn import datasets
+
+from safemodel.models import SafeDecisionTreeClassifier
 
 
 def get_data():

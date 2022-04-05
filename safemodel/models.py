@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import getpass
 import json
+import pathlib
 import pickle
 from typing import Any
 
@@ -109,7 +110,8 @@ class SafeModel:
     def __get_constraints(self) -> dict:
         """Gets constraints relevant to the model type from the master read-only file."""
         rules: dict = {}
-        with open("rules.json", "r", encoding="utf-8") as json_file:
+        rule_path = pathlib.Path(__file__).with_name("rules.json")
+        with open(rule_path, "r", encoding="utf-8") as json_file:
             parsed = json.load(json_file)
             rules = parsed[self.model_type]
         return rules["rules"]

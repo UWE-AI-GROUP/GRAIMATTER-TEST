@@ -10,10 +10,26 @@ from typing import Any
 
 import joblib
 import numpy as np
+import os
+import sys
+import logging
 from dictdiffer import diff
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree._tree import Tree
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath("")))
+sys.path.append(ROOT_DIR)
+from attack_utilities.dp_svc import DPSVC
+
+logging.basicConfig()
+logger = logging.getLogger("SafeModel")
+logger.setLevel(logging.INFO)
+
+
+
 
 
 def check_min(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
@@ -91,6 +107,8 @@ class SafeModel:
             self.researcher = "unknown"
 
     def save(self, name: str = "undefined") -> None:
+        logger.info("Saving...")
+        logger.info(self)
         """Writes model to file in appropriate format."""
         self.model_save_file = name
         while self.model_save_file == "undefined":
@@ -109,7 +127,7 @@ class SafeModel:
     def __get_constraints(self) -> dict:
         """Gets constraints relevant to the model type from the master read-only file."""
         rules: dict = {}
-        with open("rules.json", "r", encoding="utf-8") as json_file:
+        with open("../../safe_model/rules.json", "r", encoding="utf-8") as json_file:
             parsed = json.load(json_file)
             rules = parsed[self.model_type]
         return rules["rules"]
@@ -219,6 +237,7 @@ class SafeModel:
         msg = ""
         # get dictionaries of parameters
         current_model = copy.deepcopy(self.__dict__)
+        logger.info(current_model)
         saved_model = current_model.pop("saved_model", "Absent")
 
         if saved_model == "Absent":
@@ -352,7 +371,7 @@ class SafeDecisionTreeClassifier(SafeModel, DecisionTreeClassifier):
         """Creates model and applies constraints to params."""
         SafeModel.__init__(self)
         DecisionTreeClassifier.__init__(self, **kwargs)
-        self.model_type: str = "DecisionTreeClassifier"
+
         super().preliminary_check(apply_constraints=True, verbose=True)
         self.ignore_items = ["model_save_file", "ignore_items"]
         self.examine_seperately_items = ["tree_"]
@@ -424,6 +443,30 @@ class SafeRandomForestClassifier(SafeModel, RandomForestClassifier):
                     disclosive = True
                     msg += f"structure {item} has {len(diffs_list)} differences: {diffs_list}"
         return msg, disclosive
+
+    def fit(self, x: np.ndarray, y: np.ndarray) -> None:
+        """Do fit and then store model dict"""
+        super().fit(x, y)
+        self.saved_model = copy.deepcopy(self.__dict__)
+
+
+class SafeSVC(SafeModel, DPSVC):
+
+    def __init__(self, C=1., gamma='scale', dhat=1000, eps=10, **kwargs):
+        SafeModel.__init__(self)
+        DPSVC.__init__(self)
+        self.model_type: str = "SVC"
+        self.ignore_items = [
+            "model_save_file",
+            "ignore_items",
+            "train_features",
+            "train_labels",
+            "unique_labels",
+            "train_labels",
+            "weights",
+            "noisy_weights"
+            
+        ]
 
     def fit(self, x: np.ndarray, y: np.ndarray) -> None:
         """Do fit and then store model dict"""

@@ -32,6 +32,27 @@
             }
         ]
     },
+
+    "SVC":{
+	"rules":[
+	    {"keyword"  : "dhat",
+	     "operator" : "min",
+	     "value"    : 1000},
+
+	    {"keyword"  : "C",
+	     "operator" : "min",
+	     "value"    : 1},
+	    
+	    {"keyword"  : "eps",
+	     "operator" : "min",
+	     "value"    : 10},
+
+	    {"keyword"  : "gamma",
+	     "operator" : "min",
+	     "value"    : 0.1}
+	    ]
+    },
+
     "KerasModel": {
         "rules": [
             {

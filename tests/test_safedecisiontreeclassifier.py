@@ -6,7 +6,7 @@ import joblib
 import numpy as np
 from sklearn import datasets
 
-from safemodel.models import SafeDecisionTreeClassifier
+from safemodel.classifiers import SafeDecisionTreeClassifier
 
 
 def get_data():

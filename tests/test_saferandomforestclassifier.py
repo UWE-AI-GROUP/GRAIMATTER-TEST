@@ -6,7 +6,7 @@ import joblib
 import numpy as np
 from sklearn import datasets
 
-from safemodel.models import SafeRandomForestClassifier
+from safemodel.classifiers import SafeRandomForestClassifier
 
 
 def get_data():

@@ -1,5 +1,7 @@
-from dp_svc import DPSVC
+from .dp_svc import DPSVC
+from ..safemodel import SafeModel
 
+import numpy as np 
 class SafeSVC(SafeModel, DPSVC):
 
     def __init__(self, C=1., gamma='scale', dhat=1000, eps=10, **kwargs):

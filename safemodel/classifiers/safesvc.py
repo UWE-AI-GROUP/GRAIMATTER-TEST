@@ -1,12 +1,13 @@
-from .dp_svc import DPSVC
-from ..safemodel import SafeModel
-
-import numpy as np 
 import copy
 
-class SafeSVC(SafeModel, DPSVC):
+import numpy as np
 
-    def __init__(self, C=1., gamma='scale', dhat=1000, eps=10, **kwargs):
+from ..safemodel import SafeModel
+from .dp_svc import DPSVC
+
+
+class SafeSVC(SafeModel, DPSVC):
+    def __init__(self, C=1.0, gamma="scale", dhat=1000, eps=10, **kwargs):
         SafeModel.__init__(self)
         DPSVC.__init__(self)
         self.model_type: str = "SVC"
@@ -18,12 +19,10 @@ class SafeSVC(SafeModel, DPSVC):
             "unique_labels",
             "train_labels",
             "weights",
-            "noisy_weights"
-            
+            "noisy_weights",
         ]
 
     def fit(self, x: np.ndarray, y: np.ndarray) -> None:
         """Do fit and then store model dict"""
         super().fit(x, y)
         self.saved_model = copy.deepcopy(self.__dict__)
-

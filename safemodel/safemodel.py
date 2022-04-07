@@ -5,15 +5,12 @@ from __future__ import annotations
 import copy
 import getpass
 import json
+import pathlib
 import pickle
 from typing import Any
 
 import joblib
-import numpy as np
 from dictdiffer import diff
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.tree._tree import Tree
 
 
 def check_min(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
@@ -109,7 +106,8 @@ class SafeModel:
     def __get_constraints(self) -> dict:
         """Gets constraints relevant to the model type from the master read-only file."""
         rules: dict = {}
-        with open("rules.json", "r", encoding="utf-8") as json_file:
+        rule_path = pathlib.Path(__file__).with_name("rules.json")
+        with open(rule_path, "r", encoding="utf-8") as json_file:
             parsed = json.load(json_file)
             rules = parsed[self.model_type]
         return rules["rules"]
@@ -221,7 +219,7 @@ class SafeModel:
         current_model = copy.deepcopy(self.__dict__)
         saved_model = current_model.pop("saved_model", "Absent")
 
-        if saved_model == "Absent":
+        if saved_model == "Absent" or saved_model is None:
             msg = "Error: user has not called fit() method or has deleted saved values."
             msg += "Recommendation: Do not release."
             disclosive = True
@@ -343,89 +341,3 @@ class SafeModel:
     def __str__(self) -> str:
         """Returns string with model description."""
         return self.model_type + " with parameters: " + str(self.__dict__)
-
-
-class SafeDecisionTreeClassifier(SafeModel, DecisionTreeClassifier):
-    """Privacy protected Decision Tree classifier."""
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Creates model and applies constraints to params."""
-        SafeModel.__init__(self)
-        DecisionTreeClassifier.__init__(self, **kwargs)
-        self.model_type: str = "DecisionTreeClassifier"
-        super().preliminary_check(apply_constraints=True, verbose=True)
-        self.ignore_items = ["model_save_file", "ignore_items"]
-        self.examine_seperately_items = ["tree_"]
-
-    def additional_checks(
-        self, curr_separate: dict, saved_separate: dict
-    ) -> tuple[str, str]:
-        """Decision Tree-specific checks"""
-        # call the super function to deal with any items that are lists
-        # just in case we add any in the future
-        msg, disclosive = super().additional_checks(curr_separate, saved_separate)
-        # now deal with the decision-tree specific things
-        # which for now means the attribute "tree_" which is a sklearn tree
-        for item in self.examine_seperately_items:
-            if isinstance(curr_separate[item], Tree):
-                # print(f"item {curr_separate[item]} has type {type(curr_separate[item])}")
-                diffs_list = list(
-                    diff(curr_separate[item].value, saved_separate[item].value)
-                )
-                if len(diffs_list) > 0:
-                    disclosive = True
-                    msg += f"structure {item} has {len(diffs_list)} differences: {diffs_list}"
-        return msg, disclosive
-
-    def fit(self, x: np.ndarray, y: np.ndarray):
-        """Do fit and then store model dict"""
-        super().fit(x, y)
-        self.saved_model = copy.deepcopy(self.__dict__)
-
-
-class SafeRandomForestClassifier(SafeModel, RandomForestClassifier):
-    """Privacy protected Random Forest classifier."""
-
-    def __init__(self, **kwargs: Any) -> None:
-        """Creates model and applies constraints to params"""
-        SafeModel.__init__(self)
-        RandomForestClassifier.__init__(self, **kwargs)
-        self.model_type: str = "RandomForestClassifier"
-        super().preliminary_check(apply_constraints=True, verbose=True)
-        self.ignore_items = [
-            "model_save_file",
-            "ignore_items",
-            "estimators_",
-            "base_estimator_",
-        ]
-        self.examine_seperately_items = ["base_estimator"]
-
-    def additional_checks(
-        self, curr_separate: dict, saved_separate: dict
-    ) -> tuple[str, str]:
-        """Random Forest-specific checks"""
-        # call the super function to deal with any items that are lists
-        # just in case we add any in the future
-        msg, disclosive = super().additional_checks(curr_separate, saved_separate)
-        # now the relevant random-forest specific things
-        for item in self.examine_seperately_items:
-            if item == "base_estimator":
-                try:
-                    the_type = type(self.base_estimator)
-                    if not isinstance(self.saved_model["base_estimator_"], the_type):
-                        msg += "Warning: model was fitted with different base estimator type"
-                        disclosive = True
-                except AttributeError:
-                    msg += "Error: model has not been fitted to data"
-                    disclosive = True
-            elif isinstance(curr_separate[item], DecisionTreeClassifier):
-                diffs_list = list(diff(curr_separate[item], saved_separate[item]))
-                if len(diffs_list) > 0:
-                    disclosive = True
-                    msg += f"structure {item} has {len(diffs_list)} differences: {diffs_list}"
-        return msg, disclosive
-
-    def fit(self, x: np.ndarray, y: np.ndarray) -> None:
-        """Do fit and then store model dict"""
-        super().fit(x, y)
-        self.saved_model = copy.deepcopy(self.__dict__)

@@ -1,3 +1,18 @@
+"""Privacy protected Decision Tree classifier."""
+
+from __future__ import annotations
+
+import copy
+from typing import Any
+
+import numpy as np
+from dictdiffer import diff
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree._tree import Tree
+
+from ..safemodel import SafeModel
+
+
 class SafeDecisionTreeClassifier(SafeModel, DecisionTreeClassifier):
     """Privacy protected Decision Tree classifier."""
 

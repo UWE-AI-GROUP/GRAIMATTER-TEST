@@ -1,3 +1,18 @@
+"""Privacy protected Random Forest classifier."""
+
+from __future__ import annotations
+
+import copy
+from typing import Any
+
+import numpy as np
+from dictdiffer import diff
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+from ..safemodel import SafeModel
+
+
 class SafeRandomForestClassifier(SafeModel, RandomForestClassifier):
     """Privacy protected Random Forest classifier."""
 

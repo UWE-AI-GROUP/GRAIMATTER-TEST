@@ -10,11 +10,7 @@ import pickle
 from typing import Any
 
 import joblib
-import numpy as np
 from dictdiffer import diff
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.tree._tree import Tree
 
 
 def check_min(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
@@ -223,7 +219,7 @@ class SafeModel:
         current_model = copy.deepcopy(self.__dict__)
         saved_model = current_model.pop("saved_model", "Absent")
 
-        if saved_model == "Absent" or saved_model == None:
+        if saved_model == "Absent" or saved_model is None:
             msg = "Error: user has not called fit() method or has deleted saved values."
             msg += "Recommendation: Do not release."
             disclosive = True

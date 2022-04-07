@@ -1,3 +1,7 @@
+"""Privacy protected Support Vector Classifier."""
+
+from __future__ import annotations
+
 import copy
 
 import numpy as np
@@ -7,7 +11,10 @@ from .dp_svc import DPSVC
 
 
 class SafeSVC(SafeModel, DPSVC):
-    def __init__(self, C=1.0, gamma="scale", dhat=1000, eps=10, **kwargs):
+    """Privacy protected Support Vector Classifier."""
+
+    def __init__(self, C=1.0, gamma="scale", dhat=1000, eps=10, **kwargs) -> None:
+        """Initialises a differentially private SVC."""
         SafeModel.__init__(self)
         DPSVC.__init__(self)
         self.model_type: str = "SVC"

@@ -223,7 +223,7 @@ class SafeModel:
         current_model = copy.deepcopy(self.__dict__)
         saved_model = current_model.pop("saved_model", "Absent")
 
-        if saved_model == "Absent":
+        if saved_model == "Absent" or saved_model == None:
             msg = "Error: user has not called fit() method or has deleted saved values."
             msg += "Recommendation: Do not release."
             disclosive = True

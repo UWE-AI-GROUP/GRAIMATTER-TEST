@@ -30,7 +30,6 @@ A `.pre-commit-config.yaml` file is located in the project root directory and co
 * formatting Python code with [black](https://github.com/psf/black);
 * checking for spelling mistakes with [codespell](https://github.com/codespell-project/codespell);
 * automatically upgrading Python code to the newest syntax with [pyupgrade](https://github.com/asottile/pyupgrade);
-* checking Python code with [flake8](https://github.com/pycqa/flake8);
 
 It can be installed with:
 

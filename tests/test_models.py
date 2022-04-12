@@ -3,12 +3,8 @@ Test the various models we have defined
 '''
 
 import unittest
-import os, sys
 from sklearn.svm import SVC
-
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.insert(0, os.path.join(PROJECT_ROOT, "GRAIMatter"))
-from attack_utilities.dp_svc import DPSVC
+from safemodel.classifiers import SafeSVC
 from data_preprocessing.data_interface import get_data_sklearn
 
 class TestDPSVC(unittest.TestCase):
@@ -19,7 +15,7 @@ class TestDPSVC(unittest.TestCase):
         '''
         Test the model runs
         '''
-        dpsvc = DPSVC()
+        dpsvc = SafeSVC()
         svc = SVC(kernel="rbf", gamma="scale", C=1., probability=True)
         mimic_features, mimic_labels = get_data_sklearn("minmax mimic2-iaccd")
 

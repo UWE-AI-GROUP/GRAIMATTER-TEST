@@ -3,9 +3,13 @@ Test the data interface code
 '''
 
 import unittest
+import os,sys
 import pandas as pd
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.join(PROJECT_ROOT, "GRAIMatter"))
 from data_preprocessing.data_interface import get_data_sklearn, UnknownDataset  # pylint: disable = import-error
+
 
 class TestLoaders(unittest.TestCase):
     '''

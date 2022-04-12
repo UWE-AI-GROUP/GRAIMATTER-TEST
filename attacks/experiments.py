@@ -14,10 +14,12 @@ from tqdm.contrib.itertools import product
 import sklearn.datasets as skl_datasets
 from scenarios import worst_case_mia, salem, split_target_data # pylint: disable=import-error
 from metrics import get_metrics # pylint: disable=import-error
-from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(PROJECT_ROOT)
+sys.path.insert(0, os.path.join(PROJECT_ROOT, "GRAIMatter"))
+from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable
+
 
 #from WP1.notebooks.scenarios import *
 #from WP1.notebooks.metrics import get_metrics

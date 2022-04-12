@@ -3,10 +3,13 @@ Test the various models we have defined
 '''
 
 import unittest
+import os, sys
 from sklearn.svm import SVC
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.join(PROJECT_ROOT, "GRAIMatter"))
 from attack_utilities.dp_svc import DPSVC
 from data_preprocessing.data_interface import get_data_sklearn
-
 
 class TestDPSVC(unittest.TestCase):
     '''

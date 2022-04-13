@@ -39,7 +39,7 @@ def min_max_disc(
 
     n_examples = int(np.round(len(y_true) * x_prop))
     pos_frequency = np.mean(y_true) # average frequency
-    y_order = np.argsort(pred_probs[:, 1]) # ordering permutation
+    y_order = np.argsort(pred_probs) # ordering permutation
 
     # Frequencies
     # y values corresponding to lowest k values of yp

@@ -65,7 +65,7 @@ class TestExtrete(unittest.TestCase):
         '''
         Tets with the dummy data
         '''
-        pred_probs = DummyClassifier().predict_proba(None)
+        pred_probs = DummyClassifier().predict_proba(None)[:, 1]
         maxd, mind, mmd, _ = min_max_disc(TRUE_CLASS, pred_probs)
 
         # 10% of 6 is 1 so:
@@ -79,7 +79,7 @@ class TestExtrete(unittest.TestCase):
         '''
         Tets with the dummy data but increase proportion to 0.5
         '''
-        pred_probs = DummyClassifier().predict_proba(None)
+        pred_probs = DummyClassifier().predict_proba(None)[:, 1]
         maxd, mind, mmd, _ = min_max_disc(TRUE_CLASS, pred_probs, x_prop=0.5)
 
         # 10% of 6 is 1 so:

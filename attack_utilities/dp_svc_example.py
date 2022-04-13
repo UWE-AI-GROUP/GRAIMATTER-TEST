@@ -13,7 +13,7 @@ import numpy as np
 from sklearn.svm import SVC
 ROOT_PROJECT_FOLDER = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(ROOT_PROJECT_FOLDER)
-from attack_utilities.dp_svc import DPSVC
+from safemodel.classifiers import SafeSVC
 
 
 %matplotlib inline
@@ -73,13 +73,13 @@ p1=clf1.predict_proba(test_gram)
 
 # %% DP version with no DP level (predicted labels equivalent to clf1;
 # predicted probabilities will not be)
-clf2 = DPSVC(eps=-1, dhat=dhat, gamma=gamma)
+clf2 = SafeSVC(eps=-1, dhat=dhat, gamma=gamma)
 clf2.fit(X, y)
 c2=clf2.predict(X1)
 p2=clf2.predict_proba(X1)
 
 # %% DP version with DP level (approximate)
-clf3 = DPSVC(eps=eps, dhat=dhat, C=C, gamma=gamma)
+clf3 = SafeSVC(eps=eps, dhat=dhat, C=C, gamma=gamma)
 clf3.fit(X, y)
 c3=clf3.predict(X1)
 p3=clf3.predict_proba(X1)

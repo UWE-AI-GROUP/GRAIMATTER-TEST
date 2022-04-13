@@ -71,7 +71,7 @@ def get_data_sklearn(
         feature_df, target_df = get_data_sklearn(sub_name)
         for column in feature_df.columns:
             col_min = feature_df[column].min()
-            col_range = feature_df[column].mafeature_df() - col_min
+            col_range = feature_df[column].max() - col_min
             feature_df[column] = feature_df[column] - col_min
             feature_df[column] = feature_df[column] / col_range
         return feature_df, target_df
@@ -113,12 +113,12 @@ def get_data_sklearn(
         x, y = synth_ae(data_folder, 200)
         return x, y
     elif dataset_name == 'nursery':
-        return nursery(data_folder)
+        return nursery()
     else:
         raise UnknownDataset(dataset_name)
 
 
-def nursery(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def nursery() -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
     The sklearn nursery dataset
     '''
@@ -132,7 +132,7 @@ def nursery(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     feature_encoder = OneHotEncoder()
     x_encoded = feature_encoder.fit_transform(data['data']).toarray()
     feature_dataframe = pd.DataFrame(x_encoded, columns=feature_encoder.get_feature_names_out())
-    
+
 
     return feature_dataframe, target_dataframe
 
@@ -222,7 +222,7 @@ def synth_ae(data_folder: str, n_rows: int=5000) -> Tuple[pd.DataFrame, pd.DataF
     '''
     First norws (default 5000) rows from the Synthetic A&E data from NHS England
     https://data.england.nhs.uk/dataset/a-e-synthetic-data/resource/81b068e5-6501-4840-a880-a8e7aa56890e
-    ''' 
+    '''
 
     file_path = os.path.join(
         data_folder,

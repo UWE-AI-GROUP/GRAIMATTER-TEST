@@ -1,9 +1,8 @@
 '''
 experiments.py - utilities used within experiments
 '''
+
 import json
-import os
-import sys
 import importlib
 import hashlib
 import logging
@@ -11,16 +10,9 @@ import argparse
 import pandas as pd
 from tqdm.contrib.itertools import product
 import sklearn.datasets as skl_datasets
-
-
-from scenarios import worst_case_mia, salem, split_target_data # pylint: disable=import-error
-from metrics import get_metrics # pylint: disable=import-error
-
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(PROJECT_ROOT)
+from attacks.scenarios import worst_case_mia, salem, split_target_data # pylint: disable=import-error
+from attacks.metrics import get_metrics # pylint: disable=import-error
 from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable
-from WP1.notebooks.scenarios import *
-from WP1.notebooks.metrics import get_metrics
 
 logger = logging.getLogger(__file__)
 
@@ -171,7 +163,7 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
 
                         # Train the target model
                         target_classifier.fit(x_target_train, y_target_train)
-                        
+
                         # Get target metrics
                         target_metrics = {f"target_{key}": val for key, val in \
                             get_metrics(target_classifier, x_test, y_test).items()}

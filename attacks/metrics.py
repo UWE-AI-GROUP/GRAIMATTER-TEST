@@ -5,6 +5,7 @@ Calculate metrics.
 from typing import Iterable#, Optional, Any
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_auc_score
+from .mia_extremecase import min_max_disc
 
 VAR_THRESH = 1e-2
 
@@ -62,6 +63,12 @@ def get_metrics(clf,
     #calculate AUC of model
     y_pred_proba = clf.predict_proba(X_test)[:, 1]
     metrics['AUC'] = round(roc_auc_score(y_test, y_pred_proba),8)
+
+    fmax, fmin, fdif, pdif = min_max_disc(y_test, y_pred_proba)
+    metrics['FMAX'] = fmax
+    metrics['FMAX'] = fmin
+    metrics['FDIF'] = fdif
+    metrics['PDIF'] = -pdif # use -log(p) so answer is positive
 
     # Add some things useful for debugging / filtering
     metrics['pred_prob_var'] = y_pred_proba.var()

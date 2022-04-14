@@ -75,6 +75,83 @@ datasets_features = {}
 #                                  'n_binary_cols':sum([1 for x in data_features if len(data_features[x].unique)==2])
 #                                 }
 
+results_df['overfitting'] = results_df.target_train_ACC - results_df.target_ACC
+results_df['overfitting AUC'] = results_df.target_train_AUC - results_df.target_AUC
+
+tmp = results_df[(results_df['target_classifier']=='RandomForestClassifier ') &
+                        (results_df['scenario']=='WorstCase')]
+g = sns.jointplot(data=tmp,
+                  x='overfitting', 
+                  y = 'mia_AUC',
+                  hue ='min_samples_leaf',
+                  kind="kde",
+                        )
+g.refline(y=0.7, x=0.25)
+plt.tight_layout()
+g.savefig("joint_scatterplot_RandomForest_miaAUC_WorstCase_overfitting_by_minsamplesleaf.png")
+
+tmp = results_df[(results_df['target_classifier']=='SVC rbf') &
+                (results_df['gamma']!='scale') & (results_df['scenario']=='WorstCase')]
+tmp.gamma = tmp.gamma.astype(float)
+tmp = tmp[tmp.gamma<100.0]
+g = sns.catplot(data=tmp,
+                x='gamma', 
+                y = 'mia_AUC',
+                hue ='dataset',
+                col='target_classifier',
+                kind="point",
+                height=5, aspect=1.1,
+        )
+g.savefig("pointplot_SVC-rbf_miaAUC_gamma_by_dataset.png")
+
+plotname = "joint_kdeplot_miaAUC_vs_overfitting_by_scenario.png"
+if not os.path.exists(plotname):
+    print(plotname)
+    sns.set_style("whitegrid")
+    g = sns.jointplot(data=results_df,
+                  x='overfitting', 
+                  y = 'mia_AUC',
+                  hue ='scenario',
+                  kind="kde"
+                        )
+    #g.fig.suptitle("")
+    plt.tight_layout()
+    g.savefig(plotname)
+    
+plotname = "joint_kdeplot_miaAUC_vs_overfittingAUC_by_scenario.png"
+if not os.path.exists(plotname):
+    print(plotname)
+    sns.set_style("whitegrid")
+    g = sns.jointplot(data=results_df,
+                  x='overfitting AUC', 
+                  y = 'mia_AUC',
+                  hue ='scenario',
+                  kind="kde"
+                        )
+    #g.fig.suptitle("")
+    plt.tight_layout()
+    g.savefig(plotname)
+    
+    
+plotname = "joint_kdeplot_miaAUC_WC-Salem1_by_classifier.png"
+if not os.path.exists(plotname):
+    print(plotname)
+    sns.set_style("whitegrid")   
+    mia_metrics = [column for column in df.columns if "mia_" in column]
+    other_columns = [column for column in df.columns if "mia_" not in column]
+    cols = ['target_classifier', 'repetition', 
+                    'dataset', 'param_id','model_data_param_id'
+                   ]
+    worstcase = df[df.scenario=="WorstCase"].set_index(cols)[mia_metrics]
+    salem1 = df[df.scenario=="Salem1"].set_index(cols)[mia_metrics]
+    salem2 = df[df.scenario=="Salem2"].set_index(cols)[mia_metrics]
+
+    wc_s1 = worstcase-salem1
+    wc_s1.reset_index(inplace=True)
+    wc_s1.drop("repetition", axis=1, inplace=True)
+    wc_s1 = wc_s1.groupby(['target_classifier', 'dataset', 'param_id']).mean().reset_index()
+
+
 plotname = 'pointplots_classifier_dataset_scenario.pdf'
 if not os.path.exists(plotname):
     print(plotname)

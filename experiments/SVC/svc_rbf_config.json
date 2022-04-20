@@ -18,7 +18,7 @@
             "class_weight": [null, "balanced"]
         }
     },
-    "results_filename": "experiments/SVC_rbf_results.csv",
+    "results_filename": "experiments/SVC/svc_rbf_results.csv",
     "n_reps": 5,
     "mia_classifier": 
         ["sklearn.ensemble", "RandomForestClassifier"],

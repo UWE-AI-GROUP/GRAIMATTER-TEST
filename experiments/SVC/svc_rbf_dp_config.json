@@ -5,7 +5,7 @@
         "minmax indian liver"
     ],
     "classifiers" : [
-        ["attack_utilities.dp_svc", "DPSVC"],
+        ["safemodel.classifiers", "DPSVC"],
         ["sklearn.svm", "SVC"]
     ],
     "experiment_params" : {

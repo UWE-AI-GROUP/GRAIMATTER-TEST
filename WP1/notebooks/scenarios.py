@@ -120,7 +120,7 @@ def mia_salem_1(
     mia_clf:Optional[Any]=RandomForestClassifier(),
     mia_test_split:Optional[float]=0.5):
     """
-    Perform Salem adversary 1 type of attack. This attack assumes attacker has a dataset of the same distribution as the target's model tarining data. The shadow model mimic the target's model behaviour.
+    Perform Salem adversary 1 type of attack. This attack assumes attacker has a dataset of the same distribution as the target's model training data. The shadow model mimic the target's model behaviour.
 
     shadow_clf: classifier for shadow model (not fitted)
     X_shadow_train: shadow model training data, which must be of the same distribution of the target data, e.g. could be a split of the one used for training/test the target model and not used to train the target.

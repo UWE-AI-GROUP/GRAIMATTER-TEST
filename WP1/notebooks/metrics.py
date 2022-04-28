@@ -60,6 +60,29 @@ def get_metrics(clf,
     y_pred_proba = clf.predict_proba(X_test)[::,1]
     metrics['AUC'] = roc_auc_score(y_test, y_pred_proba)
     
+    def min_max_disc(y,yp,xprop=0.1):
+        k=np.round(len(y)*xprop) # mean of this many highest-ranked and lowest-ranked
+        yo=np.argsort(yp) # ordering permutation
+        yl=[y[yo[i]] for i in range(int(k))] # y values corresponding to lowest k values of yp
+        yh=[y[yo[i]] for i in range(len(y)-int(k),len(y))] # y values corresponding to highest k values of yp
+        return(np.mean(yh)-np.mean(yl))
+
+    # One sided p-value against null hypothesis that MIA probabilities are no better than random;
+    #  log-p optional; might be a more convenient metric
+    from scipy.stats import norm
+    def p_min_max_disc(y,yp,xprop=0.1,logp=True):
+        my=np.mean(y) # average frequency
+        mmd=min_max_disc(y,yp,xprop) # difference in frequencies
+        sdm=np.sqrt(2*my*(1-my)/(xprop*len(y))) # mmd is asymptotically distributed as N(0,sdm^2) under null.
+        out=norm.cdf(mmd,loc=0,scale=sdm) # normal CDF
+        if logp:
+            out=np.log(out)
+        return(out)
+
+    
+    
+    
+    
     warnings.simplefilter("default")#enable warnings again
     
     return metrics

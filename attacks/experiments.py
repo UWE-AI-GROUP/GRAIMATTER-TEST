@@ -8,6 +8,7 @@ import hashlib
 import logging
 import argparse
 import pandas as pd
+import numpy as np
 from tqdm.contrib.itertools import product
 import sklearn.datasets as skl_datasets
 from attacks.scenarios import worst_case_mia, salem, split_target_data # pylint: disable=import-error
@@ -96,10 +97,33 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
 
     n_reps = config['n_reps']
 
+    # Classifier for membership inference attacks
     mia_classifier_module, mia_classifier_name = config['mia_classifier']
     module = importlib.import_module(mia_classifier_module)
     mia_classifier = getattr(module, mia_classifier_name)
+    
+    # Set synthetic data generation method if included in config
+    if 'sdg_method' in config.keys():
+        # Flag to use later
+        sdg_enabled = True
+        
+        sdg_method_module, sdg_method_name = config['sdg_method']
+        sdg_module = importlib.import_module(sdg_method_module)
+        sdg_method = getattr(sdg_module, sdg_method_name)
+        
+        # Source of training data for synthetic data generator. Can be either 'Train', 'Heldout', or 'All'
+        sdg_source = config['sdg_source']
+        
+        # Optionally, specify the number of synthetic data samples to generate. Defaults to dataset size.
+        if 'sdg_samples' in config.keys():
+            sdg_samples = config['sdg_samples']
+        else:
+            sdg_samples = 0
+    else:
+        # Flag for whether to generate synthetic data
+        sdg_enabled=False
 
+    # Scenarios for membership inference attacks
     scenarios = config['scenarios']
 
     # if not sys.warnoptions:
@@ -117,7 +141,7 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                 )
             ]
         )
-        logger.info("Instantiaed results file")
+        logger.info("Instantiated results file")
     else:
         logger.info("Created empty dataframe")
         existing_experiments = set()
@@ -125,7 +149,7 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
 
 
     for dataset in datasets:
-        logger.info("Starting datasset %s", dataset)
+        logger.info("Starting dataset %s", dataset)
         #load the data
         try:
             data_features, data_labels = get_data_sklearn(dataset)
@@ -135,13 +159,40 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
 
         for repetition in range(n_reps):
             logger.info("Rep %d", repetition)
-            #split into training, shadow model and validation data
+            
+            # Split into training, shadow model and validation data
             x_target_train, x_shadow_train, x_test, y_target_train, y_shadow_train, y_test = \
                 split_target_data(
                     data_features.values,
                     data_labels.values.flatten(),
                     r_state=repetition
                 )
+            
+            ### Generate synthetic data if indicated
+            # Determine training data for synthetic data generation
+            if sdg_source=='target':
+                x_synth_train,y_synth_train = x_target_train, y_target_train
+            if sdg_source=='shadow':
+                x_synth_train,y_synth_train = x_shadow_train, y_shadow_train
+            if sdg_source=='test':
+                x_synth_train,y_synth_train = x_test, y_test
+            if sdg_source=='train':
+                x_synth_train,y_synth_train = np.vstack((x_target_train,x_shadow_train)),\
+                np.concatenate((y_target_train,y_shadow_train))
+            if sdg_source=='all':
+                x_synth_train,y_synth_train = data_features.values, data_labels.values.flatten()
+            
+            # Number of synthetic samples to generate: if not set, default to size of training data
+            if sdg_samples==0:
+                sdg_samples=x_synth_train.shape[0]
+            
+            if sdg_enabled:
+                dsynth= sdg_method(x_synth_train,y_synth_train,
+                                                     params=experiment_params[sdg_method_name],
+                                                     m=sdg_samples)
+                x_synthetic=dsynth[:,0:(dsynth.shape[1]-1)]
+                y_synthetic=dsynth[:,(dsynth.shape[1]-1)] 
+            
 
             for classifier_name, clf_class in classifiers.items():
                 logger.info("Classifier: %s", classifier_name)
@@ -307,6 +358,55 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                                 [results_df, new_results.to_dataframe()],
                                 ignore_index=True
                             )
+                            
+                        ##########################################
+                        #####   Salem with synthetic data     ####
+                        ##########################################
+
+                        if "Salem_synth" in scenarios:
+                            scenario = "Salem_synth"
+                            mi_test_x, mi_test_y, mi_clf, shadow_model, x_shadow_test, y_shadow_test = \
+                            salem( # pylint: disable = line-too-long
+                                target_classifier,
+                                classifiers[classifier_name](**params),
+                                x_target_train,
+                                x_synthetic,
+                                y_synthetic,
+                                x_test,
+                                mia_classifier=mia_classifier()
+                            )
+
+                            # Get Shadow and MIA metrics
+                            shadow_metrics = {f"shadow_{key}": val for key, val in \
+                                get_metrics(shadow_model, x_shadow_test, y_shadow_test).items()}
+                            mia_metrics = {f"mia_{key}": val for key, val in \
+                                get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
+
+                            # Create ID for dataset classifier parameters scenario
+                            # (but not repetition/random split)
+                            hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
+                            full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
+
+                            new_results = ResultsEntry(
+                                full_id, model_data_param_id, param_id,
+                                dataset,
+                                scenario,
+                                classifier_name,
+                                shadow_dataset='Same distribution',
+                                shadow_classifier_name=classifier_name,
+                                attack_classifier_name=mia_classifier_name,
+                                repetition=repetition,
+                                params=params,
+                                target_metrics=target_metrics,
+                                mia_metrics=mia_metrics,
+                                shadow_metrics=shadow_metrics
+                            )
+
+                            results_df = pd.concat(
+                                [results_df, new_results.to_dataframe()],
+                                ignore_index=True
+                            )
+
             # Save after each repetition
             results_df.to_csv(results_filename, index=False)
 

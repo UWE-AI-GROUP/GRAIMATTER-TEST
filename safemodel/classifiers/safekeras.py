@@ -20,7 +20,9 @@ class Safe_KerasModel(KerasModel, SafeModel ):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Creates model and applies constraints to params"""
-        KerasModel.__init__(self, *args, **kwargs)
+
+        # KerasModel.__init__(self, *args, **kwargs)
+        KerasModel.__init__(self)
         SafeModel.__init__(self)
 
 
@@ -46,6 +48,52 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             DPused = False
             
         return DPused, reason
+
+    def compile(self):
+        import tensorflow_privacy as tf_privacy
+        batch_size=1
+        l2_norm_clip = 1.5
+        noise_multiplier = 1.3
+        num_microbatches = batch_size
+        learning_rate = 0.25
+
+        if(self.optimizer == "None"):
+            opt = tf_privacy.DPKerasSGDOptimizer(
+            l2_norm_clip=l2_norm_clip,
+            noise_multiplier=noise_multiplier,
+            num_microbatches=num_microbatches,
+            learning_rate=learning_rate)
+
+        if(self.optimizer == "Adagrad"):
+            opt = tf_privacy.DPKerasAdagradOptimizer(
+                l2_norm_clip=l2_norm_clip,
+                noise_multiplier=noise_multiplier,
+                num_microbatches=num_microbatches,
+                learning_rate=learning_rate)
+
+        elif(self.optimizer == "Adam"):
+            opt = tf_privacy.DPKerasAdamOptimizer(
+                l2_norm_clip=l2_norm_clip,
+                noise_multiplier=noise_multiplier,
+                num_microbatches=num_microbatches,
+                learning_rate=learning_rate)
+
+        elif(self.optimizer == "SGD"):
+            opt = tf_privacy.DPKerasSGDOptimizer(
+            l2_norm_clip=l2_norm_clip,
+            noise_multiplier=noise_multiplier,
+            num_microbatches=num_microbatches,
+            learning_rate=learning_rate)
+
+        else:
+            opt = tf_privacy.DPKerasSGDOptimizer(
+            l2_norm_clip=l2_norm_clip,
+            noise_multiplier=noise_multiplier,
+            num_microbatches=num_microbatches,
+            learning_rate=learning_rate)
+
+
+        super().compile(opt)
 
     def check_optimizer_allowed(optimizer):
         disclosive = True

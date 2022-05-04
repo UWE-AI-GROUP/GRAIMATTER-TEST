@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from tensorflow.keras import Model as KerasModel
-from safemodel import SafeModel  
+from safemodel.safemodel import SafeModel  
 from tensorflow_privacy.privacy.analysis import compute_dp_sgd_privacy
 from tensorflow_privacy.privacy.optimizers import dp_optimizer_keras
 
@@ -22,6 +22,8 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         """Creates model and applies constraints to params"""
         KerasModel.__init__(self, *args, **kwargs)
         SafeModel.__init__(self)
+
+
 
         self.model_type: str = "KerasModel"
         super().preliminary_check(apply_constraints=True, verbose=True)
@@ -120,7 +122,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         #    "tensorflow_privacy.DPKerasSGDOptimizer",
         #)
 
-class Safe_tf_DPModel(safemodel.safemodel.SafeModel, DPModel):
+class Safe_tf_DPModel(SafeModel, DPModel):
     """ Privacy Protected tensorflow_privacy DP-SGD subclass of Keras model"""
 
     def __init__(l2_norm_clip:float, noise_multiplier:float, use_xla:bool=True, *args:any, **kwargs:any) ->None:

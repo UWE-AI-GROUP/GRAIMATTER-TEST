@@ -1,25 +1,31 @@
 import tensorflow as tf
 
-#import tensorflow.keras.Model as KerasModel
-import safemodel
+from tensorflow.keras import Model as KerasModel
+from safemodel import SafeModel  
 from tensorflow_privacy.privacy.analysis import compute_dp_sgd_privacy
 from tensorflow_privacy.privacy.optimizers import dp_optimizer_keras
 
 import tensorflow_privacy as tf_privacy
 from tensorflow_privacy import DPModel
-
 from typing import Any
 
-class Safe_KerasModel(tf.keras.Model, safemodel.safemodel.SafeModel):
+
+#class FinalMeta(type(tf.keras.Model), type(safemodel)):
+#    def __new__(meta, name, bases, atts):
+#        print ("M3 called for " + name)
+#        return super(M3, meta).__new__(meta, name, bases, atts)
+
+class Safe_KerasModel(KerasModel, SafeModel ):
     """Privacy Protected Wrapper around  tf.keras.Model class from tensorflow 2.8"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Creates model and applies constraints to params"""
+        KerasModel.__init__(self, *args, **kwargs)
         SafeModel.__init__(self)
-        tf.keras.model.__init__(self, *args, **kwargs)
+
         self.model_type: str = "KerasModel"
-        super().apply_constraints(**kwargs)
-        self.apply_specific_constraints()
+        super().preliminary_check(apply_constraints=True, verbose=True)
+        #self.apply_specific_constraints()
 
     def check_DP_used(optimizer):
         DPused = False

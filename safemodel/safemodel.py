@@ -87,8 +87,16 @@ class SafeModel:
         except BaseException:
             self.researcher = "unknown"
 
+
     def save(self, name: str = "undefined") -> None:
-        """Writes model to file in appropriate format."""
+        """Writes model to file in appropriate format.
+           Optimizer is deliberately excluded. 
+           To prevent possible to restart training and thus 
+           possible back door into attacks. 
+        """
+        if(hasattr(self,optimizer)):
+           del self.optimizer 
+
         self.model_save_file = name
         while self.model_save_file == "undefined":
             self.model_save_file = input(
@@ -99,6 +107,8 @@ class SafeModel:
                 pickle.dump(self, file)
         elif self.model_save_file[-4:] == ".sav":  # save to joblib
             joblib.dump(self, self.model_save_file)
+        elif self.model_save_file[-3:] == ".h5":  # save to h5
+            tf.keras.models.save_model(self, self.model_save_file)
         else:
             suffix = self.model_save_file.split(".")[-1]
             print(f"{suffix} file saves currently not supported")

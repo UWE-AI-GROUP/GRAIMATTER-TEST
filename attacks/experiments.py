@@ -191,7 +191,7 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                                                      params=experiment_params[sdg_method_name],
                                                      m=sdg_samples)
                 x_synthetic=dsynth[:,0:(dsynth.shape[1]-1)]
-                y_synthetic=dsynth[:,(dsynth.shape[1]-1)] 
+                y_synthetic=np.where(dsynth[:,(dsynth.shape[1]-1)]>0.5,1,0)
             
 
             for classifier_name, clf_class in classifiers.items():

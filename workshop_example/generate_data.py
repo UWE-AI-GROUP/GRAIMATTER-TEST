@@ -6,13 +6,14 @@ import numpy as np
 import pandas as pd
 
 # %% Method to generate data
-def make_toy_data(class_sizes: List[int]) -> pd.DataFrame:
+def make_toy_data(class_sizes: List[int],seed:int=1) -> pd.DataFrame:
     '''
     Make some toy data with health features
     Each feature gets a class-specific mean (or probability of 1/0)
     class_sizes is a list, with one entry for each class containing how many
     examples should be in the class
     '''
+    np.random.seed(seed)
     output_df = None
     for i, class_size in enumerate(class_sizes):
         age_mean = np.random.uniform(10, 100)

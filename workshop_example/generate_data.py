@@ -9,7 +9,9 @@ import pandas as pd
 def make_toy_data(class_sizes: List[int]) -> pd.DataFrame:
     '''
     Make some toy data with health features
-    Each feature gets a class-specific mean (or )
+    Each feature gets a class-specific mean (or probability of 1/0)
+    class_sizes is a list, with one entry for each class containing how many
+    examples should be in the class
     '''
     output_df = None
     for i, class_size in enumerate(class_sizes):

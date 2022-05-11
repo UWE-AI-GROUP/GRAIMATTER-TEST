@@ -107,8 +107,16 @@ class SafeModel:
                 pickle.dump(self, file)
         elif self.model_save_file[-4:] == ".sav":  # save to joblib
             joblib.dump(self, self.model_save_file)
-        elif self.model_save_file[-3:] == ".h5":  # save to h5
-            tf.keras.models.save_model(self, self.model_save_file)
+        elif self.model_save_file[-3:] == ".h5":
+            # save to tf (h5 cant serialize subclassed models)
+            tf.keras.models.save_model(self, self.model_save_file,
+                                       include_optimizer=False,
+                                       save_format='h5')
+        elif self.model_save_file[-3:] == ".tf":
+            # save to tf (h5 cant serialize subclassed models)
+            tf.keras.models.save_model(self, self.model_save_file,
+                                       include_optimizer=False,
+                                       save_format='tf')
         else:
             suffix = self.model_save_file.split(".")[-1]
             print(f"{suffix} file saves currently not supported")

@@ -31,6 +31,9 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         super().preliminary_check(apply_constraints=True, verbose=True)
         #self.apply_specific_constraints()
 
+    def call(self, inputs):
+        return tf.matmul(inputs, self.w) + self.b
+
     def check_DP_used(optimizer):
         DPused = False
         reason = "None"

@@ -27,6 +27,14 @@ def make_toy_data(class_sizes: List[int],seed:int=1) -> pd.DataFrame:
         weight_mean = np.random.uniform(50, 110)
         weight_data = np.random.poisson(weight_mean, class_size)
 
+        #jim trying to inject spedific eamples
+        #if class_size==1:
+        #    age_data=27
+        #    smoker_data = 0
+        #    employed_data= 0
+        #    hr_data = 70
+        #    weight_data= 85
+            
 
         class_labels = i * np.ones(class_size, int)
         class_data = pd.DataFrame(

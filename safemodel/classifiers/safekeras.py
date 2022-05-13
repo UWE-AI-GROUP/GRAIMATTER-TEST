@@ -10,21 +10,30 @@ from tensorflow_privacy import DPModel
 from typing import Any
 
 
-#class FinalMeta(type(tf.keras.Model), type(safemodel)):
-#    def __new__(meta, name, bases, atts):
-#        print ("M3 called for " + name)
-#        return super(M3, meta).__new__(meta, name, bases, atts)
-
 class Safe_KerasModel(KerasModel, SafeModel ):
     """Privacy Protected Wrapper around  tf.keras.Model class from tensorflow 2.8"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Creates model and applies constraints to params"""
-
-        # KerasModel.__init__(self, *args, **kwargs)
-        KerasModel.__init__(self)
+        the_args = args
+        the_kwargs = kwargs
+        print(f'args is a {type(args)} = {args}  kwargs is a {type(kwargs)}= {kwargs}')
+        #initialise all the values that get provided as options ot keras
+        # and also l2 norm clipping and learning rates, batch sizes
+        self.inputs = None
+        if 'inputs' in kwargs.keys():
+            self.inputs=the_kwargs['inputs']
+        elif len(args)==3: #defaults is for Model(input,outputs,names)
+            self.inputs= args[0]
+            
+        self.outputs= None
+        if 'outputs' in kwargs.keys():
+            self.outputs=the_kwargs['outputs']
+        elif len(args)==3:
+            self.outputs = inputs[1]
+        KerasModel.__init__(self,inputs=self.inputs,outputs=self.outputs)
+        #KerasModel.__init__(self)
         SafeModel.__init__(self)
-
 
 
         self.model_type: str = "KerasModel"
@@ -34,7 +43,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
     def call(self, inputs):
         return tf.matmul(inputs, self.w) + self.b
 
-    def check_DP_used(optimizer):
+    def check_DP_used(self,optimizer):
         DPused = False
         reason = "None"
         if ( "_was_dp_gradients_called" not in optimizer.__dict__ ):

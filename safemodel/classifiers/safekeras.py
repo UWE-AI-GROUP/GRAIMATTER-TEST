@@ -8,6 +8,8 @@ from tensorflow_privacy.privacy.optimizers import dp_optimizer_keras
 import tensorflow_privacy as tf_privacy
 from tensorflow_privacy import DPModel
 from typing import Any
+import sys
+
 
 
 class Safe_KerasModel(KerasModel, SafeModel ):
@@ -56,10 +58,11 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         
         
     #need to be made available to user and provide better feedback if not true 
-    def dp_epsilon_met(int:num_examples=0,int:batch_size=0,int:epochs=0) ->bool:
+    #def dp_epsilon_met(num_examples=0:int,batch_size=0:int,epochs=0:int) ->bool:
+    def dp_epsilon_met(self, num_examples=0,batch_size=0,epochs=0):
         privacy = compute_dp_sgd_privacy.compute_dp_sgd_privacy(n=num_examples,
                                               batch_size=batch_size,
-                                              noise_multiplier=safeModel.noise_multiplier,
+                                              noise_multiplier=self.noise_multiplier,
                                               epochs=epochs,
                                               delta=self.delta)
         if privacy[0] < self.min_epsilon:
@@ -68,17 +71,28 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             ok= False
         return ok,privacy[0]
     
-    def fit():
+    def fit(self,X,Y,validation_data, epochs, batch_size):
         ###TODO TIDY UP:
-        #make sure you are passing keywords through - buit also checking bsatch size epochs
-        ok, current_epsilon = self.dp_epsilon_met(kwds)
+        print(X.shape)
+        #make sure you are passing keywords through - but also checking batch size epochs
+        ok, current_epsilon = self.dp_epsilon_met(X.shape[0], batch_size, epochs)
         
         if not ok:
+            print(f"Current epsilon is {current_epsilon}")
             keepgoing = input('this is not going to be ok do you want to continue [Y/N]')
             #behave appropriately
+            if((keepgoing != 'Y') and (keepgoing != 'y') and (keepgoing !='yes') and (keepgoing != 'Yes')):
+                print(f"Current epsilon is {current_epsilon}")
+                print("Chose not to continue")
+                
+                sys.exit(0)
+                
+            else:
+                print("Continuing")
         else:
             pass
-        super.fit()
+        returnval = super().fit(X, Y, validation_data=validation_data, epochs=epochs, batch_size=batch_size)
+        return returnval
         
         
     def check_optimizer_is_DP(self, optimizer):
@@ -210,7 +224,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
     def posthoc_check(self, verbose: bool = True    ) -> tuple[str, bool]:
         """Checks whether model has been changed since fit() was last run and records eta"""
 
-        msg, disclosive = super.posthoc_check(self,verbose,apply_constraints)
+        msg, disclosive = super().posthoc_check()
         dpusedmessage, dpused = self.check_DP_used(self.optimizer)
         
         print(optimizer)
@@ -218,6 +232,15 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         
         ##TODO call dp_epsilon_met()
 
+        ok, current_epsilon = self.dp_epsilon_met(X.shape[0], batch_size, epochs)
+        if(not ok):
+            dpepsilonmessage = f"epsilon is not sufficient for Differential privacy: {current_epsilon}. You must modify one or more of batch_size, epochs, number of samples."
+        else:
+            dpepsilonmessage = f"epsilon is sufficient for Differential privacy: {current_epsilon}."
+
+        reason = "NO REASON SET"
+        allowedmsg += dpusedmessage
+        allowedmsg += dpepsilonmessage
         return allowedmsg, reason
         
         #if that is ok and model has been fitted then still need to 

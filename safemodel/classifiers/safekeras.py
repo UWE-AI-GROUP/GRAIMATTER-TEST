@@ -17,7 +17,9 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         """Creates model and applies constraints to params"""
         the_args = args
         the_kwargs = kwargs
+        
         print(f'args is a {type(args)} = {args}  kwargs is a {type(kwargs)}= {kwargs}')
+        
         #initialise all the values that get provided as options ot keras
         # and also l2 norm clipping and learning rates, batch sizes
         self.inputs = None
@@ -31,6 +33,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             self.outputs=the_kwargs['outputs']
         elif len(args)==3:
             self.outputs = inputs[1]
+            
         KerasModel.__init__(self,inputs=self.inputs,outputs=self.outputs)
         #KerasModel.__init__(self)
         SafeModel.__init__(self)
@@ -39,9 +42,55 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         self.model_type: str = "KerasModel"
         super().preliminary_check(apply_constraints=True, verbose=True)
         #self.apply_specific_constraints()
-
-    def call(self, inputs):
-        return tf.matmul(inputs, self.w) + self.b
+        
+        #need to move these two to rules.json so they can be set generally by TREs 
+        #and read them in here
+        self.min_epsilon = 10 #get from json
+        self.delta = 1e-5  #get from json
+        #optional- move this to json - not for nowe
+        self.batch_size=25
+        self.l2_norm_clip = 1.0 
+        self.noise_multiplier = 0.5
+        self.num_microbatches = None
+        self.learning_rate = 0.1
+        
+        
+    #need to be made available to user and provide better feedback if not true 
+    def dp_epsilon_met(int:num_examples=0,int:batch_size=0,int:epochs=0) ->bool:
+        privacy = compute_dp_sgd_privacy.compute_dp_sgd_privacy(n=num_examples,
+                                              batch_size=batch_size,
+                                              noise_multiplier=safeModel.noise_multiplier,
+                                              epochs=epochs,
+                                              delta=self.delta)
+        if privacy[0] < self.min_epsilon:
+            ok= True
+        else:
+            ok= False
+        return ok,privacy[0]
+    
+    def fit():
+        ###TODO TIDY UP:
+        #make sure you are passing keywords through - buit also checking bsatch size epochs
+        ok, current_epsilon = self.dp_epsilon_met(kwds)
+        
+        if not ok:
+            keepgoing = input('this is not going to be ok do you want to continue [Y/N]')
+            #behave appropriately
+        else:
+            pass
+        super.fit()
+        
+        
+    def check_optimizer_is_DP(self, optimizer):
+        DPused = False
+        reason = "None"
+        if ( "_was_dp_gradients_called" not in optimizer.__dict__ ):
+            reason = "optimiser does not contain key _was_dp_gradients_called so is not DP."
+            DPused = False
+        else:
+            reason = "optimiser does  contain key _was_dp_gradients_called so should be DP."
+            DPused = True
+        return DPused, reason
 
     def check_DP_used(self,optimizer):
         DPused = False
@@ -61,13 +110,13 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             
         return DPused, reason
 
-    def compile(self):
+    def compile(self,optimizer=None, loss='categorical_crossentropy', metrics=['accuracy']):
         import tensorflow_privacy as tf_privacy
-        batch_size=1
-        l2_norm_clip = 1.5
-        noise_multiplier = 1.3
-        num_microbatches = batch_size
-        learning_rate = 0.25
+        batch_size=self.batch_size
+        l2_norm_clip = self.l2_norm_clip 
+        noise_multiplier = self.noise_multiplier
+        num_microbatches = self.num_microbatches
+        learning_rate = self.learning_rate
 
         if(self.optimizer == "None"):
             opt = tf_privacy.DPKerasSGDOptimizer(
@@ -105,7 +154,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             learning_rate=learning_rate)
 
 
-        super().compile(opt)
+        super().compile(opt, loss, metrics)
 
     def check_optimizer_allowed(optimizer):
         disclosive = True
@@ -158,15 +207,16 @@ class Safe_KerasModel(KerasModel, SafeModel ):
 
 
             
-    def posthoc_check(
-        self, verbose: bool = True    ) -> tuple[str, bool]:
+    def posthoc_check(self, verbose: bool = True    ) -> tuple[str, bool]:
         """Checks whether model has been changed since fit() was last run and records eta"""
 
-        msg, disclosive = super.posthoc(self,verbose,apply_constraints)
+        msg, disclosive = super.posthoc_check(self,verbose,apply_constraints)
         dpusedmessage, dpused = self.check_DP_used(self.optimizer)
         
         print(optimizer)
         allowedmessage, allowed = self.check_optimizer_allowed(optimizer)
+        
+        ##TODO call dp_epsilon_met()
 
         return allowedmsg, reason
         

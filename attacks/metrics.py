@@ -66,7 +66,7 @@ def get_metrics(clf,
 
     fmax, fmin, fdif, pdif = min_max_disc(y_test, y_pred_proba)
     metrics['FMAX'] = fmax
-    metrics['FMAX'] = fmin
+    metrics['FMIN'] = fmin
     metrics['FDIF'] = fdif
     metrics['PDIF'] = -pdif # use -log(p) so answer is positive
 

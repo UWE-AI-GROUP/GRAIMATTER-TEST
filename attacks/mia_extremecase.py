@@ -55,7 +55,10 @@ def min_max_disc(
     sdm = np.sqrt(2 * pos_frequency * (1 - pos_frequency) / n_examples)
     pval = 1 - norm.cdf(mmd, loc=0, scale=sdm) # normal CDF
     if log_p:
-        pval = np.log(pval)
+        if pval< 1e-50:
+            pval=-115.13
+        else: 
+            pval=np.log(pval)
 
     # Return
     return maxd, mind, mmd, pval

@@ -1,0 +1,26 @@
+{
+    "datasets": [
+        "round mimic2-iaccd",
+        "round in-hospital-mortality",
+        "round indian liver"
+    ],
+    "classifiers" : [
+        ["sklearn.ensemble", "RandomForestClassifier"]
+    ],
+    "experiment_params" : {
+        "RandomForestClassifier": {
+            "bootstrap": [true, false],
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 2, 5, 10],
+            "n_estimators": [10, 50, 100],
+            "criterion": ["gini","entropy"],
+            "max_depth": [2, 5, 10, null],
+            "class_weight": [null, "balanced"]
+        }
+    },
+    "results_filename": "experiments/RF/round_rf_results.csv",
+    "n_reps": 1,
+    "mia_classifier": 
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+}

@@ -1,19 +1,21 @@
-'''
+"""
 Differentially private SVC
-'''
+"""
 import logging
 from typing import Any
+
 import numpy as np
-from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+
 from attack_utilities.estimator_template import GenericEstimator
 
 local_logger = logging.getLogger(__file__)
 local_logger.setLevel(logging.WARNING)
 
 
-
 # pylint: disable = invalid-name
+
 
 class DPSVC(GenericEstimator):
     ## Wrapper for differentially private SVM
@@ -53,7 +55,7 @@ class DPSVC(GenericEstimator):
 
     """
 
-    def __init__(self, C=1., gamma='scale', dhat=1000, eps=10, **kwargs):
+    def __init__(self, C=1.0, gamma="scale", dhat=1000, eps=10, **kwargs):
         self.svc = None
         self.gamma = gamma
         self.dpsvc_gamma = None
@@ -69,44 +71,44 @@ class DPSVC(GenericEstimator):
         self.intercept = None
         self.noisy_weights = None
 
-    
     def phi_hat(self, input_vector):
-        '''Project a single feature'''
+        """Project a single feature"""
         vt1 = (self.rho * input_vector).sum(axis=1)
-        vt = (self.dhat**(-0.5)) * np.column_stack((np.cos(vt1), np.sin(vt1)))
-        return vt.reshape(2*self.dhat)
+        vt = (self.dhat ** (-0.5)) * np.column_stack((np.cos(vt1), np.sin(vt1)))
+        return vt.reshape(2 * self.dhat)
 
     def phi_hat_multi(self, input_features):
-        '''
+        """
         Compute feature space for a matrix of inputs
-        '''
+        """
         # TODO: could this be vectorised?
         n_data, _ = input_features.shape
-        phi_hat = np.zeros((n_data, 2*self.dhat), float)
+        phi_hat = np.zeros((n_data, 2 * self.dhat), float)
         for i in range(n_data):
             phi_hat[i, :] = self.phi_hat(input_features[i, :])
         return phi_hat
 
     def k_hat_svm(self, x, y=None):
-        '''
+        """
         Define the version which is sent to sklearn.svm. AFAICT python/numpy
         doesn't have an 'outer' for arbitrary functions.
-        '''
+        """
         phi_hat_x = self.phi_hat_multi(x)
         if y is None:
             phi_hat_y = phi_hat_x
         else:
             phi_hat_y = self.phi_hat_multi(y)
         return np.dot(phi_hat_x, phi_hat_y.T)
-        
 
     def fit(self, train_features: Any, train_labels: Any) -> None:
-        '''
+        """
         Fit the model
-        '''
+        """
 
         # Check that the data passed is np.ndarray
-        if not isinstance(train_features, np.ndarray) or not isinstance(train_labels, np.ndarray):
+        if not isinstance(train_features, np.ndarray) or not isinstance(
+            train_labels, np.ndarray
+        ):
             raise NotImplementedError("DPSCV needs np.ndarray inputs")
 
         n_data, n_features = train_features.shape
@@ -119,7 +121,7 @@ class DPSVC(GenericEstimator):
                 raise NotImplementedError(
                     (
                         "DP SVC can only handle binary classification with",
-                        "labels = 0 and 1"
+                        "labels = 0 and 1",
                     )
                 )
 
@@ -129,85 +131,93 @@ class DPSVC(GenericEstimator):
             self.lambdaval = 0
 
         # Mimic sklearn skale and auto params
-        if self.gamma == 'scale':
-            self.gamma = 1. / (n_features * train_features.var())
-        elif self.gamma == 'auto':
-            self.gamma = 1. / n_features
+        if self.gamma == "scale":
+            self.gamma = 1.0 / (n_features * train_features.var())
+        elif self.gamma == "auto":
+            self.gamma = 1.0 / n_features
 
-
-        self.dpsvc_gamma = 1. / np.sqrt(2. * self.gamma) # alternative parameterisation
-        local_logger.info("Gamma = %f (dp parameterisation = %f)", self.gamma, self.dpsvc_gamma)
+        self.dpsvc_gamma = 1.0 / np.sqrt(
+            2.0 * self.gamma
+        )  # alternative parameterisation
+        local_logger.info(
+            "Gamma = %f (dp parameterisation = %f)", self.gamma, self.dpsvc_gamma
+        )
 
         # Draw dhat random vectors rho from Fourier transform of RBF
         # (which is Gaussian with SD 1/gamma)
-        self.rho = np.random.normal(0, 1. / self.dpsvc_gamma, (self.dhat, n_features))
+        self.rho = np.random.normal(0, 1.0 / self.dpsvc_gamma, (self.dhat, n_features))
         local_logger.info("Sampled rho")
 
         # Fit support vector machine
         # Create the gram matrix to pass to SVC
         gram_matrix = self.k_hat_svm(train_features)
         local_logger.info("Fitting base SVM")
-        self.svc=SVC(kernel="precomputed", C=self.C)
+        self.svc = SVC(kernel="precomputed", C=self.C)
         self.svc.fit(gram_matrix, train_labels)
 
-
         # Get separating hyperplane and intercept
-        alpha = self.svc.dual_coef_ # alpha from solved dual, multiplied by labels (-1,1)
+        alpha = (
+            self.svc.dual_coef_
+        )  # alpha from solved dual, multiplied by labels (-1,1)
         xi = train_features[self.svc.support_, :]  # support vectors x_i
-        weights = np.zeros(2*self.dhat)
+        weights = np.zeros(2 * self.dhat)
         for i in range(alpha.shape[1]):
             weights = weights + alpha[0, i] * self.phi_hat(xi[i, :])
 
         self.intercept = self.svc.intercept_
 
         # Add Laplacian noise
-        self.noisy_weights = weights + np.random.laplace(0, self.lambdaval, len(weights))
+        self.noisy_weights = weights + np.random.laplace(
+            0, self.lambdaval, len(weights)
+        )
 
         # Logistic transform for predict_proba (rough): generate predictions (DP) for training data
         ypredn = np.zeros(n_data)
         for i in range(n_data):
-            ypredn[i] = np.dot(self.phi_hat(train_features[i,:]), self.noisy_weights) +\
-                self.intercept
+            ypredn[i] = (
+                np.dot(self.phi_hat(train_features[i, :]), self.noisy_weights)
+                + self.intercept
+            )
 
         local_logger.info("Fitting Platt scaling")
-        self.platt_transform.fit(ypredn.reshape(-1, 1), train_labels) # was called ptransform
-
+        self.platt_transform.fit(
+            ypredn.reshape(-1, 1), train_labels
+        )  # was called ptransform
 
     def set_params(self, **kwargs) -> None:
-        '''
+        """
         Set params
-        '''
+        """
         for key, value in kwargs.items():
-            if key == 'gamma':
+            if key == "gamma":
                 self.gamma = value
-            elif key == 'eps':
+            elif key == "eps":
                 self.eps = value
-            elif key == 'dhat':
+            elif key == "dhat":
                 self.dhat = value
             else:
                 local_logger.warning("Unsupported parameter: %s", key)
 
     def _raw_outputs(self, test_features: Any) -> np.ndarray:
-        '''
+        """
         Get the raw output, used by predict and predict_proba
-        '''
+        """
         projected_features = self.phi_hat_multi(test_features)
         out = np.dot(projected_features, self.noisy_weights) + self.intercept
         return out
 
-
     def predict(self, test_features: Any) -> np.ndarray:
-        '''
+        """
         Make predictions
-        '''
+        """
         out = self._raw_outputs(test_features)
         out = 1 * (out > 0)
-        return out # Predictions
+        return out  # Predictions
 
     def predict_proba(self, test_features: Any) -> np.ndarray:
-        '''
+        """
         Predictive probabilities
-        '''
+        """
         out = self._raw_outputs(test_features)
         pred_probs = self.platt_transform.predict_proba(out.reshape(-1, 1))
         return pred_probs

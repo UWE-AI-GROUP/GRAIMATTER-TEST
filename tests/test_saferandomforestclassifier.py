@@ -4,8 +4,9 @@ import pickle
 
 import joblib
 import numpy as np
-from SafeModel import SafeRandomForestClassifier
 from sklearn import datasets
+
+from safemodel.classifiers import SafeRandomForestClassifier
 
 
 def get_data():

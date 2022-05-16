@@ -5,6 +5,7 @@ pre-processing
 '''
 import os
 import logging
+from pkgutil import get_data
 from typing import Tuple, List
 from zipfile import ZipFile
 from collections import Counter
@@ -70,10 +71,22 @@ def get_data_sklearn(
         feature_df, target_df = get_data_sklearn(sub_name)
         for column in feature_df.columns:
             col_min = feature_df[column].min()
-            col_range = feature_df[column].mafeature_df() - col_min
+            col_range = feature_df[column].max() - col_min
             feature_df[column] = feature_df[column] - col_min
             feature_df[column] = feature_df[column] / col_range
         return feature_df, target_df
+
+    if dataset_name.startswith("round"):
+        sub_name = dataset_name.split("round")[1].strip()
+        print(sub_name)
+        feature_df, target_df = get_data_sklearn(sub_name)
+        column_dtype = feature_df.dtypes # pylint: disable = no-member
+
+        for i, column in enumerate(feature_df.columns):
+            if column_dtype[i] == "float64":
+                feature_df[column] = feature_df[column].round(decimals=3)
+        return feature_df, target_df
+
 
 
     if dataset_name == 'mimic2-iaccd':
@@ -100,12 +113,12 @@ def get_data_sklearn(
         x, y = synth_ae(data_folder, 200)
         return x, y
     elif dataset_name == 'nursery':
-        return nursery(data_folder)
+        return nursery()
     else:
         raise UnknownDataset(dataset_name)
 
 
-def nursery(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def nursery() -> Tuple[pd.DataFrame, pd.DataFrame]:
     '''
     The sklearn nursery dataset
     '''
@@ -119,20 +132,23 @@ def nursery(data_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     feature_encoder = OneHotEncoder()
     x_encoded = feature_encoder.fit_transform(data['data']).toarray()
     feature_dataframe = pd.DataFrame(x_encoded, columns=feature_encoder.get_feature_names_out())
-    
+
 
     return feature_dataframe, target_dataframe
 
 
-
-def images_to_ndarray(images_dir: str, number_to_load: int, label: int) -> Tuple[np.array, np.array]:
+# Patched to support non-flattened images. Same behaviour as before except if called with flatten=False explicitly.
+def images_to_ndarray(images_dir: str, number_to_load: int, label: int, flatten: bool = True) -> Tuple[np.array, np.array]:
     '''
     Grab number_to_load images from the images_dir and create a np array and label array
     '''
     folder_path = images_dir + os.sep
     images_names = sorted(os.listdir(folder_path))
     images_names = images_names[:number_to_load]
-    np_images = np.array([plt.imread(folder_path + img).flatten() for img in images_names])
+    if flatten:
+        np_images = np.array([plt.imread(folder_path + img).flatten() for img in images_names])
+    else:
+        np_images = np.array([plt.imread(folder_path + img) for img in images_names])
     labels = np.ones((len(np_images), 1), int) * label
     return(np_images, labels)
 
@@ -209,7 +225,7 @@ def synth_ae(data_folder: str, n_rows: int=5000) -> Tuple[pd.DataFrame, pd.DataF
     '''
     First norws (default 5000) rows from the Synthetic A&E data from NHS England
     https://data.england.nhs.uk/dataset/a-e-synthetic-data/resource/81b068e5-6501-4840-a880-a8e7aa56890e
-    ''' 
+    '''
 
     file_path = os.path.join(
         data_folder,

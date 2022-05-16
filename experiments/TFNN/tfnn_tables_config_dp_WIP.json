@@ -1,0 +1,33 @@
+{
+    "datasets": [
+        "mimic2-iaccd",
+        "in-hospital-mortality",
+        "indian liver",
+        "texas hospitals 10"
+    ],
+    "classifiers" : [
+        ["WP1.gm_tfnn.tfwrapper", "TFClassifier"]
+    ],
+    "experiment_params" : {
+        "TFClassifier": {
+            "conv": [false],
+			"regularizer": [null, "l2"],
+			"dropout_rate": [0.0, 0.2],
+			"dense_sizes": [[128,], [128, 128]],
+			"dense_activation": ["relu"],
+			"learning_rate": [0.001]
+			"batch_size": [32, 64],
+			"epochs": [1],
+			"use_dp": [true],
+			"l2_norm_clip": [1.0, 2.5],
+			"epsilon": [0.1, 0.5, 1.0, 3.0, 5.0],
+			"delta": [0.000001],
+			"microbatches": [32, 1]
+        }
+    },
+    "results_filename": "experiments/TFNN/TensorFlowNeuralNetwork_table_loop_results.csv",
+    "n_reps": 1,
+    "mia_classifier": 
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+}

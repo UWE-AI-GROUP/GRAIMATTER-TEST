@@ -297,7 +297,7 @@ def synth_rongauss(X: Any,
             
             
 ##############################################################################
-## Vine Copula (non-GP)                                                     ##
+## Vine Copula (non-DP)                                                     ##
 ##############################################################################
 
 ## Copula synthetic data generator. Empirical marginal CDFs of data F={F_i,i in 1:p} are generated. 

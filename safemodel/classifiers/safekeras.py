@@ -26,15 +26,18 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         # and also l2 norm clipping and learning rates, batch sizes
         self.inputs = None
         if 'inputs' in kwargs.keys():
+            print("inputs is in kwargs.keys")
             self.inputs=the_kwargs['inputs']
+            print(self.inputs)
         elif len(args)==3: #defaults is for Model(input,outputs,names)
+            print("running elif block")
             self.inputs= args[0]
-            
+
         self.outputs= None
         if 'outputs' in kwargs.keys():
             self.outputs=the_kwargs['outputs']
         elif len(args)==3:
-            self.outputs = inputs[1]
+            self.outputs = args[1]
             
         KerasModel.__init__(self,inputs=self.inputs,outputs=self.outputs)
         #KerasModel.__init__(self)

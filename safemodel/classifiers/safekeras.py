@@ -170,7 +170,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
 
         super().compile(opt, loss, metrics)
 
-    def check_optimizer_allowed(optimizer):
+    def check_optimizer_allowed(self, optimizer):
         disclosive = True
         reason = "None"
         allowed_optimizers = [
@@ -178,12 +178,12 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             "tensorflow_privacy.DPKerasAdamOptimizer",
             "tensorflow_privacy.DPKerasSGDOptimizer"
         ]
-        if(optimizer in allowed_optimizers):
+        if(self.optimizer in allowed_optimizers):
             discolsive = False
-            reason = f"optimizer {optimizer} allowed"  
+            reason = f"optimizer {self.optimizer} allowed"  
         else:
             disclosive = True
-            reason = f"optimizer {optimizer} is not allowed"
+            reason = f"optimizer {self.optimizer} is not allowed"
 
         return reason, disclosive
     
@@ -227,21 +227,21 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         msg, disclosive = super().posthoc_check()
         dpusedmessage, dpused = self.check_DP_used(self.optimizer)
         
-        print(optimizer)
-        allowedmessage, allowed = self.check_optimizer_allowed(optimizer)
+        print(self.optimizer)
+        allowedmessage, allowed = self.check_optimizer_allowed(self.optimizer)
         
         ##TODO call dp_epsilon_met()
 
-        ok, current_epsilon = self.dp_epsilon_met(X.shape[0], batch_size, epochs)
-        if(not ok):
-            dpepsilonmessage = f"epsilon is not sufficient for Differential privacy: {current_epsilon}. You must modify one or more of batch_size, epochs, number of samples."
-        else:
-            dpepsilonmessage = f"epsilon is sufficient for Differential privacy: {current_epsilon}."
+        #ok, current_epsilon = self.dp_epsilon_met(X.shape[0], batch_size, epochs)
+        #if(not ok):
+        #    dpepsilonmessage = f"epsilon is not sufficient for Differential privacy: {current_epsilon}. You must modify one or more of batch_size, epochs, number of samples."
+        #else:
+        #    dpepsilonmessage = f"epsilon is sufficient for Differential privacy: {current_epsilon}."
 
         reason = "NO REASON SET"
-        allowedmsg += dpusedmessage
-        allowedmsg += dpepsilonmessage
-        return allowedmsg, reason
+        msg += str(dpusedmessage)
+        #allowedmsg += dpepsilonmessage
+        return msg, reason
         
         #if that is ok and model has been fitted then still need to 
         

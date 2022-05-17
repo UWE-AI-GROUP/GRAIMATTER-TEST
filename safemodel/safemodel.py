@@ -234,7 +234,17 @@ class SafeModel:
         disclosive = False
         msg = ""
         # get dictionaries of parameters
-        current_model = copy.deepcopy(self.__dict__)
+        current_model ={}
+        for key,value in self.__dict__.items():
+            print (f'copying {key}')
+            try:
+                current_model[key]= copy.deepcopy(value)
+            except Exception as t:
+                print(f'...{type(t)} error; {t}')
+            
+                
+            print('...done')
+        print('copied')
         saved_model = current_model.pop("saved_model", "Absent")
 
         if saved_model == "Absent" or saved_model is None:

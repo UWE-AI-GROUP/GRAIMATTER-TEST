@@ -44,7 +44,7 @@ class TestMetrics(unittest.TestCase):
         clf = DummyClassifier()
         testX = []
         testy = TRUE_CLASS
-        metrics = get_metrics(clf, testX, testy)
+        metrics = get_metrics(clf, testX, testy, permute_rows=False)
         self.assertAlmostEqual(metrics['TPR'], 2 / 3)
         self.assertAlmostEqual(metrics['FPR'], 1 / 3)
         self.assertAlmostEqual(metrics['FAR'], 1 / 3)

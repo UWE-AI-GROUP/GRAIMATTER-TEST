@@ -22,7 +22,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         
         print(f'args is a {type(args)} = {args}  kwargs is a {type(kwargs)}= {kwargs}')
         
-        #initialise all the values that get provided as options ot keras
+        #initialise all the values that get provided as options to keras
         # and also l2 norm clipping and learning rates, batch sizes
         self.inputs = None
         if 'inputs' in kwargs.keys():
@@ -38,7 +38,49 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             self.outputs=the_kwargs['outputs']
         elif len(args)==3:
             self.outputs = args[1]
+
+        if 'l2_norm_clip' in kwargs.keys():
+            #set l2_norm_clip is supplied
+            self.l2_norm_clip=the_kwargs['l2_norm_clip']
+        else:
+            #set l2_norm_clip to a default
+            # preliminary_check(apply_constraints=True)
+            # reads value in rules.json
+            # value in rules.json will override this default  
+            self.l2_norm_clip=1.0
+
+        if 'noise_multiplier' in kwargs.keys():
+            #set noise_multiplier if supplied
+            self.noise_multiplier=the_kwargs['noise_multiplier']
+        else:
+            #set noise_multiplier to a default
+            # preliminary_check(apply_constraints=True)
+            # reads value in rules.json
+            # value in rules.json will override this default  
+            self.noise_multiplier = 0.5
+
+        if 'min_epsilon' in kwargs.keys():
+            #set noise_multiplier if supplied
+            self.batch_size=the_kwargs['min_epsilon']
+        else:
+            #set to a default
+            # preliminary_check(apply_constraints=True)
+            # reads value in rules.json
+            # value in rules.json will override this default  
+            self.min_epsilon = 10
+
+        if 'delta' in kwargs.keys():
+            #set noise_multiplier if supplied
+            self.batch_size=the_kwargs['min_epsilon']
+        else:
+            #set to a default
+            # preliminary_check(apply_constraints=True)
+            # reads value in rules.json
+            # value in rules.json will override this default  
+            self.delta = 1e-5
             
+
+
         KerasModel.__init__(self,inputs=self.inputs,outputs=self.outputs)
         #KerasModel.__init__(self)
         SafeModel.__init__(self)
@@ -50,12 +92,14 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         
         #need to move these two to rules.json so they can be set generally by TREs 
         #and read them in here
+        
         self.min_epsilon = 10 #get from json
         self.delta = 1e-5  #get from json
+
         #optional- move this to json - not for nowe
         self.batch_size=25
-        self.l2_norm_clip = 1.0 
-        self.noise_multiplier = 0.5
+        #self.l2_norm_clip = 1.0 
+        #self.noise_multiplier = 0.5
         self.num_microbatches = None
         self.learning_rate = 0.1
         

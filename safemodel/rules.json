@@ -58,11 +58,6 @@
     },
     "KerasModel": {
         "rules": [
-            {
-                "keyword": "optimizer",
-                "operator": "is_type",
-                "value": "tensorflow_privacy.privacy.optimizers.dp_optimizer_keras.make_keras_optimizer_class.<locals>.DPOptimizerClass"
-            },
 	    {
                 "keyword": "l2_norm_clip",
                 "operator": "min",
@@ -82,6 +77,16 @@
                 "keyword": "delta",
                 "operator": "min",
                 "value": 1e-5
+            },
+	    {
+                "keyword": "batch_size",
+                "operator": "min",
+                "value": 1
+            },
+	    {
+                "keyword": "learning_rate",
+                "operator": "min",
+                "value": 0.1
             }
         ]
     },

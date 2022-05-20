@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow_privacy as tf_privacy
 
 from tensorflow.keras import Model as KerasModel
 from safemodel.safemodel import SafeModel  
@@ -61,10 +62,10 @@ class Safe_KerasModel(KerasModel, SafeModel ):
 
         if 'min_epsilon' in kwargs.keys():
             #set noise_multiplier if supplied
-            self.batch_size=the_kwargs['min_epsilon']
+            self.min_epsilon=the_kwargs['min_epsilon']
         else:
             #set to a default
-            # preliminary_check(apply_constraints=True)
+            #preliminary_check(apply_constraints=True)
             # reads value in rules.json
             # value in rules.json will override this default  
             self.min_epsilon = 10
@@ -79,7 +80,40 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             # value in rules.json will override this default  
             self.delta = 1e-5
             
+        if 'batch_size' in kwargs.keys():
+            #set noise_multiplier if supplied
+            self.delta=the_kwargs['batch_size']
+        else:
+            #set to a default
+            # preliminary_check(apply_constraints=True)
+            # reads value in rules.json
+            # value in rules.json will override this default  
+            self.batch_size = 25
 
+        if 'num_microbatches' in kwargs.keys():
+            #set noise_multiplier if supplied
+            self.delta=the_kwargs['num_microbatches']
+        else:
+            #set to a default
+            # preliminary_check(apply_constraints=True)
+            # reads value in rules.json
+            # value in rules.json will override this default  
+            self.num_microbatches = None
+
+        if 'num_microbatches' in kwargs.keys():
+            #set noise_multiplier if supplied
+            self.learning_rate=the_kwargs['learning_rate']
+        else:
+            #set to a default
+            # preliminary_check(apply_constraints=True)
+            # reads value in rules.json
+            # value in rules.json will override this default  
+            self.learning_rate = 0.1
+            
+        if 'optimizer' in kwargs.keys():
+            self.optimizer = the_kwargs['optimizer']
+        else:
+            optimizer = tf_privacy.DPKerasSGDOptimizer
 
         KerasModel.__init__(self,inputs=self.inputs,outputs=self.outputs)
         #KerasModel.__init__(self)
@@ -93,16 +127,15 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         #need to move these two to rules.json so they can be set generally by TREs 
         #and read them in here
         
-        self.min_epsilon = 10 #get from json
-        self.delta = 1e-5  #get from json
+        #self.min_epsilon = 10 #get from json
+        #self.delta = 1e-5  #get from json
 
         #optional- move this to json - not for nowe
-        self.batch_size=25
+        #self.batch_size=25
         #self.l2_norm_clip = 1.0 
         #self.noise_multiplier = 0.5
         self.num_microbatches = None
-        self.learning_rate = 0.1
-        
+        #self.learning_rate = 0.1
         
     #need to be made available to user and provide better feedback if not true 
     #def dp_epsilon_met(num_examples=0:int,batch_size=0:int,epochs=0:int) ->bool:
@@ -121,12 +154,15 @@ class Safe_KerasModel(KerasModel, SafeModel ):
     def fit(self,X,Y,validation_data, epochs, batch_size):
         ###TODO TIDY UP:
         print(X.shape)
+        self.num_samples = X.shape[0]
         #make sure you are passing keywords through - but also checking batch size epochs
         ok, current_epsilon = self.dp_epsilon_met(X.shape[0], batch_size, epochs)
         
         if not ok:
             print(f"Current epsilon is {current_epsilon}")
-            keepgoing = input('this is not going to be ok do you want to continue [Y/N]')
+            msg = f"The requirements for DP are not met, current epsilon is: {current_epsilon}. To attain true DP the following parameters can be changed:  Num Samples = {X.shape[0]}, batch_size = {batch_size}, epochs = {epochs}"
+            print(msg)
+            keepgoing = input('This will not result in a Differentially Private model do you want to continue [Y/N]')
             #behave appropriately
             if((keepgoing != 'Y') and (keepgoing != 'y') and (keepgoing !='yes') and (keepgoing != 'Yes')):
                 print(f"Current epsilon is {current_epsilon}")
@@ -139,17 +175,19 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         else:
             pass
         returnval = super().fit(X, Y, validation_data=validation_data, epochs=epochs, batch_size=batch_size)
-        return returnval
+
+
+        return returnval # super().fit
         
         
     def check_optimizer_is_DP(self, optimizer):
         DPused = False
         reason = "None"
         if ( "_was_dp_gradients_called" not in optimizer.__dict__ ):
-            reason = "optimiser does not contain key _was_dp_gradients_called so is not DP."
+            reason = "optimizer does not contain key _was_dp_gradients_called so is not DP."
             DPused = False
         else:
-            reason = "optimiser does  contain key _was_dp_gradients_called so should be DP."
+            reason = "optimizer does  contain key _was_dp_gradients_called so should be DP."
             DPused = True
         return DPused, reason
 
@@ -157,65 +195,19 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         DPused = False
         reason = "None"
         if ( "_was_dp_gradients_called" not in optimizer.__dict__ ):
-            reason = "optimiser does not contain key _was_dp_gradients_called so is not DP."
+            reason = "optimizer does not contain key _was_dp_gradients_called so is not DP."
             DPused = False
         elif (optimizer._was_dp_gradients_called==False):
-            reason= "optimiser has been changed but fit() has not been rerun."
+            reason= "optimizer has been changed but fit() has not been rerun."
             DPused = False
         elif (optimizer._was_dp_gradients_called==True):
-            reason= " value of optimizer._was_dp_gradients_called is True so DP variant of optimiser has been run"
+            reason= " value of optimizer._was_dp_gradients_called is True so DP variant of optimizer has been run"
             DPused=True
         else:
             reason = "unrecognised combination"
             DPused = False
             
         return DPused, reason
-
-    def compile(self,optimizer=None, loss='categorical_crossentropy', metrics=['accuracy']):
-        import tensorflow_privacy as tf_privacy
-        batch_size=self.batch_size
-        l2_norm_clip = self.l2_norm_clip 
-        noise_multiplier = self.noise_multiplier
-        num_microbatches = self.num_microbatches
-        learning_rate = self.learning_rate
-
-        if(self.optimizer == "None"):
-            opt = tf_privacy.DPKerasSGDOptimizer(
-            l2_norm_clip=l2_norm_clip,
-            noise_multiplier=noise_multiplier,
-            num_microbatches=num_microbatches,
-            learning_rate=learning_rate)
-
-        if(self.optimizer == "Adagrad"):
-            opt = tf_privacy.DPKerasAdagradOptimizer(
-                l2_norm_clip=l2_norm_clip,
-                noise_multiplier=noise_multiplier,
-                num_microbatches=num_microbatches,
-                learning_rate=learning_rate)
-
-        elif(self.optimizer == "Adam"):
-            opt = tf_privacy.DPKerasAdamOptimizer(
-                l2_norm_clip=l2_norm_clip,
-                noise_multiplier=noise_multiplier,
-                num_microbatches=num_microbatches,
-                learning_rate=learning_rate)
-
-        elif(self.optimizer == "SGD"):
-            opt = tf_privacy.DPKerasSGDOptimizer(
-            l2_norm_clip=l2_norm_clip,
-            noise_multiplier=noise_multiplier,
-            num_microbatches=num_microbatches,
-            learning_rate=learning_rate)
-
-        else:
-            opt = tf_privacy.DPKerasSGDOptimizer(
-            l2_norm_clip=l2_norm_clip,
-            noise_multiplier=noise_multiplier,
-            num_microbatches=num_microbatches,
-            learning_rate=learning_rate)
-
-
-        super().compile(opt, loss, metrics)
 
     def check_optimizer_allowed(self, optimizer):
         disclosive = True
@@ -225,6 +217,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             "tensorflow_privacy.DPKerasAdamOptimizer",
             "tensorflow_privacy.DPKerasSGDOptimizer"
         ]
+        print(f"{str(self.optimizer)}")
         if(self.optimizer in allowed_optimizers):
             discolsive = False
             reason = f"optimizer {self.optimizer} allowed"  
@@ -232,8 +225,78 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             disclosive = True
             reason = f"optimizer {self.optimizer} is not allowed"
 
-        return reason, disclosive
+        return disclosive, reason
     
+
+    
+    def compile(self,optimizer=None, loss='categorical_crossentropy', metrics=['accuracy']):
+
+        batch_size=self.batch_size
+        l2_norm_clip = self.l2_norm_clip 
+        noise_multiplier = self.noise_multiplier
+        num_microbatches = self.num_microbatches
+        learning_rate = self.learning_rate
+        
+        #print(optimizer)
+        if(self.optimizer == None):
+            print("Changed parameter optimizer = 'DPKerasSGDOptimizer'")
+            self.optimizer=tf_privacy.DPKerasSGDOptimizer
+            opt = tf_privacy.DPKerasSGDOptimizer(
+                l2_norm_clip=l2_norm_clip,
+                noise_multiplier=noise_multiplier,
+                num_microbatches=num_microbatches,
+                learning_rate=learning_rate)
+
+        if(self.optimizer == "None"):
+            print("Changed parameter optimizer = 'DPKerasSGDOptimizer'")
+            opt = tf_privacy.DPKerasSGDOptimizer(
+                l2_norm_clip=l2_norm_clip,
+                noise_multiplier=noise_multiplier,
+                num_microbatches=num_microbatches,
+                learning_rate=learning_rate)
+            
+        if(self.optimizer == "Adagrad"):
+            print("WARNING: model parameters may present a disclosure risk")
+            print("Changed parameter optimizer = 'DPKerasAdagradOptimizer'")
+            opt = tf_privacy.DPKerasAdagradOptimizer(
+                l2_norm_clip=l2_norm_clip,
+                noise_multiplier=noise_multiplier,
+                num_microbatches=num_microbatches,
+                learning_rate=learning_rate)
+            
+        elif(self.optimizer == "Adam"):
+            print("WARNING: model parameters may present a disclosure risk")
+            print("Changed parameter optimizer = 'DPKerasAdamOptimizer'")
+            opt = tf_privacy.DPKerasAdamOptimizer(
+                l2_norm_clip=l2_norm_clip,
+                noise_multiplier=noise_multiplier,
+                num_microbatches=num_microbatches,
+                learning_rate=learning_rate)
+            
+        elif(self.optimizer == "SGD"):
+            print("WARNING: model parameters may present a disclosure risk")
+            print("Changed parameter optimizer = 'DPKerasSGDOptimizer'")
+            opt = tf_privacy.DPKerasSGDOptimizer(
+                l2_norm_clip=l2_norm_clip,
+                noise_multiplier=noise_multiplier,
+                num_microbatches=num_microbatches,
+                learning_rate=learning_rate)
+            
+        else:
+            print("WARNING: model parameters may present a disclosure risk")
+            print(f"Unknown optimizer {self.optimizer} - Changed parameter optimizer = 'DPKerasSGDOptimizer'")
+            opt = tf_privacy.DPKerasSGDOptimizer(
+                l2_norm_clip=l2_norm_clip,
+                noise_multiplier=noise_multiplier,
+                num_microbatches=num_microbatches,
+                learning_rate=learning_rate)
+            
+
+        super().compile(opt, loss, metrics)
+        ok, reason = self.check_DP_used(opt)
+        print(f"DP optimizer used = {ok}")
+        print(reason)
+
     def additional_checks(
             self, curr_separate: dict, saved_separate: dict  ) -> tuple[str, str]:
         """Placeholder function for additional posthoc checks e.g. keras this
@@ -278,16 +341,23 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         allowedmessage, allowed = self.check_optimizer_allowed(self.optimizer)
         
         ##TODO call dp_epsilon_met()
+        self.epochs = 20
+        ok, current_epsilon = self.dp_epsilon_met(num_examples=self.num_samples, batch_size=self.batch_size, epochs=self.epochs)
+        if(not ok):
+            dpepsilonmessage = f"epsilon is not sufficient for Differential privacy: {current_epsilon}. You must modify one or more of batch_size, epochs, number of samples."
+        else:
+            dpepsilonmessage = f"epsilon is sufficient for Differential privacy: {current_epsilon}."
 
-        #ok, current_epsilon = self.dp_epsilon_met(X.shape[0], batch_size, epochs)
-        #if(not ok):
-        #    dpepsilonmessage = f"epsilon is not sufficient for Differential privacy: {current_epsilon}. You must modify one or more of batch_size, epochs, number of samples."
-        #else:
-        #    dpepsilonmessage = f"epsilon is sufficient for Differential privacy: {current_epsilon}."
+        theType= type(self.optimizer)
+        print(f'optimiser is type {theType}')
 
-        reason = "NO REASON SET"
-        msg += str(dpusedmessage)
-        #allowedmsg += dpepsilonmessage
+        dpused,reason = self.check_DP_used(self.optimizer)
+        msg2 = (f' It is {dpused} that the model will be DP because {reason}')
+
+        msg = msg + msg2
+        msg = msg + dpepsilonmessage
+        print(msg)
+        print(reason)
         return msg, reason
         
         #if that is ok and model has been fitted then still need to 
@@ -295,8 +365,8 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         
         
 
-        # check if provided optimiswer is one of the allowed types
-        #dp_optimisers = (
+        # check if provided optimizer is one of the allowed types
+        #dp_optimizers = (
         #    "tensorflow_privacy.DPKerasAdagradOptimizer",
         #    "tensorflow_privacy.DPKerasAdamOptimizer",
         #    "tensorflow_privacy.DPKerasSGDOptimizer",

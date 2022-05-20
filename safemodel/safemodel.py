@@ -340,6 +340,15 @@ class SafeModel:
                             )
                             disclosive = True
                             break
+
+
+        if(is_dp_used):
+            msg2 = "- DP - Differentially private optimizer has been used"
+        else:
+            disclosive = True
+            msg2 = "- Not DP -Standard (disclosive) optimizer has been used"
+
+        msg = msg + msg2
         return msg, disclosive
 
     def request_release(self, filename: str = "undefined") -> None:

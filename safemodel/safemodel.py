@@ -12,6 +12,10 @@ from typing import Any
 import joblib
 from dictdiffer import diff
 
+import logging 
+logger = logging.getLogger(__file__)
+logger.setLevel(logging.DEBUG)
+
 
 def check_min(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
     """Checks minimum value constraint."""
@@ -236,15 +240,15 @@ class SafeModel:
         # get dictionaries of parameters
         current_model ={}
         for key,value in self.__dict__.items():
-            print (f'copying {key}')
+            logger.debug(f'copying {key}')
             try:
                 current_model[key]= copy.deepcopy(value)
             except Exception as t:
-                print(f'...{type(t)} error; {t}')
+                logger.warning(f'...{type(t)} error; {t}')
             
                 
-            print('...done')
-        print('copied')
+            logger.debug('...done')
+        logger.info('copied')
         saved_model = current_model.pop("saved_model", "Absent")
 
         if saved_model == "Absent" or saved_model is None:

@@ -71,7 +71,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
 
         if 'delta' in kwargs.keys():
             #set noise_multiplier if supplied
-            self.batch_size=the_kwargs['min_epsilon']
+            self.delta=the_kwargs['delta']
         else:
             #set to a default
             # preliminary_check(apply_constraints=True)

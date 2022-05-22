@@ -18,6 +18,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Creates model and applies constraints to params"""
+
         the_args = args
         the_kwargs = kwargs
         
@@ -119,6 +120,21 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         #KerasModel.__init__(self)
         SafeModel.__init__(self)
 
+        self.ignore_items = [
+            "_obj_reference_counts_dict",
+            "_thread_local",
+            "_metrics_lock",
+            "_trackable_saver",
+            "_self_unconditional_checkpoint_dependencies",
+            "_self_unconditional_dependency_names",
+            "compiled_loss",
+            "compiled_metrics",
+            "history",
+            "train_function",
+            "test_function",
+            "train_tf_function",
+            "optimizer"
+        ]
 
         self.model_type: str = "KerasModel"
         super().preliminary_check(apply_constraints=True, verbose=True)

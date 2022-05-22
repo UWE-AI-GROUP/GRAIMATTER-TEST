@@ -244,6 +244,7 @@ class SafeModel:
             try:
                 current_model[key]= copy.deepcopy(value)
             except Exception as t:
+                logger.warning(f'{key} cannot be copied')
                 logger.warning(f'...{type(t)} error; {t}')
             
                 

@@ -133,7 +133,10 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             "train_function",
             "test_function",
             "train_tf_function",
-            "optimizer"
+            "optimizer",
+
+            "model_save_file",
+            "ignore_items"
         ]
 
         self.model_type: str = "KerasModel"

@@ -16,14 +16,14 @@ repos:
     rev: v2.1.0
     hooks:
       - id: codespell
-        args: ["-L", "fpr, tre, sav"]
+        args: ["-L", "fpr, tre, sav, hist"]
         exclude: >
             (?x)^(
                 .*\.svg|
                 .*\.ipynb
             )$
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.30.0
+    rev: v2.32.0
     hooks:
       - id: pyupgrade
   - repo: https://github.com/PyCQA/isort
@@ -32,7 +32,7 @@ repos:
       - id: isort
         args: ["--profile", "black"]
   - repo: https://github.com/psf/black
-    rev: 22.1.0
+    rev: 22.3.0
     hooks:
       - id: black-jupyter
 ...

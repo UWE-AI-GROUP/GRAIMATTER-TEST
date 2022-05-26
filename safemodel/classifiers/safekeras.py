@@ -121,22 +121,113 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         SafeModel.__init__(self)
 
         self.ignore_items = [
-            "_obj_reference_counts_dict",
-            "_thread_local",
-            "_metrics_lock",
-            "_trackable_saver",
-            "_self_unconditional_checkpoint_dependencies",
-            "_self_unconditional_dependency_names",
-            "compiled_loss",
-            "compiled_metrics",
-            "history",
-            "train_function",
-            "test_function",
-            "train_tf_function",
-            "optimizer",
+            '_activity_regularizer',
+            '_auto_track_sub_layers',
+            '_autocast',
+            '_base_model_initialized',
+            '_build_input_shape',
+            '_callable_losses',
+            '_cluster_coordinator',
+            '_compiled_trainable_state',
+            '_compute_dtype_object',
+            '_compute_output_and_mask_jointly',
+            '_default_training_arg',
+            '_distribution_strategy',
+            '_dtype_policy',
+            '_dynamic',
+            '_enable_dict_to_input_mapping',
+            '_expects_mask_arg',
+            '_expects_training_arg',
+            '_feed_input_names',
+            '_feed_input_shapes',
+            '_feed_inputs',
+            '_inbound_nodes_value',
+            '_initial_weights',
+            '_input_coordinates',
+            '_input_layers',
+            '_input_spec',
+            '_instrumented_keras_api',
+            '_instrumented_keras_layer_class',
+            '_instrumented_keras_model_class',
+            '_is_compiled',
+            '_is_graph_network',
+            '_is_model_for_instrumentation',
+            '_jit_compile',
+            '_layer_call_argspecs',
+            '_losses',
+            '_metrics',
+            '_metrics_lock',
+            '_name',
+            '_nested_inputs',
+            '_nested_outputs',
+            '_network_nodes',
+            '_nodes_by_depth',
+            '_non_trainable_weights',
+            '_obj_reference_counts_dict',
+            '_outbound_nodes_value',
+            '_outer_name_scope',
+            '_output_coordinates',
+            '_output_layers',
+            '_output_mask_cache',
+            '_output_shape_cache',
+            '_output_tensor_cache',
+            '_predict_counter',
+            '_preserve_input_structure_in_config',
+            '_run_eagerly',
+            '_saved_model_arg_spec',
+            '_saved_model_inputs_spec',
+            '_self_name_based_restores',
+            '_self_saveable_object_factories',
+            '_self_setattr_tracking',
+            '_self_tracked_trackables',
+            '_self_unconditional_checkpoint_dependencies',
+            '_self_unconditional_deferred_dependencies',
+            '_self_unconditional_dependency_names',
+            '_self_update_uid',
+            '_stateful',
+            '_steps_per_execution',
+            '_supports_masking',
+            '_tensor_usage_count',
+            '_test_counter',
+            '_thread_local',
+            '_trackable_saver',
+            '_train_counter',
+            '_trainable',
+            '_trainable_weights',
+            '_training_state',
+            '_updates',
+            #'batch_size',
+            'built',
+            'compiled_loss',
+            'compiled_metrics',
+            #'delta',
+            'examine_seperately_items',
+            'filename',
+            'history',
+            'ignore_items',
+            'input_names',
+            'inputs',
+            #'l2_norm_clip',
+            #'learning_rate',
+            'loss',
+            #'min_epsilon',
+            'model',
+            'model_save_file',
+            'model_type',
+            #'noise_multiplier',
+            #'num_microbatches',
+            #'num_samples',
+            #'optimizer',
+            'output_names',
+            'outputs',
+            'predict_function',
+            'researcher',
+            'saved_model',
+            'stop_training',
+            'test_function',
+            'train_function',
+            'train_tf_function'
 
-            "model_save_file",
-            "ignore_items"
         ]
 
         self.model_type: str = "KerasModel"
@@ -266,7 +357,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
                 num_microbatches=num_microbatches,
                 learning_rate=learning_rate)
 
-        if(self.optimizer == "None"):
+        elif(self.optimizer == "None"):
             print("Changed parameter optimizer = 'DPKerasSGDOptimizer'")
             opt = tf_privacy.DPKerasSGDOptimizer(
                 l2_norm_clip=l2_norm_clip,
@@ -274,7 +365,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
                 num_microbatches=num_microbatches,
                 learning_rate=learning_rate)
             
-        if(self.optimizer == "Adagrad"):
+        elif(self.optimizer == "Adagrad"):
             print("WARNING: model parameters may present a disclosure risk")
             print("Changed parameter optimizer = 'DPKerasAdagradOptimizer'")
             opt = tf_privacy.DPKerasAdagradOptimizer(
@@ -363,20 +454,22 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         self.epochs = 20
         ok, current_epsilon = self.dp_epsilon_met(num_examples=self.num_samples, batch_size=self.batch_size, epochs=self.epochs)
         if(not ok):
-            dpepsilonmessage = f"epsilon is not sufficient for Differential privacy: {current_epsilon}. You must modify one or more of batch_size, epochs, number of samples."
+            dpepsilonmessage = f"; however, epsilon is not sufficient for Differential privacy: {current_epsilon}. You must modify one or more of batch_size, epochs, number of samples."
         else:
-            dpepsilonmessage = f"epsilon is sufficient for Differential privacy: {current_epsilon}."
+            dpepsilonmessage = f" and epsilon is sufficient for Differential privacy: {current_epsilon}."
 
         theType= type(self.optimizer)
-        print(f'optimiser is type {theType}')
+        #print(f'optimiser is type {theType}')
 
         dpused,reason = self.check_DP_used(self.optimizer)
-        msg2 = (f' It is {dpused} that the model will be DP because {reason}')
+        if(dpused):
+            msg2 = (f' The model will be DP because {reason}')
+        else:
+            msg2 = (f' The model will not be DP because {reason}')
 
         msg = msg + msg2
         msg = msg + dpepsilonmessage
-        print(msg)
-        print(reason)
+        
         return msg, reason
         
         #if that is ok and model has been fitted then still need to 

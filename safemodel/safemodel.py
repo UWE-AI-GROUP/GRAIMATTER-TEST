@@ -99,7 +99,9 @@ class SafeModel:
            possible back door into attacks. 
         """
         if(hasattr(self,optimizer)):
-           del self.optimizer 
+            pass
+            #self.optimizer = self.optimizer.pop(-1)
+        
 
         self.model_save_file = name
         while self.model_save_file == "undefined":
@@ -242,7 +244,7 @@ class SafeModel:
         for key,value in self.__dict__.items():
             logger.debug(f'copying {key}')
             try:
-                current_model[key]= copy.deepcopy(value)
+                current_model[key] = copy.deepcopy(value)
             except Exception as t:
                 logger.warning(f'{key} cannot be copied')
                 logger.warning(f'...{type(t)} error; {t}')
@@ -250,6 +252,7 @@ class SafeModel:
                 
             logger.debug('...done')
         logger.info('copied')
+
         saved_model = current_model.pop("saved_model", "Absent")
 
         if saved_model == "Absent" or saved_model is None:

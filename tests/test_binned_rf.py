@@ -36,7 +36,7 @@ class TestBinning(unittest.TestCase):
         self.assertEqual(binned_probs[2, 1], 0.1)
         self.assertEqual(binned_probs[3, 0], 1.0)
         self.assertEqual(binned_probs[3, 1], 0.0)
-        
+
 
     def test_5_bins(self):
         '''5 bins'''
@@ -61,7 +61,7 @@ class TestBinnedOutput(unittest.TestCase):
         rf = RFBinnedOutput(n_probability_bins=0)
         rf.fit(X, y)
         probs_new = rf.predict_proba(X)
-        probs_old = super(RFBinnedOutput, rf).predict_proba(X)
+        probs_old = rf.original_predict_proba(X)
         self.assertTrue((probs_new == probs_old).all())
 
     def test_ten_bins(self):
@@ -71,7 +71,7 @@ class TestBinnedOutput(unittest.TestCase):
         rf = RFBinnedOutput(n_probability_bins=10)
         rf.fit(X, y)
         probs_new = rf.predict_proba(X)
-        probs_old = super(RFBinnedOutput, rf).predict_proba(X)
+        probs_old = rf.original_predict_proba(X)
         self.assertFalse((probs_new == probs_old).all())
 
         for i, row in enumerate(probs_old):
@@ -85,5 +85,3 @@ class TestBinnedOutput(unittest.TestCase):
             for j, val in enumerate(norm_row):
                 # print(probs_old[i, :], print(norm_row))#, print(probs_new[i, :]))
                 self.assertAlmostEqual(val, probs_new[i, j])
-
-        

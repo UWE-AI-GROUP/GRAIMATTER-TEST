@@ -28,11 +28,11 @@ def bin_probabilities(probs: np.ndarray, n_probability_bins: int) -> np.ndarray:
 
     # Re-normalise, just to be safe
     binned_probs /= binned_probs.sum(axis=1)[:, None]
-    return(binned_probs)
+    return binned_probs
 
 class RFBinnedOutput(RandomForestClassifier):
     '''
-    Class to 
+    Class to provide RF functionality but with probabilities binned
     '''
     def __init__(self, n_probability_bins=10, **kwargs):
         super().__init__(**kwargs)
@@ -46,6 +46,10 @@ class RFBinnedOutput(RandomForestClassifier):
             return probs
         else:
             return bin_probabilities(probs, self.n_probability_bins)
+
+    def original_predict_proba(self, X: np.ndarray) -> np.ndarray:
+        '''Wraps original pred_probs. Only used for testing'''
+        return super().predict_proba(X)
 
 
 

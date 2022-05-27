@@ -236,14 +236,17 @@ class SafeModel:
 
     def posthoc_check(self) -> tuple[str, str]:
         """Checks whether model has been interfered with since fit() was last run"""
-
+        import copy
         disclosive = False
         msg = ""
         # get dictionaries of parameters
         current_model ={}
-        for key,value in self.__dict__.items():
+        keyscopy = copy.copy(list(self.__dict__.keys()))#have to convert what keys() returns into a list
+        for key in keyscopy:#jim added so we are iterating over a list, not the dictionary itself
+        #for key,value in self.__dict__.items():
             logger.debug(f'copying {key}')
             try:
+                value = self.__dict__[key]#jim added
                 current_model[key] = copy.deepcopy(value)
             except Exception as t:
                 logger.warning(f'{key} cannot be copied')

@@ -388,7 +388,7 @@ Please download from https://physionet.org/content/mimic2-iaccd/1.0/full_cohort_
     # extract target
     target = 'censor_flg'
     y = input_data[target]
-    X = input_data.drop([target], axis=1)
+    X = input_data.drop([target, 'mort_day_censored'], axis=1)
 
     label_encoder = LabelEncoder()
     encoded_labels = label_encoder.fit_transform(y.values)

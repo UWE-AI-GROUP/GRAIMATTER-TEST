@@ -1,6 +1,7 @@
 '''
 A Random forest with discretised output probabilities
 '''
+from random import Random
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -52,12 +53,33 @@ class RFBinnedOutput(RandomForestClassifier):
         return super().predict_proba(X)
 
 
+class RFNoiseOutput(RandomForestClassifier):
+    '''Just checking adding noise to the probs'''
+    def __init__(self, noise_var=0.01, **kwargs):
+        super().__init__(**kwargs)
+        self.noise_var = noise_var
+    
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        '''Wrap predict proba and add noise'''
+        probs = super().predict_proba(X)
+        probs = np.log(probs + 0.01) # avoid log(0)
+        probs += np.random.normal(scale = np.sqrt(self.noise_var), size=probs.shape)
+        probs = np.exp(probs)
+        probs /= probs.sum(axis=1)[:, None]
+        return(probs)
+
+    def original_predict_proba(self, X: np.ndarray) -> np.ndarray:
+        '''Wraps original pred_probs. Only used for testing'''
+        return super().predict_proba(X)
+
 
 if __name__ == '__main__':
-    rr = RFBinnedOutput(min_samples_split=2, n_probability_bins=5)
+    rr = RFNoiseOutput(noise_var=10)
     from data_preprocessing.data_interface import get_data_sklearn
     X, y = get_data_sklearn('mimic2-iaccd')
     rr.fit(X.values, y.values.flatten())
 
     probs = rr.predict_proba(X.values)
-    print(probs)
+    oprobs = rr.original_predict_proba(X.values)
+
+    print(np.hstack((probs, oprobs)))

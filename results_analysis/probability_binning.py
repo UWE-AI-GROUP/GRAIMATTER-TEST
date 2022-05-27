@@ -15,6 +15,8 @@ plt.rc('font', **font)
 
 # %%
 RESULTS_FILE = "../experiments/RF/binned_rf_results.csv"
+RESULTS_FILE = "../experiments/RF/noise_rf_results.csv"
+
 results_df = pd.read_csv(RESULTS_FILE)
 
 # %%
@@ -26,7 +28,8 @@ HYP_NAMES = [
     "max_depth"
 ]
 
-P_NAME = ['n_probability_bins']
+# P_NAME = ['n_probability_bins']
+P_NAME = ['noise_var']
 
 MET_NAMES = [
     "mia_FDIF"
@@ -37,19 +40,23 @@ a = temp_df.pivot(index = HYP_NAMES, columns = P_NAME[0], values = MET_NAMES[0])
 
 # %%
 plot_vals = [3, 5, 10, 20]
+plot_vals = [0.01, 0.1, 1.0, 10.0]
 pos = 1
 fig, axes = plt.subplots(nrows=1, ncols=4, figsize=(20, 8))
 fig.tight_layout()
 for p in plot_vals:
     plt.subplot(1, 4, pos)
-    plt.scatter(a[0], a[p])
+    # plt.scatter(a[0], a[p])
+    plt.scatter(a[0.001], a[p])
     xl = plt.xlim()
     yl = plt.ylim()
     xr = [min(xl[0], yl[0]), max(xl[1], yl[1])]
     plt.plot(xr, xr, 'k--')
-    plt.xlabel('Standard Probs')
-    plt.ylabel(f'{p} bins')
+    # plt.xlabel('Standard Probs')
+    plt.xlabel(f'noise var {0.001}')
+    # plt.ylabel(f'{p} bins')
+    plt.ylabel(f'noise_var {p}')
     plt.title(MET_NAMES[0])
     pos += 1
-plt.savefig(f'binned_{MET_NAMES[0]}.png')
+plt.savefig(f'noise_{MET_NAMES[0]}.png')
 # %%

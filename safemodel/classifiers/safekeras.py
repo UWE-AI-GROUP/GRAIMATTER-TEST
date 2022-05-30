@@ -83,7 +83,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             
         if 'batch_size' in kwargs.keys():
             #set noise_multiplier if supplied
-            self.delta=the_kwargs['batch_size']
+            self.batch_size = int(the_kwargs['batch_size'])
         else:
             #set to a default
             # preliminary_check(apply_constraints=True)

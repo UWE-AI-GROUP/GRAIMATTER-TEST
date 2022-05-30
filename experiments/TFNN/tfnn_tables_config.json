@@ -1,28 +1,27 @@
 {
     "datasets": [
-        "medical-mnist-ab-v-br-100",
-        "medical-mnist-ab-v-br-500",
+        "mimic2-iaccd",
+        "in-hospital-mortality",
+        "indian liver",
+        "texas hospitals 10"
     ],
     "classifiers" : [
         ["WP1.gm_tfnn.tfwrapper", "TFClassifier"]
     ],
     "experiment_params" : {
         "TFClassifier": {
-            "conv": [true],
-			"conv_sizes": [[64,], [64, 64]],
-			"conv_kernel_size": [[3, 3], [5, 5]],
-			"conv_activation": ["tanh", "relu"],
+            "conv": [false],
 			"regularizer": [null, "l2"],
 			"dropout_rate": [0.0, 0.2],
-			"dense_sizes": [[128,], [128, 128]],
+			"dense_sizes": [[128], [128, 128]],
 			"dense_activation": ["relu"],
 			"learning_rate": [0.001],
 			"batch_size": [32, 64],
-			"epochs": [1]
+			"epochs": [10]
         }
     },
-    "results_filename": "experiments/TFNN/TensorFlowNeuralNetwork_images_loop_results.csv",
-    "n_reps": 1,
+    "results_filename": "experiments/TFNN/TensorFlowNeuralNetwork_table_loop_results.csv",
+    "n_reps": 5,
     "mia_classifier": 
         ["sklearn.ensemble", "RandomForestClassifier"],
     "scenarios": ["WorstCase", "Salem1", "Salem2"]

@@ -98,10 +98,6 @@ class SafeModel:
            To prevent possible to restart training and thus 
            possible back door into attacks. 
         """
-        if(hasattr(self,optimizer)):
-            pass
-            #self.optimizer = self.optimizer.pop(-1)
-        
 
         self.model_save_file = name
         while self.model_save_file == "undefined":
@@ -349,13 +345,13 @@ class SafeModel:
                             break
 
 
-        if(is_dp_used):
-            msg2 = "- DP - Differentially private optimizer has been used"
-        else:
-            disclosive = True
-            msg2 = "- Not DP -Standard (disclosive) optimizer has been used"
+#        if(is_dp_used):
+#           msg2 = "- DP - Differentially private optimizer has been used"
+#       else:
+#            disclosive = True
+#            msg2 = "- Not DP -Standard (disclosive) optimizer has been used"
 
-        msg = msg + msg2
+        msg = msg # + msg2
         return msg, disclosive
 
     def request_release(self, filename: str = "undefined") -> None:

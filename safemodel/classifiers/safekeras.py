@@ -83,7 +83,7 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             
         if 'batch_size' in kwargs.keys():
             #set noise_multiplier if supplied
-            self.delta=the_kwargs['batch_size']
+            self.batch_size = int(the_kwargs['batch_size'])
         else:
             #set to a default
             # preliminary_check(apply_constraints=True)
@@ -433,10 +433,21 @@ class Safe_KerasModel(KerasModel, SafeModel ):
                             disclosive = True
                             break
 
-        msg2, disclosive2 = check_optimizer_allowed(optimizer)
-        if(disclosive2 == True):
-            disclosive = True
 
+        ok, reason = check_optimizer_is_DP( self.optimizer )
+        if(ok):
+          msg2 = "- DP - Differentially private optimizer has been used"
+        else:
+          disclosive = True
+          msg2 = "- Not DP -Standard (disclosive) optimizer has been used"
+
+          msg = msg + msg2
+          return msg, disclosive
+
+        #msg2, disclosive2 = check_optimizer_allowed(optimizer)
+        #if(disclosive2 == True):
+        #    disclosive = True
+          
         return msg+msg2, disclosive
 
 

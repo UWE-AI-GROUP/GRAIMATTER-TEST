@@ -5,6 +5,7 @@ Do a comparison between scenarios present in a results file
 import os
 import logging
 import glob
+from matplotlib.style import context
 import pandas as pd
 import pylab as plt
 
@@ -16,7 +17,7 @@ ROOT_FOLDER = "~/studies/GRAIMatter/"
 logging.info(ROOT_FOLDER)
 
 # %%
-result_file_names = glob.glob("../results/from_aws/*_corrected.csv")
+result_file_names = glob.glob("results/from_aws/*_corrected.csv")
 
 results = pd.DataFrame()
 for f in result_file_names:
@@ -65,6 +66,8 @@ for classifier in classifiers:
         # plt.subplots(nrows=nrows, ncols=ncols, figsize=(20, 45))
         index = 0
         for row, dataset in enumerate(datasets):
+            if dataset == 'mimic2-iaccd':
+                continue
             conditions['dataset'] = dataset
             for scenario in results_df['scenario'].unique():
                 conditions['scenario'] = scenario
@@ -125,50 +128,13 @@ stat_df.to_csv(
     index=False
 )
 
-        # %%
-        nrows = len(datasets)
-        n_scenario_pairs = int((3 * (3 - 1)) / 2)
-        ncols = n_scenario_pairs
-        plt.subplots(nrows=nrows, ncols=ncols, figsize=(20, 45))
-        index = 0
-        for row, dataset in enumerate(datasets):
-            conditions['dataset'] = dataset
-            for scenario in results_df['scenario'].unique():
-                conditions['scenario'] = scenario
-                scenario_specifics[scenario] = filter_df(results_df, conditions)[['param_id', 'repetition', metric]]
-                scenario_specifics[scenario][f'{scenario}_{metric}'] = scenario_specifics[scenario][metric]
-                scenario_specifics[scenario].drop(metric, axis=1, inplace=True)
-            for s1 in list(scenario_specifics.keys())[:-1]:
-                for s2 in list(scenario_specifics.keys())[1:]:
-                    if s1 == s2:
-                        continue
-                    index += 1
-                    diff = pd.merge(
-                            scenario_specifics[s1],
-                            scenario_specifics[s2],
-                            how='inner',
-                            on=['param_id', 'repetition']
-                        )
-                    col1 = f'{s1}_{metric}'
-                    col2 = f'{s2}_{metric}'
-                    plt.subplot(nrows, ncols, index)
-                    plt.plot(diff[col1], diff[col2], 'o', color=[0, 0, 0.7, 0.5])
-                    plt.xlabel(col1)
-                    plt.ylabel(col2)
-                    plt.title(f"{conditions['dataset']}")
-                    mi = min(plt.xlim()[0], plt.ylim()[0])
-                    ma = max(plt.xlim()[1], plt.ylim()[1])
-
-                    plt.plot([mi, ma], [mi, ma], 'k')
-        plt.tight_layout()
-        plt.savefig(f'{classifier}_{metric}_scatter_scatter_grid.png')
-        # %%
+    
 
 # %%
 # Analyse stat_df -- is worst case always worse
 
 scenario_1 = 'WorstCase'
-scenario_2 = 'Salem2'
+scenario_2 = 'Salem1'
 a = []
 b = []
 
@@ -195,20 +161,94 @@ q = pd.DataFrame({'metric': metrics, f'N {scenario_1} > {scenario_2}': a, f'N {s
 
 # Look at the range of a metric for the same params across datasets
 classifiers = results['target_classifier'].unique()
-classifier = 'RandomForestClassifier '
-sub = filter_df(results, {'target_classifier': classifier, 'scenario': 'WorstCase'})
-pid = sub['param_id'].unique()
-metric = 'mia_AUC'
-import numpy as np
-temp = sub.groupby(['param_id', 'repetition']).agg(
-    mean_metric = pd.NamedAgg(column=metric, aggfunc=np.mean)
-).ungroup().groupby('param_id').agg(
-    max_metric = pd.NamedAgg(column=metric, aggfunc=max),
-    min_metric = pd.NamedAgg(column=metric, aggfunc=min)
-)
-temp['diff'] = temp['max_metric'] - temp['min_metric']
-plt.scatter(temp['min_metric'], temp['max_metric'], color=[0.3, 0.3, 0.3, 0.3])
-plt.xlabel(f'Min {metric}')
-plt.ylabel(f'Max {metric}')
+for classifier in classifiers:
+    sub = filter_df(results, {'target_classifier': classifier, 'scenario': 'WorstCase'})
+    pid = sub['param_id'].unique()
+    metric = 'mia_Advantage'
+    import numpy as np
+    temp = sub.groupby(['param_id', 'dataset']).agg(
+        mean_metric = pd.NamedAgg(column=metric, aggfunc=np.mean)
+    ).reset_index().groupby('param_id').agg(
+        max_metric = pd.NamedAgg(column='mean_metric', aggfunc=max),
+        min_metric = pd.NamedAgg(column='mean_metric', aggfunc=min)
+    )
+    temp['diff'] = temp['max_metric'] - temp['min_metric']
+    plt.figure()
+    plt.scatter(temp['min_metric'], temp['max_metric'], color=[0.3, 0.3, 0.3, 0.3])
+    plt.xlabel(f'Min {metric}')
+    plt.ylabel(f'Max {metric}')
+    plt.title(classifier)
+    plot_name = os.path.join(plot_folder, f'{classifier}_{metric}_range.png')
+    plt.savefig(plot_name)
 
+# %%
+# Find a RF that is bad, and steal it's params
+dataset = 'mimic2-iaccd'
+classifier = 'RandomForestClassifier '
+temp = filter_df(results, conditions = {
+    'dataset': dataset,
+    'target_classifier': classifier,
+    'scenario': 'WorstCase'
+})
+
+temp = temp[temp.mia_AUC == max(temp.mia_AUC)]
+print(temp.mia_AUC)
+print(temp.min_samples_split)
+print(temp.min_samples_leaf)
+print(temp.max_depth)
+# %%
+from scipy.stats import ttest_rel
+def comparison(results_df, metric, conditions, scenario_1, scenario_2, plot=True, save_plot=None):
+    if len(conditions) > 0:
+        sub_df = filter_df(results_df, conditions)[['param_id', 'repetition', metric, 'scenario']]
+    else:
+        sub_df = results_df
+    pivoted = pd.pivot_table(sub_df, index=['param_id', 'repetition'], values=[metric], columns=['scenario'])
+    pivoted.reset_index(inplace=True)
+    if plot:
+        plt.figure(figsize=(12, 5))
+        plt.subplot(1, 2, 1)
+        plt.hist(pivoted[metric][scenario_1] - pivoted[metric][scenario_2])
+        plt.title(' '.join(conditions.values()))
+        plt.xlabel(f'{metric}: {scenario_1} - {scenario_2}')
+        plt.subplot(1, 2, 2)
+        plt.scatter(pivoted[metric][scenario_1], pivoted[metric][scenario_2], alpha=0.2)
+        xl = plt.xlim()
+        yl = plt.ylim()
+        mi = min([xl[0], yl[0]])
+        ma = max([xl[1], yl[1]])
+        plt.plot([mi, ma], [mi, ma], 'k--')
+        plt.xlabel(f'{scenario_1} {metric}')
+        plt.ylabel(f'{scenario_2} {metric}')
+        plt.title(' '.join(conditions.values()))
+        if save_plot is not None:
+            plt.savefig(save_plot)
+    _, p_1_gt_2 = ttest_rel(pivoted[metric][scenario_1], pivoted[metric][scenario_2], alternative='greater')
+    _, p_2_gt_1 = ttest_rel(pivoted[metric][scenario_2], pivoted[metric][scenario_1], alternative='greater')
+    
+    
+    # print(p_1_gt_2)
+    # print(p_2_gt_1)
+    # print((pivoted[metric][scenario_1] - pivoted[metric][scenario_2]).mean())
+
+    
+filtered_res = results[results['target_train_pred_prob_var'] > 1e-2]
+
+plot_metrics = ['mia_AUC', 'mia_F1score', 'mia_Advantage']
+for metric in plot_metrics:
+    # conditions = {'dataset': 'synth-ae', 'target_classifier': 'XGBClassifier '}
+    # conditions = {'dataset': 'mimic2-iaccd'}
+    conditions = {}
+    plot_folder = 'results/from_aws/plots'
+    for dataset in results.dataset.unique():
+        if 'mimic2-iaccd' in dataset:
+            continue
+        conditions['dataset'] = dataset
+        plot_file = os.path.join(plot_folder, f'{dataset}_{metric}.png')
+        p = comparison(filtered_res, metric, conditions, 'WorstCase', 'Salem1', save_plot=plot_file)
+# %%
+conditions = {}
+for metric in plot_metrics:
+    plot_file = os.path.join(plot_folder, f'{metric}.png')
+    p = comparison(results, metric, conditions, 'WorstCase', 'Salem1', save_plot=plot_file)
 # %%

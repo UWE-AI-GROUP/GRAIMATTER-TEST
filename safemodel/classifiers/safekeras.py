@@ -433,10 +433,21 @@ class Safe_KerasModel(KerasModel, SafeModel ):
                             disclosive = True
                             break
 
-        msg2, disclosive2 = check_optimizer_allowed(optimizer)
-        if(disclosive2 == True):
-            disclosive = True
 
+        ok, reason = check_optimizer_is_DP( self.optimizer )
+        if(ok):
+          msg2 = "- DP - Differentially private optimizer has been used"
+        else:
+          disclosive = True
+          msg2 = "- Not DP -Standard (disclosive) optimizer has been used"
+
+          msg = msg + msg2
+          return msg, disclosive
+
+        #msg2, disclosive2 = check_optimizer_allowed(optimizer)
+        #if(disclosive2 == True):
+        #    disclosive = True
+          
         return msg+msg2, disclosive
 
 

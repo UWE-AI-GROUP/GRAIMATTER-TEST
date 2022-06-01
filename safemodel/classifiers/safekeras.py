@@ -357,6 +357,27 @@ class Safe_KerasModel(KerasModel, SafeModel ):
                 num_microbatches=num_microbatches,
                 learning_rate=learning_rate)
 
+        elif(self.optimizer == tf_privacy.DPKerasSGDOptimizer):
+            opt = tf_privacy.DPKerasSGDOptimizer(
+                l2_norm_clip=l2_norm_clip,
+                noise_multiplier=noise_multiplier,
+                num_microbatches=num_microbatches,
+                learning_rate=learning_rate)
+
+        elif(self.optimizer == tf_privacy.DPKerasAdagradOptimizer):
+            opt = tf_privacy.DPKerasAdagradOptimizer(
+                l2_norm_clip=l2_norm_clip,
+                noise_multiplier=noise_multiplier,
+                num_microbatches=num_microbatches,
+                learning_rate=learning_rate)
+
+        elif(self.optimizer == tf_privacy.DPKerasAdamOptimizer):
+            opt = tf_privacy.DPKerasAdamOptimizer(
+                l2_norm_clip=l2_norm_clip,
+                noise_multiplier=noise_multiplier,
+                num_microbatches=num_microbatches,
+                learning_rate=learning_rate)
+
         elif(self.optimizer == "None"):
             print("Changed parameter optimizer = 'DPKerasSGDOptimizer'")
             opt = tf_privacy.DPKerasSGDOptimizer(

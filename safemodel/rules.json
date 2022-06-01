@@ -71,12 +71,12 @@
             {
                 "keyword": "noise_multiplier",
                 "operator": "min",
-                "value": 0.9
+                "value": 0.7
             },
 	                {
                 "keyword": "noise_multiplier",
                 "operator": "max",
-                "value": 1.0
+                "value": 0.9
             },
 	    {
                 "keyword": "min_epsilon",

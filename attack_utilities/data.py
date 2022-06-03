@@ -7,6 +7,7 @@ Dataset loader classes.
 from __future__ import annotations
 
 import logging
+import sys
 from typing import Any
 
 import numpy as np
@@ -32,6 +33,8 @@ class Data:
         self.features: dict = {}  # dictionary description of features
         self.data: Any  # raw feature data
         self.target: Any  # raw target data
+        self.x: np.ndarray  # original (unsplit) inputs
+        self.y: np.ndarray  # original (unsplit) outputs
         self.Xt_member: np.ndarray  # original training set inputs
         self.yt_member: np.ndarray  # original training set outputs
         self.Xt_nonmember: np.ndarray  # original testing set inputs
@@ -54,7 +57,7 @@ class Data:
 class NurseryData(Data):
     """Nursery dataset loading and preprocessing."""
 
-    def __init__(self, seed: int) -> None:
+    def __init__(self, seed: int | None) -> None:
         """Fetches the dataset and preprocesses."""
         Data.__init__(self)
         data = fetch_openml(data_id=26, as_frame=True)
@@ -110,7 +113,7 @@ class NurseryData(Data):
 class HospitalData(Data):
     """Nursery dataset loading and preprocessing."""
 
-    def __init__(self, seed: int) -> None:
+    def __init__(self, seed: int | None) -> None:
         """Fetches the dataset and preprocesses."""
         Data.__init__(self)
         self.name = "in-hospital-mortality"
@@ -152,3 +155,14 @@ class HospitalData(Data):
         logger.info("y_train shape = %s", np.shape(self.y_train))
         logger.info("x_test shape = %s", np.shape(self.x_test))
         logger.info("y_test shape = %s", np.shape(self.y_test))
+
+
+def get_aia_data(name: str, random_state: int | None) -> Data:
+    """Returns a dataset specified by name for attribute inference."""
+    if name == "nursery":
+        return NurseryData(seed=random_state)
+    elif name == "in-hospital-mortality":
+        return HospitalData(seed=random_state)
+    else:
+        logger.info("%s dataset not yet implemented", name)
+        sys.exit()

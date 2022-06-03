@@ -20,7 +20,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 
-from .data import Data, HospitalData, NurseryData
+from .data import Data, get_aia_data
 
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
 logging.basicConfig()
@@ -92,7 +92,7 @@ def infer(
     feature_id: int,
     threshold: float,
     memberset: bool,
-) -> str:
+) -> tuple[int, int, float, int, int]:
     """
     For each possible missing value, compute the confidence scores and
     label with the target model; if the label matches the known target model
@@ -133,52 +133,49 @@ def infer(
     return correct, total, baseline, n_unique, n_samples
 
 
-def report_categorical(results: list) -> None:
+def report_categorical(results: dict) -> None:
     """Prints categorical results in a report format."""
-    for result in results:
-        name = result[0]
-        correct, total, baseline, n_unique, n_samples = result[1]
+    for feature in results:
+        name = feature["name"]
+        _, _, _, n_unique, _ = feature["train"]
         msg = f"Attacking categorical feature {name} with {n_unique} unique values:\n"
-        if total > 0:
-            msg += (
-                f"Correctly inferred {(correct / total) * 100:.2f}% "
-                f"of {(total / n_samples) * 100:.2f}% of the training set; "
-                f"baseline: {baseline:.2f}%\n"
-            )
-        else:
-            msg += "Unable to make any inferences of the training set\n"
-        correct, total, baseline, n_unique, n_samples = result[2]
-        if total > 0:
-            msg += (
-                f"Correctly inferred {(correct / total) * 100:.2f}% "
-                f"of {(total / n_samples) * 100:.2f}% of the test set; "
-                f"baseline: {baseline:.2f}%\n"
-            )
-        else:
-            msg += "Unable to make any inferences of the test set\n"
+        for tranche in ("train", "test"):
+            correct, total, baseline, _, n_samples = feature[tranche]
+            if total > 0:
+                msg += (
+                    f"Correctly inferred {(correct / total) * 100:.2f}% "
+                    f"of {(total / n_samples) * 100:.2f}% of the {tranche} set; "
+                    f"baseline: {baseline:.2f}%\n"
+                )
+            else:
+                msg += f"Unable to make any inferences of the {tranche} set\n"
         print(msg)
 
 
-def report_continuous(results: list) -> None:
+def report_continuous(results: dict) -> None:
     """Prints continuous results in a report format."""
-    for result in results:
-        print(f"{result[0]}: {result[1]:.2f} train risk, {result[2]:.2f} test risk")
+    for feature in results:
+        print(
+            f"{feature['name']}: "
+            f"{feature['train']:.2f} train risk, "
+            f"{feature['test']:.2f} test risk"
+        )
 
 
-def plot_continuous_risk(res: list[str, list, list], savefile: str = "") -> None:
+def plot_continuous_risk(res: dict, savefile: str = "") -> None:
     """Generates bar chart showing continuous value risk scores."""
-    results = res[2]  # continuous results
+    results = res["continuous"]
     if len(results) < 1:
         return
-    dataset_name = res[0]
+    dataset_name = res["name"]
     x = np.arange(len(results))
     ya = []
     yb = []
     names = []
-    for result in results:
-        names.append(result[0])
-        ya.append(result[1] * 100)
-        yb.append(result[2] * 100)
+    for feature in results:
+        names.append(feature["name"])
+        ya.append(feature["train"] * 100)
+        yb.append(feature["test"] * 100)
     fig, ax = plt.subplots(1, 1, figsize=(8, 5))
     ax.set_xticks(x)
     ax.set_xticklabels(names, rotation=90)
@@ -200,20 +197,20 @@ def plot_continuous_risk(res: list[str, list, list], savefile: str = "") -> None
         logger.debug("Saved continuous risk plot: %s", savefile)
 
 
-def plot_categorical_risk(res: list[str, list, list], savefile: str = "") -> None:
+def plot_categorical_risk(res: dict, savefile: str = "") -> None:
     """Generates bar chart showing categorical risk scores."""
-    results = res[1]  # categorical results
+    results = res["categorical"]
     if len(results) < 1:
         return
-    dataset_name = res[0]
+    dataset_name = res["name"]
     x = np.arange(len(results))
     ya = []
     yb = []
     names = []
-    for result in results:
-        names.append(result[0])
-        correct_a, total_a, baseline_a, n_unique_a, n_samples_a = result[1]
-        correct_b, total_b, baseline_b, n_unique_b, n_samples_b = result[2]
+    for feature in results:
+        names.append(feature["name"])
+        correct_a, total_a, baseline_a, n_unique_a, n_samples_a = feature["train"]
+        correct_b, total_b, baseline_b, n_unique_b, n_samples_b = feature["test"]
         a = ((correct_a / total_a) * 100) - baseline_a if total_a > 0 else 0
         b = ((correct_b / total_b) * 100) - baseline_b if total_b > 0 else 0
         ya.append(a)
@@ -248,20 +245,20 @@ def plot_categorical_risk(res: list[str, list, list], savefile: str = "") -> Non
         logger.debug("Saved categorical risk plot: %s", savefile)
 
 
-def plot_categorical_fraction(res: list[str, list, list], savefile: str = "") -> None:
+def plot_categorical_fraction(res: dict, savefile: str = "") -> None:
     """Generates bar chart showing fraction of dataset inferred."""
-    results = res[1]  # categorical results
+    results = res["categorical"]
     if len(results) < 1:
         return
-    dataset_name = res[0]
+    dataset_name = res["name"]
     x = np.arange(len(results))
     ya = []
     yb = []
     names = []
-    for result in results:
-        names.append(result[0])
-        correct_a, total_a, baseline_a, n_unique_a, n_samples_a = result[1]
-        correct_b, total_b, baseline_b, n_unique_b, n_samples_b = result[2]
+    for feature in results:
+        names.append(feature["name"])
+        correct_a, total_a, baseline_a, n_unique_a, n_samples_a = feature["train"]
+        correct_b, total_b, baseline_b, n_unique_b, n_samples_b = feature["test"]
         a = ((total_a / n_samples_a) * 100) if n_samples_a > 0 else 0
         b = ((total_b / n_samples_b) * 100) if n_samples_b > 0 else 0
         ya.append(a)
@@ -298,13 +295,14 @@ def plot_from_file(filename: str, savefile: str = "") -> None:
 
 def infer_categorical(
     model: BaseEstimator, ds: Data, feature_id: int, threshold: float
-) -> list:
+) -> dict:
     """Returns a the training and test set risks of a categorical feature."""
-    result = [
-        ds.features[feature_id]["name"],
-        infer(model, ds, feature_id, threshold, True),  # training set
-        infer(model, ds, feature_id, threshold, False),  # test set
-    ]
+    result = {
+        "name": ds.features[feature_id]["name"],
+        "type": "categorical",
+        "train": infer(model, ds, feature_id, threshold, True),
+        "test": infer(model, ds, feature_id, threshold, False),
+    }
     return result
 
 
@@ -317,7 +315,7 @@ def is_categorical(ds: Data, feature_id: int) -> bool:
     return False
 
 
-def attack_brute_force(model: BaseEstimator, ds: Data, features: list[int]) -> list:
+def attack_brute_force(model: BaseEstimator, ds: Data, features: list[int]) -> dict:
     """
     Performs a brute force attribute inference attack by computing the target
     model confidence scores for every value in the list and making an inference
@@ -427,15 +425,19 @@ def get_bounds_risk(
     feature_id: int,
     x_train: np.ndarray,
     x_test: np.ndarray,
-) -> list[str, float, float]:
-    """Returns a string containing the training and test set risks of a
+) -> dict:
+    """Returns a dictionary containing the training and test set risks of a
     continuous feature."""
-    risk_train = get_bounds_risk_for_feature(model, feature_id, x_train)
-    risk_test = get_bounds_risk_for_feature(model, feature_id, x_test)
-    return [feature_name, risk_train, risk_test]
+    risk = {
+        "name": feature_name,
+        "type": "continuous",
+        "train": get_bounds_risk_for_feature(model, feature_id, x_train),
+        "test": get_bounds_risk_for_feature(model, feature_id, x_test),
+    }
+    return risk
 
 
-def get_bounds_risks(model: BaseEstimator, ds: Data, features: list[int]) -> list:
+def get_bounds_risks(model: BaseEstimator, ds: Data, features: list[int]) -> dict:
     """Computes the bounds risk for all specified features."""
     args = [
         (model, ds.features[feature_id]["name"], feature_id, ds.x_train, ds.x_test)
@@ -491,7 +493,7 @@ def attack_n_minus_1(model: BaseEstimator, ds: Data) -> None:
 
 def attribute_inference(
     model: BaseEstimator, ds: Data, report: bool = False, savefile: str = ""
-) -> list[str, list, list]:
+) -> dict:
     """
     Execute attribute inference attacks on a dataset given a trained model.
     """
@@ -516,8 +518,12 @@ def attribute_inference(
     if report:
         report_categorical(results_a)
         report_continuous(results_b)
-    # combine results into single list
-    results = [ds.name, results_a, results_b]
+    # combine results into single object
+    results = {
+        "name": ds.name,
+        "categorical": results_a,
+        "continuous": results_b,
+    }
     # write to file
     if savefile != "":
         path = os.path.normpath(savefile + ".pickle")
@@ -532,8 +538,8 @@ if __name__ == "__main__":
     # exit()
 
     # get dataset
-    # dataset = NurseryData(R_STATE)
-    dataset = HospitalData(R_STATE)
+    name = "in-hospital-mortality"  # "nursery"
+    dataset = get_aia_data(name, random_state=R_STATE)
     print(dataset.data.describe())
     # train model
     target = RandomForestClassifier(bootstrap=False, random_state=R_STATE)

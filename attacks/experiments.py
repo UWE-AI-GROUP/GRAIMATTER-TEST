@@ -14,6 +14,9 @@ from attacks.scenarios import worst_case_mia, salem, split_target_data # pylint:
 from attacks.metrics import get_metrics # pylint: disable=import-error
 from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable
 
+from attack_utilities.data import get_aia_data
+from attack_utilities.attribute_inference import attribute_inference
+
 logger = logging.getLogger(__file__)
 
 class ResultsEntry():
@@ -307,6 +310,33 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                                 [results_df, new_results.to_dataframe()],
                                 ignore_index=True
                             )
+
+                        ##################################
+                        #  Attribute Inference scenario  #
+                        ##################################
+
+                        if "aia" in scenarios:
+                            scenario = "aia"
+                            hashstr = f"{dataset} {classifier_name} {str(params)} {scenario}"
+                            full_id = hashlib.sha256(hashstr.encode("utf-8")).hexdigest()
+                            new_results = ResultsEntry(
+                                full_id, model_data_param_id, param_id,
+                                dataset,
+                                scenario,
+                                classifier_name,
+                                repetition=repetition,
+                                params=params,
+                            )
+                            aia_data = get_aia_data(dataset, random_state=repetition)
+                            aia_target = clf_class(**params)
+                            aia_target.fit(aia_data.x_train, aia_data.y_train)
+                            aia_results = attribute_inference(aia_target, aia_data)
+                            new_results.target_metrics = {"aia_metric": aia_results}
+                            results_df = pd.concat(
+                                [results_df, new_results.to_dataframe()],
+                                ignore_index=True
+                            )
+
             # Save after each repetition
             results_df.to_csv(results_filename, index=False)
 

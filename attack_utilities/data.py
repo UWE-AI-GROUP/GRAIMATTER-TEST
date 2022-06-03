@@ -13,7 +13,7 @@ from typing import Any
 import numpy as np
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from data_preprocessing.data_interface import get_data_sklearn
 
@@ -161,8 +161,7 @@ def get_aia_data(name: str, random_state: int | None) -> Data:
     """Returns a dataset specified by name for attribute inference."""
     if name == "nursery":
         return NurseryData(seed=random_state)
-    elif name == "in-hospital-mortality":
+    if name == "in-hospital-mortality":
         return HospitalData(seed=random_state)
-    else:
-        logger.info("%s dataset not yet implemented", name)
-        sys.exit()
+    logger.info("%s dataset not yet implemented", name)
+    sys.exit()

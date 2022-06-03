@@ -25,7 +25,7 @@ from .data import Data, get_aia_data
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
 logging.basicConfig()
 logger = logging.getLogger("aia")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 N_CPU: int = mp.cpu_count()  # number of CPU cores to use
 COLOR_A: str = "#86bf91"  # training set plot colour
@@ -502,15 +502,15 @@ def attribute_inference(
     Execute attribute inference attacks on a dataset given a trained model.
     """
     # brute force attack categorical attributes using dataset unique values
-    logger.info("Attacking dataset: %s", ds.name)
-    logger.info("Attacking categorical attributes...")
+    logger.debug("Attacking dataset: %s", ds.name)
+    logger.debug("Attacking categorical attributes...")
     feature_list: list[int] = []
     for feature in range(ds.n_features):
         if is_categorical(ds, feature):
             feature_list.append(feature)
     results_a: list[dict] = attack_brute_force(model, ds, feature_list)
     # compute risk scores for continuous attributes
-    logger.info("Attacking continuous attributes...")
+    logger.debug("Attacking continuous attributes...")
     feature_list = []
     for feature in range(ds.n_features):
         if not is_categorical(ds, feature):
@@ -539,6 +539,7 @@ if __name__ == "__main__":
     SEED: Final[int] = 1
     NAME: Final[str] = "in-hospital-mortality"
     FILENAME: Final[str] = "test"
+    logger.setLevel(logging.DEBUG)
 
     # plot_from_file(FILENAME, savefile="hospital")
     # exit()

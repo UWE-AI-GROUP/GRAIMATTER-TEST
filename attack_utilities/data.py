@@ -19,7 +19,7 @@ from data_preprocessing.data_interface import get_data_sklearn
 
 logging.basicConfig()
 logger = logging.getLogger("data")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 
 class Data:
@@ -103,11 +103,11 @@ class NurseryData(Data):
         self.x_test = self.feature_enc.transform(self.Xt_nonmember).toarray()
         self.y_test = self.label_enc.transform(self.yt_nonmember)
 
-        logger.info("%s", self.features)
-        logger.info("x_train shape = %s", np.shape(self.x_train))
-        logger.info("y_train shape = %s", np.shape(self.y_train))
-        logger.info("x_test shape = %s", np.shape(self.x_test))
-        logger.info("y_test shape = %s", np.shape(self.y_test))
+        logger.debug("%s", self.features)
+        logger.debug("x_train shape = %s", np.shape(self.x_train))
+        logger.debug("y_train shape = %s", np.shape(self.y_train))
+        logger.debug("x_test shape = %s", np.shape(self.x_test))
+        logger.debug("y_test shape = %s", np.shape(self.y_test))
 
 
 class HospitalData(Data):
@@ -150,11 +150,11 @@ class HospitalData(Data):
         self.x_test = self.Xt_nonmember
         self.y_test = self.yt_nonmember
 
-        logger.info("%s", self.features)
-        logger.info("x_train shape = %s", np.shape(self.x_train))
-        logger.info("y_train shape = %s", np.shape(self.y_train))
-        logger.info("x_test shape = %s", np.shape(self.x_test))
-        logger.info("y_test shape = %s", np.shape(self.y_test))
+        logger.debug("%s", self.features)
+        logger.debug("x_train shape = %s", np.shape(self.x_train))
+        logger.debug("y_train shape = %s", np.shape(self.y_train))
+        logger.debug("x_test shape = %s", np.shape(self.x_test))
+        logger.debug("y_test shape = %s", np.shape(self.y_test))
 
 
 def get_aia_data(name: str, random_state: int | None) -> Data:
@@ -163,5 +163,5 @@ def get_aia_data(name: str, random_state: int | None) -> Data:
         return NurseryData(seed=random_state)
     if name == "in-hospital-mortality":
         return HospitalData(seed=random_state)
-    logger.info("%s dataset not yet implemented", name)
+    logger.warning("%s dataset not yet implemented", name)
     sys.exit()

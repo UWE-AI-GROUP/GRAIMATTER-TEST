@@ -131,7 +131,7 @@ def test_decisiontree_hacked_postfit():
     msg2, disclosive2 = model.posthoc_check()
     correct_msg2 = (
         "Warning: basic parameters differ in 1 places:\n"
-        "parameter min_samples_leaf changed from 1 to 5 after model was fitted\n"
+        "parameter min_samples_leaf changed from 1 to 5 after model was fitted.\n"
     )
     assert msg2 == correct_msg2
     assert disclosive2 is True

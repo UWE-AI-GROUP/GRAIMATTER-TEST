@@ -261,7 +261,7 @@ class SafeModel:
         else:
             # final check in case fit has been called twice
             _ = saved_model.pop("saved_model", "Absent")
-            return current_model, saved_model
+        return current_model, saved_model
 
     def examine_seperate_items(
         self, curr_vals: dict, saved_vals: dict

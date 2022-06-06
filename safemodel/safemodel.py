@@ -382,12 +382,15 @@ class SafeModel:
             self.save(filename)
             msg_prel, disclosive_prel = self.preliminary_check(verbose=False)
             msg_post, disclosive_post = self.posthoc_check()
+
             output: dict = {
                 "researcher": self.researcher,
                 "model_type": self.model_type,
                 "model_save_file": self.model_save_file,
                 "details": msg_prel,
             }
+            if hasattr(self, "k_anonymity"):
+                output["k_anonymity"] = f"{self.k_anonymity}"
             if not disclosive_prel and not disclosive_post:
                 output[
                     "recommendation"

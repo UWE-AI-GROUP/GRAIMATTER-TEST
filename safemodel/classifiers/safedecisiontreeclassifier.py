@@ -100,6 +100,14 @@ def decision_tree_internal_trees_are_equal(
     return same, msg
 
 
+def get_tree_k_anonymity(thetree: sklearn.tree) -> int:
+    leaves = thetree.apply(X)
+    uniqs_counts = np.unique(leaves, return_counts=True)
+    k_anonymity = np.min(uniqs_counts[1])
+    # print(f' leaf ids {uniqs_counts[0]} and counts {uniqs_counts[1]} the  k-anonymity of the tree is {k_anonymity}')
+    return k_anonymity
+
+
 class SafeDecisionTreeClassifier(SafeModel, DecisionTreeClassifier):
     """Privacy protected Decision Tree classifier."""
 
@@ -131,9 +139,14 @@ class SafeDecisionTreeClassifier(SafeModel, DecisionTreeClassifier):
                 "unexpected item in curr_seperate dict "
                 " passed by generic additional checks."
             )
+
         return msg, disclosive
 
     def fit(self, x: np.ndarray, y: np.ndarray):
-        """Do fit and then store model dict"""
+        """Do fit and then store k-anonymity and  model dict"""
         super().fit(x, y)
+        # calculate k-anonymity her since we have the tainigf data
+        leaves = self.apply(x)
+        uniqs_counts = np.unique(leaves, return_counts=True)
+        self.k_anonymity = np.min(uniqs_counts[1])
         self.saved_model = copy.deepcopy(self.__dict__)

@@ -13,18 +13,20 @@ from sklearn.tree._tree import Tree
 from ..safemodel import SafeModel
 
 
-def decision_trees_are_equal(tree1:sklearn.tree, tree2: sklearn.tree)->tuple[bool,str]:
+def decision_trees_are_equal(
+    tree1: sklearn.tree, tree2: sklearn.tree
+) -> tuple[bool, str]:
     """Compares two estimators of type sklearn.tree
-       e.g. two decisionTreeClassifiers
-       """
+    e.g. two decisionTreeClassifiers
+    """
     msg = ""
-    same=True
-    
+    same = True
+
     try:
         tree1_dict = copy.deepcopy(tree1.__dict__)
-        tree1_tree = tree1_dict.pop("tree_","Absent")
+        tree1_tree = tree1_dict.pop("tree_", "Absent")
         tree2_dict = copy.deepcopy(tree2.__dict__)
-        tree2_tree = tree2_dict.pop("tree_","Absent")
+        tree2_tree = tree2_dict.pop("tree_", "Absent")
 
         # comparison on list of "simple" parameters
         match = list(diff(tree1_dict, tree2_dict, expand=True))
@@ -39,58 +41,63 @@ def decision_trees_are_equal(tree1:sklearn.tree, tree2: sklearn.tree)->tuple[boo
                     msg += f"{match[i]}\n"
 
         # now internal tree params
-        same2,msg2=decision_tree_internal_trees_are_equal(tree1_tree,tree2_tree)
-        if same2==False:
+        same2, msg2 = decision_tree_internal_trees_are_equal(tree1_tree, tree2_tree)
+        if same2 == False:
             same = False
             msg += msg2
-            
+
     except BaseException as error:
-        msg += f'Unable to check as an exception occurred: {error}'
-        same=False
+        msg += f"Unable to check as an exception occurred: {error}"
+        same = False
 
     return same, msg
 
-def decision_tree_internal_trees_are_equal(tree1_tree:Tree, tree2_tree: Tree)->tuple[bool,str]:
-    """ Tests for equality of the internal structures in a sklearn.tree._tree
-         e.g. the structure, feature and threshold in each internal node etc"""
-    same=True
-    msg=""
-    tree_internal_att_names=( 'capacity','children_left',
-                     'children_right',   'feature',
-                     'impurity',         'max_depth',
-                     'n_node_samples',   'node_count',
-                     'threshold',        'value',
-                     'weighted_n_node_samples'
-                    )
 
+def decision_tree_internal_trees_are_equal(
+    tree1_tree: Tree, tree2_tree: Tree
+) -> tuple[bool, str]:
+    """Tests for equality of the internal structures in a sklearn.tree._tree
+    e.g. the structure, feature and threshold in each internal node etc"""
+    same = True
+    msg = ""
+    tree_internal_att_names = (
+        "capacity",
+        "children_left",
+        "children_right",
+        "feature",
+        "impurity",
+        "max_depth",
+        "n_node_samples",
+        "node_count",
+        "threshold",
+        "value",
+        "weighted_n_node_samples",
+    )
 
     try:
-        if(tree1_tree=="Absent" and tree2_tree=="Absent"):
+        if tree1_tree == "Absent" and tree2_tree == "Absent":
             msg += "neither tree trained"
-        elif(tree1_tree=="Absent"):
-            msg+= "tree1 not trained"
-            same=False
-        elif(tree2_tree=="Absent"):
-            msg+= "tree2 not trained"
-            same=False
+        elif tree1_tree == "Absent":
+            msg += "tree1 not trained"
+            same = False
+        elif tree2_tree == "Absent":
+            msg += "tree2 not trained"
+            same = False
         else:
             for attr in tree_internal_att_names:
-                t1val = getattr(tree1_tree,attr)
-                t2val = getattr(tree2_tree,attr)
-                if isinstance(t1val,np.ndarray):
-                    if not np.array_equal(t1val,t2val):
+                t1val = getattr(tree1_tree, attr)
+                t2val = getattr(tree2_tree, attr)
+                if isinstance(t1val, np.ndarray):
+                    if not np.array_equal(t1val, t2val):
                         msg += f"internal tree attribute {attr} differs\n"
-                        same=False
+                        same = False
                 else:
-                    if t1val != t2val :
+                    if t1val != t2val:
                         msg += f"internal tree attribute {attr} differs\n"
-                        same=False
+                        same = False
     except BaseException as error:
-        msg+= f'An exception occurred: {error}'
-    return same , msg
-
-
-
+        msg += f"An exception occurred: {error}"
+    return same, msg
 
 
 class SafeDecisionTreeClassifier(SafeModel, DecisionTreeClassifier):
@@ -114,14 +121,16 @@ class SafeDecisionTreeClassifier(SafeModel, DecisionTreeClassifier):
         msg, disclosive = super().additional_checks(curr_separate, saved_separate)
         # now deal with the decision-tree specific things
         # which for now means the attribute "tree_" which is a sklearn tree
-        same, msg=  decision_tree_internal_trees_are_equal(curr_separate['tree_'],
-                                                           saved_separate['tree_'])
+        same, msg = decision_tree_internal_trees_are_equal(
+            curr_separate["tree_"], saved_separate["tree_"]
+        )
         if not same:
-            disclosive=True
-        if len (curr_separate) >1:
-            msg += ("unexpected item in curr_seperate dict "
-                    " passed by generic additional checks."
-                   )
+            disclosive = True
+        if len(curr_separate) > 1:
+            msg += (
+                "unexpected item in curr_seperate dict "
+                " passed by generic additional checks."
+            )
         return msg, disclosive
 
     def fit(self, x: np.ndarray, y: np.ndarray):

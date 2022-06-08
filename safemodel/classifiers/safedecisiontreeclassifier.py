@@ -57,7 +57,7 @@ def decision_tree_internal_trees_are_equal(
     tree1_tree: Tree, tree2_tree: Tree
 ) -> tuple[bool, str]:
     """Tests for equality of the internal structures in a sklearn.tree._tree
-    e.g. the structure, feature and threshold in each internal node etc"""
+    e.g. the structure, feature and threshold in each internal node etc."""
     same = True
     msg = ""
     tree_internal_att_names = (

@@ -105,7 +105,7 @@ class SafeRandomForestClassifier(SafeModel, RandomForestClassifier):
         self.saved_model = copy.deepcopy(self.__dict__)
 
     def get_k_anonymity(self, x: np.ndarray) -> int:
-        """calculate the k-anonymity of a random forest model
+        """calculates the k-anonymity of a random forest model
         as the minimum of the anonymity for each record.
         That is defined as the size of the set of records which
         appear in the same leaf as the record in every tree.

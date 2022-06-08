@@ -37,7 +37,6 @@ class SafeRandomForestClassifier(SafeModel, RandomForestClassifier):
 
         # call the super function to deal with any items that are lists
         msg, disclosive = super().additional_checks(curr_separate, saved_separate)
-        print(f"back from superclass msg={msg}")
         # now the relevant random-forest specific things
         for item in self.examine_seperately_items:
             if item == "base_estimator":

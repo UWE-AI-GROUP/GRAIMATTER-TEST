@@ -235,6 +235,7 @@ class SafeModel:
     def posthoc_check(self) -> tuple[str, str]:
         """Checks whether model has been interfered with since fit() was last run"""
         import copy
+
         disclosive = False
         msg = ""
         # get dictionaries of parameters
@@ -350,7 +351,6 @@ class SafeModel:
                             )
                             disclosive = True
                             break
-
 
         if is_dp_used:
             msg2 = "- DP - Differentially private optimizer has been used"

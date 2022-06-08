@@ -5,7 +5,6 @@ from __future__ import annotations
 import copy
 import getpass
 import json
-import logging
 import pathlib
 import pickle
 from typing import Any
@@ -13,6 +12,7 @@ from typing import Any
 import joblib
 from dictdiffer import diff
 
+import logging 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
@@ -91,12 +91,17 @@ class SafeModel:
         except BaseException:
             self.researcher = "unknown"
 
+
     def save(self, name: str = "undefined") -> None:
         """Writes model to file in appropriate format.
-        Optimizer is deliberately excluded.
-        To prevent possible to restart training and thus
-        possible back door into attacks.
+           Optimizer is deliberately excluded. 
+           To prevent possible to restart training and thus 
+           possible back door into attacks. 
         """
+        if(hasattr(self,optimizer)):
+            pass
+            #self.optimizer = self.optimizer.pop(-1)
+        
 
         self.model_save_file = name
         while self.model_save_file == "undefined":
@@ -109,15 +114,15 @@ class SafeModel:
         elif self.model_save_file[-4:] == ".sav":  # save to joblib
             joblib.dump(self, self.model_save_file)
         elif self.model_save_file[-3:] == ".h5":
-            # save to tf (h5 cannot serialize subclassed models)
-            tf.keras.models.save_model(
-                self, self.model_save_file, include_optimizer=False, save_format="h5"
-            )
+            # save to tf (h5 cant serialize subclassed models)
+            tf.keras.models.save_model(self, self.model_save_file,
+                                       include_optimizer=False,
+                                       save_format='h5')
         elif self.model_save_file[-3:] == ".tf":
-            # save to tf (h5 cannot serialize subclassed models)
-            tf.keras.models.save_model(
-                self, self.model_save_file, include_optimizer=False, save_format="tf"
-            )
+            # save to tf (h5 cant serialize subclassed models)
+            tf.keras.models.save_model(self, self.model_save_file,
+                                       include_optimizer=False,
+                                       save_format='tf')
         else:
             suffix = self.model_save_file.split(".")[-1]
             print(f"{suffix} file saves currently not supported")
@@ -229,86 +234,46 @@ class SafeModel:
             print(msg)
         return msg, disclosive
 
-    def get_current_and_saved_models(self) -> tuple[dict, dict]:
-        """Makes a copy of self.__dict__
-        and splits it into dicts for the current and saved versions
-        """
-        current_model = {}
-
-        attribute_names_as_list = copy.copy(list(self.__dict__.keys()))
-
-        for key in attribute_names_as_list:
-
-            # logger.debug(f'copying {key}')
+    def posthoc_check(self) -> tuple[str, str]:
+        """Checks whether model has been interfered with since fit() was last run"""
+        import copy
+        disclosive = False
+        msg = ""
+        # get dictionaries of parameters
+        current_model ={}
+        keyscopy = copy.copy(list(self.__dict__.keys()))#have to convert what keys() returns into a list
+        for key in keyscopy:#jim added so we are iterating over a list, not the dictionary itself
+        #for key,value in self.__dict__.items():
+            logger.debug(f'copying {key}')
             try:
-                value = self.__dict__[key]  # jim added
+                value = self.__dict__[key]#jim added
                 current_model[key] = copy.deepcopy(value)
             except Exception as t:
-                logger.warning(f"{key} cannot be copied")
-                logger.warning(f"...{type(t)} error; {t}")
-            # logger.debug('...done')
-        # logger.info('copied')
+                logger.warning(f'{key} cannot be copied')
+                logger.warning(f'...{type(t)} error; {t}')
+            
+                
+            logger.debug('...done')
+        logger.info('copied')
 
         saved_model = current_model.pop("saved_model", "Absent")
 
-        # return empty dict if necessary
-        if (
-            saved_model == "Absent"
-            or saved_model is None
-            or not isinstance(saved_model, dict)
-        ):
-            saved_model = {}
-        else:
-            # final check in case fit has been called twice
-            _ = saved_model.pop("saved_model", "Absent")
-        return current_model, saved_model
-
-    def examine_seperate_items(
-        self, curr_vals: dict, saved_vals: dict
-    ) -> tuple[str, bool]:
-        """comparison of more complex structures
-        in the super class we just check these model-specific items exist
-        in both current and saved copies"""
-        msg = ""
-        disclosive = False
-        for item in self.examine_seperately_items:
-            if curr_vals[item] == "Absent" and saved_vals[item] == "Absent":
-                # not sure if this is necessarily disclosive
-                msg += f"Note that item {item} missing from both versions"
-
-            elif (curr_vals[item] == "Absent") and not (saved_vals[item] == "Absent"):
-                disclosive = True
-                msg += f"Error, item {item} present in  saved but not current model"
-            elif (saved_vals[item] == "Absent") and not (curr_vals[item] == "Absent"):
-                disclosive = True
-                msg += f"Error, item {item} present in current but not saved model"
-            else:  # ok, so can call mode-specific extra checks
-                msg2, disclosive2 = self.additional_checks(curr_vals, saved_vals)
-                if len(msg2) > 0:
-                    msg += msg2
-                if disclosive2:
-                    disclosive = True
-        return msg, disclosive
-
-    def posthoc_check(self) -> tuple[str, bool]:
-        """Checks whether model has been interfered with since fit() was last run"""
-
-        disclosive = False
-        msg = ""
-
-        current_model, saved_model = self.get_current_and_saved_models()
-        if len(saved_model) == 0:
+        if saved_model == "Absent" or saved_model is None:
             msg = "Error: user has not called fit() method or has deleted saved values."
             msg += "Recommendation: Do not release."
             disclosive = True
 
         else:
+            saved_model = dict(self.saved_model)
+            # in case fit has been called twice
+            _ = saved_model.pop("saved_model", "Absent")
+
             # remove things we don't care about
             for item in self.ignore_items:
                 _ = current_model.pop(item, "Absent")
                 _ = saved_model.pop(item, "Absent")
-
-            # break out things that need to be handled/examined in more depth
+            # break out things that need to be examined in more depth
+            # and keep in separate lists
             curr_separate = {}
             saved_separate = {}
             for item in self.examine_seperately_items:
@@ -323,38 +288,52 @@ class SafeModel:
                 for i in range(len(match)):
                     if match[i][0] == "change":
                         msg += f"parameter {match[i][1]} changed from {match[i][2][1]} "
-                        msg += f"to {match[i][2][0]} after model was fitted.\n"
+                        msg += f"to {match[i][2][0]} after model was fitted\n"
                     else:
                         msg += f"{match[i]}"
 
-            # comparison on model-specific attributes
-            extra_msg, extra_disclosive = self.examine_seperate_items(
-                curr_separate, saved_separate
-            )
-            msg += extra_msg
-            if extra_disclosive:
-                disclosive = True
+            # comparison of more complex structures
+            # in the super class we just check these model-specific items exist
+            # in both current and saved copies
+            for item in self.examine_seperately_items:
+                if curr_separate[item] == "Absent" and saved_separate[item] == "Absent":
+                    # not sure if this is necessarily disclosive
+                    msg += f"Note that item {item} missing from both versions"
+
+                elif (curr_separate[item] == "Absent") and not (
+                    saved_separate[item] == "Absent"
+                ):
+                    disclosive = True
+                    msg += f"Error, item {item} present in  saved but not current model"
+                elif (saved_separate[item] == "Absent") and not (
+                    curr_separate[item] == "Absent"
+                ):
+                    disclosive = True
+                    msg += f"Error, item {item} present in current but not saved model"
+                else:
+                    msg2, disclosive2 = self.additional_checks(
+                        curr_separate, saved_separate
+                    )
+                    if len(msg2) > 0:
+                        msg += msg2
+                    if disclosive2:
+                        disclosive = True
 
         return msg, disclosive
 
     def additional_checks(
         self, curr_separate: dict, saved_separate: dict
-    ) -> tuple[str, bool]:
-        """Placeholder function for model-specific additional posthoc checks"""
+    ) -> tuple[str, str]:
+        """Placeholder function for additional posthoc checks e.g. keras this
+        version just checks that any lists have the same contents"""
         # posthoc checking makes sure that the two dicts have the same set of
         # keys as defined in the list self.examine_separately
         msg = ""
         disclosive = False
         for item in self.examine_seperately_items:
             if isinstance(curr_separate[item], list):
-                if saved_separate[item] == "Absent":
-                    msg += f"Error: Saved copy is missing attribute {item}"
-                    disclosive = True
-
-                elif len(curr_separate[item]) != len(saved_separate[item]):
-                    msg += (
-                        f"Warning: different counts of values for parameter {item}.\n"
-                    )
+                if len(curr_separate[item]) != len(saved_separate[item]):
+                    msg += f"Warning: different counts of values for parameter {item}"
                     disclosive = True
                 else:
                     for i in range(len(saved_separate[item])):
@@ -363,13 +342,20 @@ class SafeModel:
                         )
                         if len(difference) > 0:
                             msg += (
-                                f"Warning: at least one non-matching value "
-                                f"for parameter list {item}.\n"
+                                f"Warning: at least one non-matching value"
+                                f"for parameter list {item}"
                             )
                             disclosive = True
                             break
 
-        msg = msg  # + msg2
+
+        if(is_dp_used):
+            msg2 = "- DP - Differentially private optimizer has been used"
+        else:
+            disclosive = True
+            msg2 = "- Not DP -Standard (disclosive) optimizer has been used"
+
+        msg = msg + msg2
         return msg, disclosive
 
     def request_release(self, filename: str = "undefined") -> None:
@@ -382,15 +368,12 @@ class SafeModel:
             self.save(filename)
             msg_prel, disclosive_prel = self.preliminary_check(verbose=False)
             msg_post, disclosive_post = self.posthoc_check()
-
             output: dict = {
                 "researcher": self.researcher,
                 "model_type": self.model_type,
                 "model_save_file": self.model_save_file,
                 "details": msg_prel,
             }
-            if hasattr(self, "k_anonymity"):
-                output["k_anonymity"] = f"{self.k_anonymity}"
             if not disclosive_prel and not disclosive_post:
                 output[
                     "recommendation"

@@ -16,6 +16,8 @@ from dictdiffer import diff
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
+import tensorflow as tf
+
 
 def check_min(key: str, val: Any, cur_val: Any) -> tuple[str, bool]:
     """Checks minimum value constraint."""
@@ -121,6 +123,45 @@ class SafeModel:
         else:
             suffix = self.model_save_file.split(".")[-1]
             print(f"{suffix} file saves currently not supported")
+
+    def load(self, name: str = "undefined") -> None:
+        """reads model from file in appropriate format.
+        Optimizer is deliberately excluded in the save
+        To prevent possible to restart training and thus
+        possible back door into attacks. 
+        Thus optimizer cannot be loaded.
+        """
+
+        self.model_load_file = name
+        while self.model_load_file == "undefined":
+            self.model_save_file = input(
+                "Please input a name with extension for the model to load."
+            )
+        if self.model_load_file[-4:] == ".pkl":  # load from pickle
+            with open(self.model_load_file, "rb") as file:
+                f = pickle.loadf(self, file)
+        elif self.model_load_file[-4:] == ".sav":  # load from joblib
+            f = joblib.load(self, self.model_save_file)
+        elif self.model_load_file[-3:] == ".h5":
+            # load from .h5
+            f = tf.keras.models.load_model(
+                self.model_load_file,
+                 custom_objects={"Safe_KerasModel": self}
+            )
+
+            
+        elif self.model_load_file[-3:] == ".tf":
+            # load from tf
+            f = tf.keras.models.load_model(
+                self.model_load_file,
+                 custom_objects={"Safe_KerasModel": self}
+            )
+            
+        else:
+            suffix = self.model_load_file.split(".")[-1]
+            print(f"loading from a {suffix} file is currently not supported")
+
+        return f 
 
     def __get_constraints(self) -> dict:
         """Gets constraints relevant to the model type from the master read-only file."""

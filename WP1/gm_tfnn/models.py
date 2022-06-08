@@ -386,6 +386,7 @@ def config_generator(config_grid: dict) -> List[dict]:
     }
     :return:
     """
+
     config_list = []
     keys = config_grid.keys()
     all_combinations = itertools.product(*config_grid.values())
@@ -423,7 +424,7 @@ def _TFModel_from_config(x_train: np.ndarray,
         'optimizer': 'adam',
         'loss': 'categorical_crossentropy'
     }
-    :return:
+    :return: Trained model
     """
 
     early_stopping = tf.keras.callbacks.EarlyStopping(patience=2)

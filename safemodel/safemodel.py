@@ -326,6 +326,8 @@ class SafeModel:
                 "model_save_file": self.model_save_file,
                 "details": msg_prel,
             }
+            if hasattr(self, "k_anonymity"):
+                output["k_anonymity"] = f"{self.k_anonymity}"
             if not disclosive_prel and not disclosive_post:
                 output[
                     "recommendation"

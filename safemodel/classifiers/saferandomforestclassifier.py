@@ -101,4 +101,43 @@ class SafeRandomForestClassifier(SafeModel, RandomForestClassifier):
     def fit(self, x: np.ndarray, y: np.ndarray) -> None:
         """Do fit and then store model dict"""
         super().fit(x, y)
+        self.k_anonymity = self.get_k_anonymity(x)
         self.saved_model = copy.deepcopy(self.__dict__)
+
+    def get_k_anonymity(self, x: np.ndarray) -> int:
+        """calculate the k-anonymity of a random forest model
+        as the minimum of the anonymity for each record.
+        That is defined as the size of the set of records which
+        appear in the same leaf as the record in every tree.
+        """
+
+        # dataset must be 2-D
+        assert len(x.shape) == 2
+
+        num_records = x.shape[0]
+        num_trees = self.n_estimators
+        k_anon_val = np.zeros(num_records, dtype=int)
+
+        # ending leaf node by record(row) and tree (column)
+        all_leaves = np.zeros((num_records, num_trees), dtype=int)
+        for this_tree in range(num_trees):
+            this_leaves = self.estimators_[this_tree].apply(x)
+            for record in range(num_records):
+                all_leaves[record][this_tree] = this_leaves[record]
+
+        for record in range(num_records):
+            # start by assuming everything co-occurs
+            appears_together = list(range(0, num_records))
+            # iterate through trees
+            for this_tree in range(num_trees):
+                this_leaf = all_leaves[record][this_tree]
+
+                together = copy.copy(appears_together)
+                # removing records which go to other leaves
+                for other_record in together:
+                    if all_leaves[other_record][this_tree] != this_leaf:
+                        appears_together.remove(other_record)
+
+            k_anon_val[record] = len(appears_together)
+        print(k_anon_val)
+        return k_anon_val.min()

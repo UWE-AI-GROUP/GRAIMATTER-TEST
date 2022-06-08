@@ -1,8 +1,5 @@
 ### keras debug work
 
-
-
-
 Simple notebook used to explore problems with creating multiple instances from a sub-class of tf.keras.Model
 
 Work is being reported as a bug to main tensorflow project: https://github.com/keras-team/keras/issues/16582

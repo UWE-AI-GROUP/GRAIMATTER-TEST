@@ -3,6 +3,7 @@ Calculate metrics.
 '''
 
 from typing import Iterable#, Optional, Any
+import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_auc_score
 from .mia_extremecase import min_max_disc
@@ -22,7 +23,8 @@ def div(x,y, default):
 
 def get_metrics(clf,
                 X_test:Iterable[float],
-                y_test:Iterable[float]):
+                y_test:Iterable[float],
+                permute_rows:bool=True):
     """
     Calculate metrics, including attacker advantage for MIA binary.
     Implemented as Definition 4 on https://arxiv.org/pdf/1709.01604.pdf
@@ -46,6 +48,11 @@ def get_metrics(clf,
     Advantage
     """
     metrics = {}
+    if permute_rows:
+        N, _ = X_test.shape
+        order = np.random.permutation(N)
+        X_test = X_test[order, :]
+        y_test = y_test[order]
     y_pred = clf.predict(X_test)
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
     #print('tn', tn, 'fp',fp,'fn', fn,'tp', tp)
@@ -66,7 +73,7 @@ def get_metrics(clf,
 
     fmax, fmin, fdif, pdif = min_max_disc(y_test, y_pred_proba)
     metrics['FMAX'] = fmax
-    metrics['FMAX'] = fmin
+    metrics['FMIN'] = fmin
     metrics['FDIF'] = fdif
     metrics['PDIF'] = -pdif # use -log(p) so answer is positive
 

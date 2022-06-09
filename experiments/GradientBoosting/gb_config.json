@@ -1,0 +1,21 @@
+{
+    "datasets": [
+        "mimic2-iaccd"
+    ],
+    "classifiers" : [
+        ["sklearn.ensemble", "GradientBoostingClassifier"]
+    ],
+    "experiment_params" : {
+        "GradientBoostingClassifier": {
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 2, 5, 10],
+            "n_estimators": [10, 50, 100],
+            "max_depth": [1, 2, 5, 10]
+        }
+    },
+    "results_filename": "experiments/GradientBoosting/gb_results.csv",
+    "n_reps": 1,
+    "mia_classifier": 
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase"]
+}

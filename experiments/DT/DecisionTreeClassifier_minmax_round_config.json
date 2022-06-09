@@ -1,0 +1,35 @@
+{
+    "datasets": [
+        "minmax mimic2-iaccd",
+        "minmax in-hospital-mortality",
+        "minmax medical-mnist-ab-v-br-100",
+        "minmax indian liver",
+        "minmax texas hospitals 10",
+        "synth-ae",
+        "minmax synth-ae",
+        "round mimic2-iaccd",
+        "round in-hospital-mortality",
+        "round medical-mnist-ab-v-br-100",
+        "round indian liver",
+        "round texas hospitals 10",
+        "round synth-ae"
+    ],
+    "classifiers" : [
+        ["sklearn.tree", "DecisionTreeClassifier"]
+    ],
+    "experiment_params" : {
+        "DecisionTreeClassifier": {            
+         "criterion":["gini","entropy"],
+         "splitter":["best","random"],
+         "max_depth":[null,2,5,10],
+         "min_samples_split": [2, 10],
+         "max_features":[null,"sqrt","log2"],
+         "class_weight":[null,"balanced"]
+        }
+    },
+    "results_filename": "experiments/DecisionTreeClassifier_minmax_round_results.csv",
+    "n_reps": 5,
+    "mia_classifier": 
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+}

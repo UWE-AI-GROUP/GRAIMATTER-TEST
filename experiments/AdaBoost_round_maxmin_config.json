@@ -1,0 +1,28 @@
+{
+    "datasets": [
+        "minmax mimic2-iaccd",
+        "minmax in-hospital-mortality",
+        "minmax indian liver",
+        "minmax synth-ae",
+        "minmax texas hospitals 10",
+        "round mimic2-iaccd",
+        "round in-hospital-mortality",
+        "round indian liver",
+        "round texas hospitals 10",
+        "round synth-ae"
+    ],
+    "classifiers" : [
+        ["sklearn.ensemble", "AdaBoostClassifier"]
+    ],
+    "experiment_params" : {
+      "AdaBoostClassifier": {
+         "n_estimators":[25,50,100,200,400],
+         "algorithm": ["SAMME", "SAMME.R"]
+        }
+    },
+    "results_filename": "experiments/AdaBoost_results_minmax_round.csv",
+    "n_reps": 5,
+    "mia_classifier":
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase", "Salem1", "Salem2"]
+}

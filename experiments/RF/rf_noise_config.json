@@ -1,0 +1,23 @@
+{
+    "datasets": [
+        "mimic2-iaccd"
+    ],
+    "classifiers" : [
+        ["safemodel.classifiers", "RFNoiseOutput"]
+    ],
+    "experiment_params" : {
+        "RFNoiseOutput": {
+            "bootstrap": [true, false],
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 2, 5, 10],
+            "n_estimators": [10, 50, 100],
+            "max_depth": [2, 5, 10, null],
+            "noise_var": [0.001, 0.01, 0.1, 1.0, 10.0]
+        }
+    },
+    "results_filename": "experiments/RF/noise_rf_results.csv",
+    "n_reps": 1,
+    "mia_classifier": 
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase"]
+}

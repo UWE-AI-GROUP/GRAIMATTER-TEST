@@ -1,0 +1,23 @@
+{
+    "datasets": [
+        "mimic2-iaccd"
+    ],
+    "classifiers" : [
+        ["safemodel.classifiers", "RFBinnedOutput"]
+    ],
+    "experiment_params" : {
+        "RFBinnedOutput": {
+            "bootstrap": [true, false],
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 2, 5, 10],
+            "n_estimators": [10, 50, 100],
+            "max_depth": [2, 5, 10, null],
+            "n_probability_bins": [0, 3, 5, 10, 20]
+        }
+    },
+    "results_filename": "experiments/RF/binned_rf_results.csv",
+    "n_reps": 1,
+    "mia_classifier": 
+        ["sklearn.ensemble", "RandomForestClassifier"],
+    "scenarios": ["WorstCase"]
+}

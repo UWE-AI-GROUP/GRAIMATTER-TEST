@@ -21,18 +21,13 @@ class Safe_KerasModel(KerasModel, SafeModel ):
 
         the_args = args
         the_kwargs = kwargs
-        
-        print(f'args is a {type(args)} = {args}  kwargs is a {type(kwargs)}= {kwargs}')
-        
+                
         #initialise all the values that get provided as options to keras
         # and also l2 norm clipping and learning rates, batch sizes
         self.inputs = None
         if 'inputs' in kwargs.keys():
-            print("inputs is in kwargs.keys")
             self.inputs=the_kwargs['inputs']
-            print(self.inputs)
         elif len(args)==3: #defaults is for Model(input,outputs,names)
-            print("running elif block")
             self.inputs= args[0]
 
         self.outputs= None
@@ -41,74 +36,42 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         elif len(args)==3:
             self.outputs = args[1]
 
+        # set values where the user has supplied them
+        #if not supplied set to a value that preliminary_check
+        # will over-ride with TRE-specific values from rules.json 
         if 'l2_norm_clip' in kwargs.keys():
-            #set l2_norm_clip is supplied
             self.l2_norm_clip=the_kwargs['l2_norm_clip']
-        else:
-            #set l2_norm_clip to a default
-            # preliminary_check(apply_constraints=True)
-            # reads value in rules.json
-            # value in rules.json will override this default  
+        else: 
             self.l2_norm_clip=1.0
 
         if 'noise_multiplier' in kwargs.keys():
-            #set noise_multiplier if supplied
             self.noise_multiplier=the_kwargs['noise_multiplier']
-        else:
-            #set noise_multiplier to a default
-            # preliminary_check(apply_constraints=True)
-            # reads value in rules.json
-            # value in rules.json will override this default  
+        else: 
             self.noise_multiplier = 0.5
 
         if 'min_epsilon' in kwargs.keys():
-            #set noise_multiplier if supplied
             self.min_epsilon=the_kwargs['min_epsilon']
         else:
-            #set to a default
-            #preliminary_check(apply_constraints=True)
-            # reads value in rules.json
-            # value in rules.json will override this default  
             self.min_epsilon = 10
 
         if 'delta' in kwargs.keys():
-            #set noise_multiplier if supplied
             self.delta=the_kwargs['delta']
         else:
-            #set to a default
-            # preliminary_check(apply_constraints=True)
-            # reads value in rules.json
-            # value in rules.json will override this default  
             self.delta = 1e-5
             
         if 'batch_size' in kwargs.keys():
-            #set noise_multiplier if supplied
             self.batch_size = int(the_kwargs['batch_size'])
         else:
-            #set to a default
-            # preliminary_check(apply_constraints=True)
-            # reads value in rules.json
-            # value in rules.json will override this default  
             self.batch_size = 25
 
         if 'num_microbatches' in kwargs.keys():
-            #set noise_multiplier if supplied
-            self.delta=the_kwargs['num_microbatches']
-        else:
-            #set to a default
-            # preliminary_check(apply_constraints=True)
-            # reads value in rules.json
-            # value in rules.json will override this default  
+            self.num_microbatches=the_kwargs['num_microbatches']
+        else: 
             self.num_microbatches = None
 
-        if 'num_microbatches' in kwargs.keys():
-            #set noise_multiplier if supplied
+        if 'learning_rate' in kwargs.keys():
             self.learning_rate=the_kwargs['learning_rate']
         else:
-            #set to a default
-            # preliminary_check(apply_constraints=True)
-            # reads value in rules.json
-            # value in rules.json will override this default  
             self.learning_rate = 0.1
             
         if 'optimizer' in kwargs.keys():
@@ -117,139 +80,23 @@ class Safe_KerasModel(KerasModel, SafeModel ):
             optimizer = tf_privacy.DPKerasSGDOptimizer
 
         KerasModel.__init__(self,inputs=self.inputs,outputs=self.outputs)
-        #KerasModel.__init__(self)
         SafeModel.__init__(self)
 
         self.ignore_items = [
-            #'_activity_regularizer',
-            #'_auto_track_sub_layers',
-            #'_autocast',
-            #'_base_model_initialized',
-            #'_build_input_shape',
-            #'_callable_losses',
-            #'_cluster_coordinator',
-            #'_compiled_trainable_state',
-            #'_compute_dtype_object',
-            #'_compute_output_and_mask_jointly',
-            #'_default_training_arg',
-            #'_distribution_strategy',
-            #'_dtype_policy',
-            #'_dynamic',
-            #'_enable_dict_to_input_mapping',
-            #'_expects_mask_arg',
-            #'_expects_training_arg',
-            #'_feed_input_names',
-            #'_feed_input_shapes',
-            #'_feed_inputs',
-            #'_inbound_nodes_value',
-            #'_initial_weights',
-            #'_input_coordinates',
-            #'_input_layers',
-            #'_input_spec',
-            #'_instrumented_keras_api',
-            #'_instrumented_keras_layer_class',
-            #'_instrumented_keras_model_class',
-            #'_is_compiled',
-            #'_is_graph_network',
-            #'_is_model_for_instrumentation',
             '_jit_compile',
-            #'_layer_call_argspecs',
-            #'_losses',
-            #'_metrics',
-            #'_metrics_lock',
-            #'_name',
-            #'_nested_inputs',
-            #'_nested_outputs',
-            #'_network_nodes',
-            #'_nodes_by_depth',
-            #'_non_trainable_weights',
-            #'_obj_reference_counts_dict',
-            #'_outbound_nodes_value',
-            #'_outer_name_scope',
-            #'_output_coordinates',
-            #'_output_layers',
-            #'_output_mask_cache',
-            #'_output_shape_cache',
-            #'_output_tensor_cache',
-            #'_predict_counter',
-            #'_preserve_input_structure_in_config',
-            #'_run_eagerly',
-            #'_saved_model_arg_spec',
-            #'_saved_model_inputs_spec',
-            #'_self_name_based_restores',
-            #'_self_saveable_object_factories',
-            #'_self_setattr_tracking',
-            #'_self_tracked_trackables',
-            #'_self_unconditional_checkpoint_dependencies',
-            #'_self_unconditional_deferred_dependencies',
-            #'_self_unconditional_dependency_names',
-            #'_self_update_uid',
-            #'_stateful',
-            #'_steps_per_execution',
-            #'_supports_masking',
-            #'_tensor_usage_count',
-            #'_test_counter',
-            #'_thread_local',
-            #'_trackable_saver',
-            #'_train_counter',
-            #'_trainable',
-            #'_trainable_weights',
-            #'_training_state',
-            #'_updates',
-            #'batch_size',
-            #'built',
-            #'compiled_loss',
-            #'compiled_metrics',
-            #'delta',
             'examine_seperately_items',
-            #'filename',
-            #'history',
             'ignore_items',
-            #'input_names',
-            #'inputs',
-            #'l2_norm_clip',
-            #'learning_rate',
             'loss',
-            #'min_epsilon',
-            #'model',
-            #'model_save_file',
-            #'model_type',
-            #'noise_multiplier',
-            #'num_microbatches',
-            #'num_samples',
-            #'optimizer',
-            #'output_names',
-            #'outputs',
-            #'predict_function',
-            'researcher',
-            #'saved_model',
-            #'stop_training',
-            #'test_function',
-            #'train_function',
-            #'train_tf_function'
-
+            'researcher'
         ]
 
         self.model_type: str = "KerasModel"
         super().preliminary_check(apply_constraints=True, verbose=True)
         #self.apply_specific_constraints()
         
-        #need to move these two to rules.json so they can be set generally by TREs 
-        #and read them in here
-        
-        #self.min_epsilon = 10 #get from json
-        #self.delta = 1e-5  #get from json
-
-        #optional- move this to json - not for nowe
-        #self.batch_size=25
-        #self.l2_norm_clip = 1.0 
-        #self.noise_multiplier = 0.5
-        self.num_microbatches = None
-        #self.learning_rate = 0.1
-        
-    #need to be made available to user and provide better feedback if not true 
-    #def dp_epsilon_met(num_examples=0:int,batch_size=0:int,epochs=0:int) ->bool:
-    def dp_epsilon_met(self, num_examples=0,batch_size=0,epochs=0):
+    def dp_epsilon_met(self, num_examples=0:int,batch_size=0:int,epochs=0:int) -> bool:
+        """Checks if epsilon is sufficient for Differential Privacy
+           Provides feedback to user if epsilon is not sufficient"""
         privacy = compute_dp_sgd_privacy.compute_dp_sgd_privacy(n=num_examples,
                                               batch_size=batch_size,
                                               noise_multiplier=self.noise_multiplier,
@@ -465,10 +312,6 @@ class Safe_KerasModel(KerasModel, SafeModel ):
           msg = msg + msg2
           return msg, disclosive
 
-        #msg2, disclosive2 = check_optimizer_allowed(optimizer)
-        #if(disclosive2 == True):
-        #    disclosive = True
-          
         return msg+msg2, disclosive
 
 
@@ -482,16 +325,13 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         print(self.optimizer)
         allowedmessage, allowed = self.check_optimizer_allowed(self.optimizer)
         
-        ##TODO call dp_epsilon_met()
-        self.epochs = 20
+        #call dp_epsilon_met()
+
         ok, current_epsilon = self.dp_epsilon_met(num_examples=self.num_samples, batch_size=self.batch_size, epochs=self.epochs)
         if(not ok):
             dpepsilonmessage = f"; however, epsilon is not sufficient for Differential privacy: {current_epsilon}. You must modify one or more of batch_size, epochs, number of samples."
         else:
             dpepsilonmessage = f" and epsilon is sufficient for Differential privacy: {current_epsilon}."
-
-        theType= type(self.optimizer)
-        #print(f'optimiser is type {theType}')
 
         dpused,reason = self.check_DP_used(self.optimizer)
         if(dpused):
@@ -504,18 +344,6 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         
         return msg, reason
         
-        #if that is ok and model has been fitted then still need to 
-        
-        
-        
-
-        # check if provided optimizer is one of the allowed types
-        #dp_optimizers = (
-        #    "tensorflow_privacy.DPKerasAdagradOptimizer",
-        #    "tensorflow_privacy.DPKerasAdamOptimizer",
-        #    "tensorflow_privacy.DPKerasSGDOptimizer",
-        #)
-
 class Safe_tf_DPModel(SafeModel, DPModel):
     """ Privacy Protected tensorflow_privacy DP-SGD subclass of Keras model"""
 

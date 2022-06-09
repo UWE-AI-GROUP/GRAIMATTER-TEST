@@ -137,15 +137,18 @@ def nursery() -> Tuple[pd.DataFrame, pd.DataFrame]:
     return feature_dataframe, target_dataframe
 
 
-
-def images_to_ndarray(images_dir: str, number_to_load: int, label: int) -> Tuple[np.array, np.array]:
+# Patched to support non-flattened images. Same behaviour as before except if called with flatten=False explicitly.
+def images_to_ndarray(images_dir: str, number_to_load: int, label: int, flatten: bool = True) -> Tuple[np.array, np.array]:
     '''
     Grab number_to_load images from the images_dir and create a np array and label array
     '''
     folder_path = images_dir + os.sep
     images_names = sorted(os.listdir(folder_path))
     images_names = images_names[:number_to_load]
-    np_images = np.array([plt.imread(folder_path + img).flatten() for img in images_names])
+    if flatten:
+        np_images = np.array([plt.imread(folder_path + img).flatten() for img in images_names])
+    else:
+        np_images = np.array([plt.imread(folder_path + img) for img in images_names])
     labels = np.ones((len(np_images), 1), int) * label
     return(np_images, labels)
 
@@ -385,7 +388,7 @@ Please download from https://physionet.org/content/mimic2-iaccd/1.0/full_cohort_
     # extract target
     target = 'censor_flg'
     y = input_data[target]
-    X = input_data.drop([target], axis=1)
+    X = input_data.drop([target, 'mort_day_censored'], axis=1)
 
     label_encoder = LabelEncoder()
     encoded_labels = label_encoder.fit_transform(y.values)

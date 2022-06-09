@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import getpass
 import json
+import logging
 import pathlib
 import pickle
 from typing import Any
@@ -12,7 +13,6 @@ from typing import Any
 import joblib
 from dictdiffer import diff
 
-import logging 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
@@ -91,17 +91,15 @@ class SafeModel:
         except BaseException:
             self.researcher = "unknown"
 
-
     def save(self, name: str = "undefined") -> None:
         """Writes model to file in appropriate format.
-           Optimizer is deliberately excluded. 
-           To prevent possible to restart training and thus 
-           possible back door into attacks. 
+        Optimizer is deliberately excluded.
+        To prevent possible to restart training and thus
+        possible back door into attacks.
         """
-        if(hasattr(self,optimizer)):
+        if hasattr(self, optimizer):
             pass
-            #self.optimizer = self.optimizer.pop(-1)
-        
+            # self.optimizer = self.optimizer.pop(-1)
 
         self.model_save_file = name
         while self.model_save_file == "undefined":
@@ -114,15 +112,15 @@ class SafeModel:
         elif self.model_save_file[-4:] == ".sav":  # save to joblib
             joblib.dump(self, self.model_save_file)
         elif self.model_save_file[-3:] == ".h5":
-            # save to tf (h5 cant serialize subclassed models)
-            tf.keras.models.save_model(self, self.model_save_file,
-                                       include_optimizer=False,
-                                       save_format='h5')
+            # save to tf (h5 cannot serialize subclassed models)
+            tf.keras.models.save_model(
+                self, self.model_save_file, include_optimizer=False, save_format="h5"
+            )
         elif self.model_save_file[-3:] == ".tf":
-            # save to tf (h5 cant serialize subclassed models)
-            tf.keras.models.save_model(self, self.model_save_file,
-                                       include_optimizer=False,
-                                       save_format='tf')
+            # save to tf (h5 cannot serialize subclassed models)
+            tf.keras.models.save_model(
+                self, self.model_save_file, include_optimizer=False, save_format="tf"
+            )
         else:
             suffix = self.model_save_file.split(".")[-1]
             print(f"{suffix} file saves currently not supported")
@@ -237,24 +235,30 @@ class SafeModel:
     def posthoc_check(self) -> tuple[str, str]:
         """Checks whether model has been interfered with since fit() was last run"""
         import copy
+
         disclosive = False
         msg = ""
         # get dictionaries of parameters
-        current_model ={}
-        keyscopy = copy.copy(list(self.__dict__.keys()))#have to convert what keys() returns into a list
-        for key in keyscopy:#jim added so we are iterating over a list, not the dictionary itself
-        #for key,value in self.__dict__.items():
-            logger.debug(f'copying {key}')
+        current_model = {}
+        keyscopy = copy.copy(
+            list(self.__dict__.keys())
+        )  # have to convert what keys() returns into a list
+        for (
+            key
+        ) in (
+            keyscopy
+        ):  # jim added so we are iterating over a list, not the dictionary itself
+            # for key,value in self.__dict__.items():
+            logger.debug(f"copying {key}")
             try:
-                value = self.__dict__[key]#jim added
+                value = self.__dict__[key]  # jim added
                 current_model[key] = copy.deepcopy(value)
             except Exception as t:
-                logger.warning(f'{key} cannot be copied')
-                logger.warning(f'...{type(t)} error; {t}')
-            
-                
-            logger.debug('...done')
-        logger.info('copied')
+                logger.warning(f"{key} cannot be copied")
+                logger.warning(f"...{type(t)} error; {t}")
+
+            logger.debug("...done")
+        logger.info("copied")
 
         saved_model = current_model.pop("saved_model", "Absent")
 
@@ -348,8 +352,7 @@ class SafeModel:
                             disclosive = True
                             break
 
-
-        if(is_dp_used):
+        if is_dp_used:
             msg2 = "- DP - Differentially private optimizer has been used"
         else:
             disclosive = True

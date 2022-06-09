@@ -344,15 +344,5 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         
         return msg, reason
         
-class Safe_tf_DPModel(SafeModel, DPModel):
-    """ Privacy Protected tensorflow_privacy DP-SGD subclass of Keras model"""
-
-    def __init__(l2_norm_clip:float, noise_multiplier:float, use_xla:bool=True, *args:any, **kwargs:any) ->None:
-        """creates model and applies constraints to parameters"""
-        safemodel.__init__(self)
-        DPModel.__init__(self, **kwargs)
-        self.model_type: str = "tf_DPModel"
-        super().preliminary_check(apply_constraints=True, verbose=True)
-
 
 

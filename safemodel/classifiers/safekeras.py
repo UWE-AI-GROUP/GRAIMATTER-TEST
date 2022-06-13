@@ -15,7 +15,22 @@ import sys
 
 class Safe_KerasModel(KerasModel, SafeModel ):
     """Privacy Protected Wrapper around  tf.keras.Model class from tensorflow 2.8"""
+    def dp_epsilon_met(self, num_examples:int, batch_size:int = 0 ,epochs:int = 0 ) -> bool:
+        """Checks if epsilon is sufficient for Differential Privacy
+           Provides feedback to user if epsilon is not sufficient"""
+        privacy = compute_dp_sgd_privacy.compute_dp_sgd_privacy(n=num_examples,
+                                              batch_size=batch_size,
+                                              noise_multiplier=self.noise_multiplier,
+                                              epochs=epochs,
+                                              delta=self.delta)
+        if privacy[0] < self.min_epsilon:
+            ok= True
+        else:
+            ok= False
+        return ok,privacy[0]
+    
 
+    
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Creates model and applies constraints to params"""
 
@@ -79,11 +94,15 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         else:
             optimizer = tf_privacy.DPKerasSGDOptimizer
 
-        if 'num_samples' i kwargs.keys():
+        if 'num_samples' in kwargs.keys():
             self.num_samples = the_kwargs['num_samples']
         else:
             num_samples = 0
-            
+
+        if 'epochs' in kwargs.keys():
+            self.epochs = the_kwargs['epochs']
+        else:
+            self.epochs = 20
 
         KerasModel.__init__(self,inputs=self.inputs,outputs=self.outputs)
         SafeModel.__init__(self)
@@ -100,36 +119,33 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         super().preliminary_check(apply_constraints=True, verbose=True)
         #self.apply_specific_constraints()
 
-        ok, current_epsilon = dp_epsilon_met(self,
+    def check_epsilon(self, num_examples=None,
+                       batch_size=None,
+                       epochs=None):
+
+        if(num_examples==None):
+            num_examples=self.num_samples
+        if (batch_size==None):
+            batch_size=self.batch_size
+        if (epochs == None):
+            epochs=self.epochs
+            
+        ok, current_epsilon = self.dp_epsilon_met(
                        num_examples=self.num_samples,
-                       self.batch_size,
+                       batch_size=self.batch_size,
                        epochs=self.epochs)
 
         if ok:
             print(f"Current epsilon is {current_epsilon}")
-            msg = "The requirements for DP are met, current epsilon is: {self.current_epsilon}. with the following parameters:  Num Samples = {self.num_samples}, batch_size = {self.batch_size}, epochs = {self.epochs}"
-            return 0, current_epsilon, num_samples, batch_size, epochs
+            msg = "The requirements for DP are met, current epsilon is: {current_epsilon}. with the following parameters:  Num Samples = {self.num_samples}, batch_size = {self.batch_size}, epochs = {self.epochs}"
+            return 0, current_epsilon, self.num_samples, self.batch_size, self.epochs
         if not ok:
             print(f"Current epsilon is {current_epsilon}")
-            msg = f"The requirements for DP are not met, current epsilon is: {self.current_epsilon}. To attain true DP the following parameters can be changed:  Num Samples = {self.num_samples}, batch_size = {self.batch_size}, epochs = {self.epochs}"
+            msg = f"The requirements for DP are not met, current epsilon is: {current_epsilon}. To attain true DP the following parameters can be changed:  Num Samples = {self.num_samples}, batch_size = {self.batch_size}, epochs = {self.epochs}"
             print(msg)
-            return 1, current_epsilon, num_samples, batch_size, epochs
+            return 1, current_epsilon, self.num_samples, self.batch_size, self.epochs
         
         
-    def dp_epsilon_met(self, num_examples=0:int,batch_size=0:int,epochs=0:int) -> bool:
-        """Checks if epsilon is sufficient for Differential Privacy
-           Provides feedback to user if epsilon is not sufficient"""
-        privacy = compute_dp_sgd_privacy.compute_dp_sgd_privacy(n=num_examples,
-                                              batch_size=batch_size,
-                                              noise_multiplier=self.noise_multiplier,
-                                              epochs=epochs,
-                                              delta=self.delta)
-        if privacy[0] < self.min_epsilon:
-            ok= True
-        else:
-            ok= False
-        return ok,privacy[0]
-    
     def fit(self,X,Y,validation_data, epochs, batch_size):
         ###TODO TIDY UP:
         print(X.shape)

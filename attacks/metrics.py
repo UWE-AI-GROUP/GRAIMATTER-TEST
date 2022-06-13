@@ -4,7 +4,7 @@ Calculate metrics.
 
 from typing import Iterable#, Optional, Any
 import numpy as np
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, roc_curve
 from sklearn.metrics import roc_auc_score
 from .mia_extremecase import min_max_disc
 
@@ -19,6 +19,20 @@ def div(x,y, default):
     else:
         #print('Warning: division by 0', x,y)
         return float(default)
+
+def tpr_at_fpr(y_true: Iterable[float], y_score: Iterable[float], fpr: float=0.001) -> float:
+    '''
+    Compute the TPR at a fixed FPR.
+    In particular, returns the TPR value at idx where idx is the first location
+    at which the FPR is >= the passsed value fpr. Does not use interpolation.
+    '''
+    fpr_vals, tpr_vals, _ = roc_curve(y_true, y_score)
+    exact_pos = np.where(fpr_vals == fpr)[0]
+    if len(exact_pos) > 0:
+        return tpr_vals[exact_pos[-1]]
+
+    idx = np.where(fpr_vals >= fpr)[0][0]
+    return tpr_vals[idx]
 
 
 def get_metrics(clf,

@@ -4,7 +4,7 @@ Test the metrics
 
 import unittest
 import numpy as np
-from attacks.metrics import get_metrics
+from attacks.metrics import get_metrics, tpr_at_fpr
 from attacks.mia_extremecase import min_max_disc
 
 PREDICTED_CLASS = np.array([0, 1, 0, 0, 1, 1])
@@ -56,6 +56,27 @@ class TestMetrics(unittest.TestCase):
         self.assertAlmostEqual(metrics['F1score'], (8 / 9) / (2 / 3 + 2 / 3))
         self.assertAlmostEqual(metrics['Advantage'], 1 / 3)
         self.assertAlmostEqual(metrics['AUC'], 8 / 9)
+
+class TestFPRatTPR(unittest.TestCase):
+    '''
+    Test code that computes TPR at fixed FPR
+    '''
+    def test_tpr(self):
+        '''Test tpr at fpr'''
+        y_true = TRUE_CLASS
+        y_score = PREDICTED_PROBS[:, 1]
+
+        t = tpr_at_fpr(y_true, y_score, fpr=0)
+        self.assertAlmostEqual(t, 2/3)
+        t = tpr_at_fpr(y_true, y_score, fpr=0.001)
+        self.assertAlmostEqual(t, 2/3)
+        t = tpr_at_fpr(y_true, y_score, fpr=0.1)
+        self.assertAlmostEqual(t, 2/3)
+        t = tpr_at_fpr(y_true, y_score, fpr=0.4)
+        self.assertAlmostEqual(t, 1)
+        t = tpr_at_fpr(y_true, y_score, fpr=1.0)
+        self.assertAlmostEqual(t, 1)
+
 
 class TestExtrete(unittest.TestCase):
     '''

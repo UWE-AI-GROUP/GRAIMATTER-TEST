@@ -54,55 +54,28 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         # set values where the user has supplied them
         #if not supplied set to a value that preliminary_check
         # will over-ride with TRE-specific values from rules.json 
-        if 'l2_norm_clip' in kwargs.keys():
-            self.l2_norm_clip=the_kwargs['l2_norm_clip']
-        else: 
-            self.l2_norm_clip=1.0
 
-        if 'noise_multiplier' in kwargs.keys():
-            self.noise_multiplier=the_kwargs['noise_multiplier']
-        else: 
-            self.noise_multiplier = 0.5
-
-        if 'min_epsilon' in kwargs.keys():
-            self.min_epsilon=the_kwargs['min_epsilon']
-        else:
-            self.min_epsilon = 10
-
-        if 'delta' in kwargs.keys():
-            self.delta=the_kwargs['delta']
-        else:
-            self.delta = 1e-5
-            
-        if 'batch_size' in kwargs.keys():
-            self.batch_size = int(the_kwargs['batch_size'])
-        else:
-            self.batch_size = 25
-
-        if 'num_microbatches' in kwargs.keys():
-            self.num_microbatches=the_kwargs['num_microbatches']
-        else: 
-            self.num_microbatches = None
-
-        if 'learning_rate' in kwargs.keys():
-            self.learning_rate=the_kwargs['learning_rate']
-        else:
-            self.learning_rate = 0.1
-            
-        if 'optimizer' in kwargs.keys():
-            self.optimizer = the_kwargs['optimizer']
-        else:
-            optimizer = tf_privacy.DPKerasSGDOptimizer
-
-        if 'num_samples' in kwargs.keys():
-            self.num_samples = the_kwargs['num_samples']
-        else:
-            num_samples = 0
-
-        if 'epochs' in kwargs.keys():
-            self.epochs = the_kwargs['epochs']
-        else:
-            self.epochs = 20
+        defaults = {
+            'l2_norm_clip':1.0,  
+            'noise_multiplier': 0.5,
+            'min_epsilon' : 10,
+            'delta' : 1e-5,
+            'batch_size' : 25,
+            'num_microbatches' : None,
+            'learning_rate': 0.1,
+            'optimizer': tf_privacy.DPKerasSGDOptimizer,
+            'num_samples': 250,
+            'epochs': 20
+                    }
+        
+        for key in defaults.keys():
+            if key in kwargs.keys():
+                setattr(self,key,kwargs[key])
+            else:
+                setattr(self,key,defaults[key])
+                
+        if(self.batch_size == 0):
+            print("batch_size should not be 0 - division by zero")
 
         KerasModel.__init__(self,inputs=self.inputs,outputs=self.outputs)
         SafeModel.__init__(self)
@@ -119,31 +92,28 @@ class Safe_KerasModel(KerasModel, SafeModel ):
         super().preliminary_check(apply_constraints=True, verbose=True)
         #self.apply_specific_constraints()
 
-    def check_epsilon(self, num_examples=None,
-                       batch_size=None,
-                       epochs=None):
+    def check_epsilon(self, num_samples:int,
+                       batch_size:int,
+                       epochs:int) -> bool:
 
-        if(num_examples==None):
-            num_examples=self.num_samples
-        if (batch_size==None):
-            batch_size=self.batch_size
-        if (epochs == None):
-            epochs=self.epochs
+        if (batch_size==0):
+            print("Division by zero setting batch_size =1")
+            batch_size=1 
             
         ok, current_epsilon = self.dp_epsilon_met(
-                       num_examples=self.num_samples,
-                       batch_size=self.batch_size,
-                       epochs=self.epochs)
+                       num_examples=num_samples,
+                       batch_size=batch_size,
+                       epochs=epochs)
 
         if ok:
             print(f"Current epsilon is {current_epsilon}")
-            msg = "The requirements for DP are met, current epsilon is: {current_epsilon}. with the following parameters:  Num Samples = {self.num_samples}, batch_size = {self.batch_size}, epochs = {self.epochs}"
-            return 0, current_epsilon, self.num_samples, self.batch_size, self.epochs
+            msg = "The requirements for DP are met, current epsilon is: {current_epsilon}. with the following parameters:  Num Samples = {num_samples}, batch_size = {batch_size}, epochs = {epochs}"
+            return True, current_epsilon, num_samples, batch_size, epochs
         if not ok:
             print(f"Current epsilon is {current_epsilon}")
-            msg = f"The requirements for DP are not met, current epsilon is: {current_epsilon}. To attain true DP the following parameters can be changed:  Num Samples = {self.num_samples}, batch_size = {self.batch_size}, epochs = {self.epochs}"
+            msg = f"The requirements for DP are not met, current epsilon is: {current_epsilon}. To attain true DP the following parameters can be changed:  Num Samples = {num_samples}, batch_size = {batch_size}, epochs = {epochs}"
             print(msg)
-            return 1, current_epsilon, self.num_samples, self.batch_size, self.epochs
+            return False, current_epsilon, num_samples, batch_size, epochs
         
         
     def fit(self,X,Y,validation_data, epochs, batch_size):
@@ -226,92 +196,39 @@ class Safe_KerasModel(KerasModel, SafeModel ):
     
     def compile(self,optimizer=None, loss='categorical_crossentropy', metrics=['accuracy']):
 
-        batch_size=self.batch_size
-        l2_norm_clip = self.l2_norm_clip 
-        noise_multiplier = self.noise_multiplier
-        num_microbatches = self.num_microbatches
-        learning_rate = self.learning_rate
+        replace_message= "WARNING: model parameters may present a disclosure risk"
+        using_DP_SGD= "Changed parameter optimizer = 'DPKerasSGDOptimizer'"
+        Using_DP_Adagrad= "Changed parameter optimizer = 'DPKerasAdagradOptimizer'"
+        using_DP_Adam="Changed parameter optimizer = 'DPKerasAdamOptimizer'"
         
-        #print(optimizer)
-        if(self.optimizer == None):
-            print("Changed parameter optimizer = 'DPKerasSGDOptimizer'")
-            self.optimizer=tf_privacy.DPKerasSGDOptimizer
-            opt = tf_privacy.DPKerasSGDOptimizer(
-                l2_norm_clip=l2_norm_clip,
-                noise_multiplier=noise_multiplier,
-                num_microbatches=num_microbatches,
-                learning_rate=learning_rate)
-
-        elif(self.optimizer == tf_privacy.DPKerasSGDOptimizer):
-            opt = tf_privacy.DPKerasSGDOptimizer(
-                l2_norm_clip=l2_norm_clip,
-                noise_multiplier=noise_multiplier,
-                num_microbatches=num_microbatches,
-                learning_rate=learning_rate)
-
-        elif(self.optimizer == tf_privacy.DPKerasAdagradOptimizer):
-            opt = tf_privacy.DPKerasAdagradOptimizer(
-                l2_norm_clip=l2_norm_clip,
-                noise_multiplier=noise_multiplier,
-                num_microbatches=num_microbatches,
-                learning_rate=learning_rate)
-
-        elif(self.optimizer == tf_privacy.DPKerasAdamOptimizer):
-            opt = tf_privacy.DPKerasAdamOptimizer(
-                l2_norm_clip=l2_norm_clip,
-                noise_multiplier=noise_multiplier,
-                num_microbatches=num_microbatches,
-                learning_rate=learning_rate)
-
-        elif(self.optimizer == "None"):
-            print("Changed parameter optimizer = 'DPKerasSGDOptimizer'")
-            opt = tf_privacy.DPKerasSGDOptimizer(
-                l2_norm_clip=l2_norm_clip,
-                noise_multiplier=noise_multiplier,
-                num_microbatches=num_microbatches,
-                learning_rate=learning_rate)
-            
-        elif(self.optimizer == "Adagrad"):
-            print("WARNING: model parameters may present a disclosure risk")
-            print("Changed parameter optimizer = 'DPKerasAdagradOptimizer'")
-            opt = tf_privacy.DPKerasAdagradOptimizer(
-                l2_norm_clip=l2_norm_clip,
-                noise_multiplier=noise_multiplier,
-                num_microbatches=num_microbatches,
-                learning_rate=learning_rate)
-            
-        elif(self.optimizer == "Adam"):
-            print("WARNING: model parameters may present a disclosure risk")
-            print("Changed parameter optimizer = 'DPKerasAdamOptimizer'")
-            opt = tf_privacy.DPKerasAdamOptimizer(
-                l2_norm_clip=l2_norm_clip,
-                noise_multiplier=noise_multiplier,
-                num_microbatches=num_microbatches,
-                learning_rate=learning_rate)
-            
-        elif(self.optimizer == "SGD"):
-            print("WARNING: model parameters may present a disclosure risk")
-            print("Changed parameter optimizer = 'DPKerasSGDOptimizer'")
-            opt = tf_privacy.DPKerasSGDOptimizer(
-                l2_norm_clip=l2_norm_clip,
-                noise_multiplier=noise_multiplier,
-                num_microbatches=num_microbatches,
-                learning_rate=learning_rate)
-            
+        optimizer_dict={
+            None:(using_DP_SGD,tf_privacy.DPKerasSGDOptimizer),
+            tf_privacy.DPKerasSGDOptimizer:("", tf_privacy.DPKerasSGDOptimizer),
+            tf_privacy.DPKerasAdagradOptimizer: ("", tf_privacy.DPKerasAdagradOptimizer),
+            tf_privacy.DPKerasAdamOptimizer:("",tf_privacy.DPKerasAdamOptimizer),
+            "Adagrad" : (replace_message+Using_DP_Adagrad, tf_privacy.DPKerasAdagradOptimizer),
+            "Adam": (replace_message+using_DP_Adam, tf_privacy.DPKerasAdamOptimizer),
+            "SGD": (replace_message+using_DP_SGD, tf_privacy.DPKerasSGDOptimizer)
+        }
+        
+        val= optimizer_dict.get(self.optimizer,"unknown")
+        if val=="unknown":
+            opt_msg = using_DP_SGD
+            opt_used= tf_privacy.DPKerasSGDOptimizer
         else:
-            print("WARNING: model parameters may present a disclosure risk")
-            print(f"Unknown optimizer {self.optimizer} - Changed parameter optimizer = 'DPKerasSGDOptimizer'")
-            opt = tf_privacy.DPKerasSGDOptimizer(
-                l2_norm_clip=l2_norm_clip,
-                noise_multiplier=noise_multiplier,
-                num_microbatches=num_microbatches,
-                learning_rate=learning_rate)
+            opt_msg= val[0]
+            opt_used = val[1]
             
+        opt= opt_used ( l2_norm_clip=self.l2_norm_clip,
+                        noise_multiplier=self.noise_multiplier,
+                        num_microbatches=self.num_microbatches,
+                        learning_rate=self.learning_rate)
+        
+        if len(opt_msg)>0:
+            print(opt_msg)
+
 
         super().compile(opt, loss, metrics)
-        ok, reason = self.check_DP_used(opt)
-        print(f"DP optimizer used = {ok}")
-        print(reason)
 
     def additional_checks(
             self, curr_separate: dict, saved_separate: dict  ) -> tuple[str, str]:

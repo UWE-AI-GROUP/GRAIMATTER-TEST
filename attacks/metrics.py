@@ -20,12 +20,17 @@ def div(x,y, default):
         #print('Warning: division by 0', x,y)
         return float(default)
 
-def tpr_at_fpr(y_true: Iterable[float], y_score: Iterable[float], fpr: float=0.001) -> float:
+def tpr_at_fpr(y_true: Iterable[float], y_score: Iterable[float], fpr: float=0.001, fpr_perc: bool=False) -> float:
     '''
     Compute the TPR at a fixed FPR.
     In particular, returns the TPR value at idx where idx is the first location
     at which the FPR is >= the passsed value fpr. Does not use interpolation.
     '''
+
+    if fpr_perc:
+        fpr /= 100.
+
+
     fpr_vals, tpr_vals, _ = roc_curve(y_true, y_score)
     exact_pos = np.where(fpr_vals == fpr)[0]
     if len(exact_pos) > 0:
@@ -93,5 +98,12 @@ def get_metrics(clf,
 
     # Add some things useful for debugging / filtering
     metrics['pred_prob_var'] = y_pred_proba.var()
+
+    # TPR at various FPR
+    fpr_vals = [0.1, 0.01, 0.001, 0.00001] # taken from https://arxiv.org/pdf/2112.03570.pdf
+    for fpr in fpr_vals:
+        tpr = tpr_at_fpr(y_test, y_pred_proba, fpr=fpr)
+        name = f'TPR@{fpr}'
+        metrics[name] = tpr
 
     return metrics

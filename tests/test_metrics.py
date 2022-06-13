@@ -66,16 +66,16 @@ class TestFPRatTPR(unittest.TestCase):
         y_true = TRUE_CLASS
         y_score = PREDICTED_PROBS[:, 1]
 
-        t = tpr_at_fpr(y_true, y_score, fpr=0)
-        self.assertAlmostEqual(t, 2/3)
-        t = tpr_at_fpr(y_true, y_score, fpr=0.001)
-        self.assertAlmostEqual(t, 2/3)
-        t = tpr_at_fpr(y_true, y_score, fpr=0.1)
-        self.assertAlmostEqual(t, 2/3)
-        t = tpr_at_fpr(y_true, y_score, fpr=0.4)
-        self.assertAlmostEqual(t, 1)
-        t = tpr_at_fpr(y_true, y_score, fpr=1.0)
-        self.assertAlmostEqual(t, 1)
+        tpr = tpr_at_fpr(y_true, y_score, fpr=0)
+        self.assertAlmostEqual(tpr, 2/3)
+        tpr = tpr_at_fpr(y_true, y_score, fpr=0.001)
+        self.assertAlmostEqual(tpr, 2/3)
+        tpr = tpr_at_fpr(y_true, y_score, fpr=0.1)
+        self.assertAlmostEqual(tpr, 2/3)
+        tpr = tpr_at_fpr(y_true, y_score, fpr=0.4)
+        self.assertAlmostEqual(tpr, 1)
+        tpr = tpr_at_fpr(y_true, y_score, fpr=1.0)
+        self.assertAlmostEqual(tpr, 1)
 
 
 class TestExtrete(unittest.TestCase):

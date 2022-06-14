@@ -13,15 +13,14 @@ from attacks.scenarios import worst_case_mia
 EPS = 1e-16
 
 class DummyClassifier:
-    def __init__(self, y_probs):
-        self.probs = y_probs
-        print(self.probs.shape)
-    
+    '''A Dummy Classifier to allow this code to work with get_metrics'''
     def predict(self, test_X):
-        return 1 * (self.probs[:, 1] > 0.5)
+        '''Return an array of 1/0 depending on value in second column'''
+        return 1 * (test_X[:, 1] > 0.5)
     
     def predict_proba(self, test_X):
-        return self.probs
+        '''Simply return the test_X'''
+        return test_X
 
 def logit(p: float) -> float:
     '''Standard logit function'''
@@ -122,8 +121,7 @@ def likelihood_scenario(
         mia_scores.append([1 - prob, prob])
         mia_labels.append(0)
 
-    mia_clf = DummyClassifier(np.array(mia_scores))
-
+    mia_clf = DummyClassifier()
     return np.array(mia_scores), np.array(mia_labels), mia_clf
 
 
@@ -143,21 +141,19 @@ def main():
     rf.fit(X_target, y_target)
     mia_test_probs, mia_test_labels, mia_clf = likelihood_scenario(rf, RandomForestClassifier(min_samples_leaf=1, min_samples_split=2, max_depth=10), X_target, y_target, X_train, y_train, X_test)
 
-    metrics = get_metrics(mia_clf, mia_test_probs, mia_test_labels)
-    print(metrics)
-
-    import pylab as plt
-    pos = np.where(mia_test_labels == 1)[0]
-    plt.subplots(1, 2, 1)
-    plt.hist(mia_test_probs[pos, 1])
-    pos = np.where(mia_test_labels == 0)[0]
-    plt.subplot(1, 2, 2)
-    plt.hist(mia_test_probs[pos, 0])
-    plt.show()
+    metrics_like = get_metrics(mia_clf, mia_test_probs, mia_test_labels)
+    print(metrics_like)
 
     mia_test_probs, mia_test_labels, mia_clf = worst_case_mia(rf, X_target, X_test)
-    metrics = get_metrics(mia_clf, mia_test_probs, mia_test_labels)
-    print(metrics)
+    metrics_worst = get_metrics(mia_clf, mia_test_probs, mia_test_labels)
+    print(metrics_worst)
+
+    import csv
+    with open('metric_comparison.csv', 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['metric', 'worst case', 'likelihood'])
+        for metric in metrics_worst:
+            writer.writerow([metric, metrics_worst[metric], metrics_like[metric]])
 
 if __name__ == '__main__':
     main()

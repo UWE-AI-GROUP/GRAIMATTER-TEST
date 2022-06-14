@@ -42,11 +42,14 @@ def likelihood_scenario(
 ):
     '''
     Implements the likelihood test, using the "offline" version
+    See p.6 (top of second column) for details
     '''
-    N_SHADOW_MODELS = 2000
+    N_SHADOW_MODELS = 100
     n_train_rows, _ = X_target_train.shape
     n_shadow_rows, _ = X_shadow_train.shape
     indices = np.arange(0, n_train_rows + n_shadow_rows, 1)
+
+    # Combine taregt and shadow train, from which to sample datasets
     combined_X_train = np.vstack((
         X_target_train,
         X_shadow_train
@@ -55,25 +58,36 @@ def likelihood_scenario(
         y_target_train,
         y_shadow_train
     ))
+
     train_row_to_confidence = {i: [] for i in range(n_train_rows)}
     shadow_row_to_confidence = {i: [] for i in range(n_shadow_rows)}
+    
+    # Train N_SHADOW_MODELS shadow models
     for model_idx in range(N_SHADOW_MODELS):
         if model_idx % 100 == 0:
             print(f'{model_idx}/{N_SHADOW_MODELS}')
+
+        # Pick the indices to use for training this one
         these_idx = np.random.choice(indices, n_train_rows, replace=False)
         temp_X_train = combined_X_train[these_idx, :]
         temp_y_train = combined_y_train[these_idx]
+
+        # Fit the shadow model
         shadow_clf.fit(temp_X_train, temp_y_train)
+
+        # Get the predicted probabilities on the training data
         confidences = shadow_clf.predict_proba(X_target_train)
         these_idx = set(these_idx)
         for i in range(n_train_rows):
             if i not in these_idx:
+                # If i was _not_ used for training, incorporate the logit of its confidence of
+                # being correct - TODO: should we just be taking max??
                 train_row_to_confidence[i].append(
                     logit(
                         confidences[i, y_target_train[i]]
                     )
                 )
-        
+        # Same process for shadow data
         shadow_confidences = shadow_clf.predict_proba(X_shadow_train)
         for i in range(n_shadow_rows):
             if i + n_train_rows not in these_idx:
@@ -82,10 +96,12 @@ def likelihood_scenario(
                         shadow_confidences[i, y_shadow_train[i]]
                     )
                 )
-        
+    
+    # Compute predictive probabilities on train and shadow data for the _target_ model
     target_train_preds = target_model.predict_proba(X_target_train)
     shadow_train_preds = target_model.predict_proba(X_shadow_train)
 
+    # Do the test described in the paper in each case
     mia_scores = []
     mia_labels = []
     for i in range(n_train_rows):
@@ -110,8 +126,6 @@ def likelihood_scenario(
 
     return np.array(mia_scores), np.array(mia_labels), mia_clf
 
-    
-
 
 def main():
     from data_preprocessing.data_interface import get_data_sklearn
@@ -131,6 +145,15 @@ def main():
 
     metrics = get_metrics(mia_clf, mia_test_probs, mia_test_labels)
     print(metrics)
+
+    import pylab as plt
+    pos = np.where(mia_test_labels == 1)[0]
+    plt.subplots(1, 2, 1)
+    plt.hist(mia_test_probs[pos, 1])
+    pos = np.where(mia_test_labels == 0)[0]
+    plt.subplot(1, 2, 2)
+    plt.hist(mia_test_probs[pos, 0])
+    plt.show()
 
     mia_test_probs, mia_test_labels, mia_clf = worst_case_mia(rf, X_target, X_test)
     metrics = get_metrics(mia_clf, mia_test_probs, mia_test_labels)

@@ -12,6 +12,7 @@ from tqdm.contrib.itertools import product
 import sklearn.datasets as skl_datasets
 from attacks.scenarios import worst_case_mia, salem, split_target_data # pylint: disable=import-error
 from attacks.metrics import get_metrics # pylint: disable=import-error
+from attacks.tfwrapper import TFClassifier
 from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable
 
 logger = logging.getLogger(__file__)

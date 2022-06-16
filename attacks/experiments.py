@@ -2,16 +2,19 @@
 experiments.py - utilities used within experiments
 '''
 
+import os
 import json
 import importlib
 import hashlib
 import logging
 import argparse
+import joblib
 import pandas as pd
 from tqdm.contrib.itertools import product
 import sklearn.datasets as skl_datasets
 from attacks.scenarios import worst_case_mia, salem, split_target_data # pylint: disable=import-error
 from attacks.metrics import get_metrics # pylint: disable=import-error
+from attacks.tfwrapper import TFClassifier
 from data_preprocessing.data_interface import get_data_sklearn, DataNotAvailable
 
 logger = logging.getLogger(__file__)
@@ -22,8 +25,9 @@ class ResultsEntry():
     '''
     def __init__(self, full_id, model_data_param_id, param_id,
                  dataset_name, scenario_name, classifier_name,
-                 shadow_classifier_name=None, shadow_dataset=None,
-                 attack_classifier_name=None,  repetition=None,
+                 target_clf_file=None,
+                 shadow_classifier_name=None, shadow_clf_file=None, shadow_dataset=None,
+                 attack_classifier_name=None,  attack_clf_file=None, repetition=None,
                  params=None, target_metrics=None, shadow_metrics=None, mia_metrics=None,
                  ):
 
@@ -40,9 +44,12 @@ class ResultsEntry():
             'dataset': dataset_name,
             'scenario': scenario_name,
             'target_classifier': classifier_name,
+            'target_clf_file': target_clf_file,
             'shadow_classifier_name': shadow_classifier_name,
+            'shadow_clf_file':shadow_clf_file,
             'shadow_dataset': shadow_dataset,
             'attack_classifier': attack_classifier_name,
+            'attack_clf_file': attack_clf_file,
             'repetition': repetition,
             'full_id': full_id,
             'model_data_param_id': model_data_param_id,
@@ -93,6 +100,8 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
     experiment_params = config['experiment_params']
 
     results_filename = config['results_filename']
+    path = ("/").join(results_filename.split("/")[:-1])
+    print(path, 'path')
 
     n_reps = config['n_reps']
 
@@ -163,7 +172,12 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
 
                         # Train the target model
                         target_classifier.fit(x_target_train, y_target_train)
-
+                        
+                        #save the target model
+                        hashstr = f'{dataset} {classifier_name} {str(params)} {repetition}'
+                        target_clf_file = os.path.join(path, f"{hashlib.sha256(hashstr.encode('utf-8')).hexdigest()}.pkl")
+                        joblib.dump(target_classifier, target_clf_file)
+                        
                         # Get target metrics
                         target_metrics = {f"target_{key}": val for key, val in \
                             get_metrics(target_classifier, x_test, y_test).items()}
@@ -183,6 +197,7 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                                 x_test,
                                 mia_classifier=mia_classifier()
                             )
+                            
                             # Get MIA metrics
                             mia_metrics = {f"mia_{key}": val for key, val in \
                                 get_metrics(mi_clf, mi_test_x, mi_test_y).items()}
@@ -191,13 +206,20 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                             #(but not repetition/random split)
                             hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
                             full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
-
+                            
+                            #save the MIA model
+                            hashstr = f'{dataset} {classifier_name} {str(params)} {scenario} {repetition}'
+                            mia_clf_file = os.path.join(path, f"{hashlib.sha256(hashstr.encode('utf-8')).hexdigest()}.pkl")
+                            joblib.dump(mi_clf, mia_clf_file)
+                            
                             new_results = ResultsEntry(
                                 full_id, model_data_param_id, param_id,
                                 dataset,
                                 scenario,
                                 classifier_name,
+                                target_clf_file=target_clf_file,
                                 attack_classifier_name=mia_classifier_name,
+                                attack_clf_file=mia_clf_file,
                                 repetition=repetition,
                                 params=params,
                                 target_metrics=target_metrics,
@@ -236,15 +258,28 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                             # (but not repetition/random split)
                             hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
                             full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
+                            
+                            #save the shadow model
+                            hashstr = f'{dataset} {classifier_name} {str(params)} {scenario} shadow {repetition}'
+                            shadow_clf_file = os.path.join(path, f"{hashlib.sha256(hashstr.encode('utf-8')).hexdigest()}.pkl")
+                            joblib.dump(shadow_model, shadow_clf_file)
+                            
+                            #save the MIA model
+                            hashstr = f'{dataset} {classifier_name} {str(params)} {scenario} {repetition}'
+                            mia_clf_file = os.path.join(path, f"{hashlib.sha256(hashstr.encode('utf-8')).hexdigest()}.pkl")
+                            joblib.dump(mi_clf, mia_clf_file)
 
                             new_results = ResultsEntry(
                                 full_id, model_data_param_id, param_id,
                                 dataset,
                                 scenario,
                                 classifier_name,
+                                target_clf_file=target_clf_file,
                                 shadow_dataset='Same distribution',
                                 shadow_classifier_name=classifier_name,
+                                shadow_clf_file=shadow_clf_file,
                                 attack_classifier_name=mia_classifier_name,
+                                attack_clf_file=mia_clf_file,
                                 repetition=repetition,
                                 params=params,
                                 target_metrics=target_metrics,
@@ -287,6 +322,16 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                             # (but not repetition/random split)
                             hashstr = f'{dataset} {classifier_name} {str(params)} {scenario}'
                             full_id = hashlib.sha256(hashstr.encode('utf-8')).hexdigest()
+                            
+                            #save the shadow model
+                            hashstr = f'{dataset} {classifier_name} {str(params)} {scenario} shadow {repetition}'
+                            mia_clf_file = os.path.join(path, f"{hashlib.sha256(hashstr.encode('utf-8')).hexdigest()}.pkl")
+                            joblib.dump(shadow_model, shadow_clf_file)
+                            
+                            #save the MIA model
+                            hashstr = f'{dataset} {classifier_name} {str(params)} {scenario} {repetition}'
+                            mia_clf_file = os.path.join(path, f"{hashlib.sha256(hashstr.encode('utf-8')).hexdigest()}.pkl")
+                            joblib.dump(mi_clf, mia_clf_file)
 
                             new_results = ResultsEntry(
                                 full_id, model_data_param_id, param_id,
@@ -294,8 +339,11 @@ def run_loop(config_file: str, append: bool) -> pd.DataFrame:
                                 scenario,
                                 classifier_name,
                                 shadow_classifier_name=classifier_name,
+                                target_clf_file=target_clf_file,
                                 shadow_dataset=shadow_dataset,
+                                shadow_clf_file=shadow_clf_file,
                                 attack_classifier_name=mia_classifier_name,
+                                attack_clf_file=mia_clf_file,
                                 repetition=repetition,
                                 params=params,
                                 target_metrics=target_metrics,

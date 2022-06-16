@@ -6,7 +6,7 @@
         "texas hospitals 10"
     ],
     "classifiers" : [
-        ["WP1.gm_tfnn.tfwrapper", "TFClassifier"]
+        ["attacks.tfwrapper", "TFClassifier"]
     ],
     "experiment_params" : {
         "TFClassifier": {
@@ -20,7 +20,7 @@
 			"epochs": [10]
         }
     },
-    "results_filename": "experiments/TFNN/TensorFlowNeuralNetwork_table_loop_results.csv",
+    "results_filename": "experiments/TensorFlowNeuralNetwork_table_loop_results.csv",
     "n_reps": 5,
     "mia_classifier": 
         ["sklearn.ensemble", "RandomForestClassifier"],

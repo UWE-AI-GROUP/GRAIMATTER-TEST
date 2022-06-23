@@ -5,6 +5,8 @@ Repository for GRAIMatter project: Guidelines and Resource for AI Model Access f
 
 - WP1/notes/datasets.MD includes a list of potential datasets
 
+quick link to docs page: https://uwe-ai-group.github.io/GRAIMATTER-TEST/
+
 
 ## Git contribution guidelines
 

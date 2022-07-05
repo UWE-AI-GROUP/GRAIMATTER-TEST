@@ -1,0 +1,7 @@
+SafeDecisionTree
+================
+
+.. automodule:: safedecisiontreeclassifier
+   :members: 
+
+

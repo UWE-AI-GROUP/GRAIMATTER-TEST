@@ -6,8 +6,6 @@
 Welcome to GRAIMATTER-TEST's documentation!
 ===========================================
 
-Click here for the page `source <_sources/index.rst.txt>`_
-
 API Reference
 #############
 
@@ -16,34 +14,11 @@ This is the class and function reference for safemodel.
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
-
-Example
-*******
-
-.. :code-block: python
-safeRFModel2 = SafeRandomForestClassifier()
-safeRFModel2.fit(X, y)
-safeRFModel2.save(name="safe2.pkl")
-safeRFModel2.preliminary_check()
-safeRFModel2.request_release(filename="safe2.pkl")
-::
-
-Base Class 
-***********
-.. automodule:: safemodel
-   :members:
-   :special-members:
-   :private-members:
-
-SafeDecisionTree
-*****************
-
-.. autoclass:: classifiers.safedecisiontree
-   :members: 
-
-.. automodule:: saferandomforestclassifier
-   :members:
+   
+   attacks
+   safemodel
+   safedecisiontree
+   saferandomforest
 
 
 Indices and tables

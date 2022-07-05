@@ -4,7 +4,7 @@
 
 .. _sphx_glr_auto_examples:
 
-Hello World Readme
+Simple Read Me File
 
 
 .. raw:: html

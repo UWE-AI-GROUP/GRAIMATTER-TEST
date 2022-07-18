@@ -12,13 +12,8 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(1, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../../safemodel/'))
-sys.path.insert(1, os.path.abspath('../../safemodel/classifiers'))
-sys.path.append("..") # Adds higher directory to python modules path.
+sys.path.insert(0, os.path.abspath('../../'))
 sys.path.insert(1, os.path.abspath('../../attacks/'))
-sys.path.insert(1, os.path.abspath('../../attacks_utilities/'))
 
 # -- Project information -----------------------------------------------------
 
@@ -76,7 +71,7 @@ exclude_patterns = []
 
 #html_theme = 'agogo'
 html_theme = 'sphinx_rtd_theme'
-
+html_theme_options = {'navigation_depth': 2}
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafeRandomForest &mdash; GRAIMATTER 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/sg_gallery.css" type="text/css" />
+      <link rel="stylesheet" href="_static/sg_gallery-binder.css" type="text/css" />
+      <link rel="stylesheet" href="_static/sg_gallery-dataframe.css" type="text/css" />
+      <link rel="stylesheet" href="_static/sg_gallery-rendered-html.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="SafeDecisionTree" href="safedecisiontree.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> GRAIMATTER
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="attacks.html">Attacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="safemodel.html">Base Class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="safedecisiontree.html">SafeDecisionTree</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SafeRandomForest</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GRAIMATTER</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>SafeRandomForest</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/saferandomforest.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="saferandomforest">
+<h1>SafeRandomForest<a class="headerlink" href="#saferandomforest" title="Permalink to this heading"></a></h1>
+<p>An example Python Notebook is available  <a class="reference external" href="https://github.com/jim-smith/GRAIMatter/blob/main/WP2/wrapper/wrapper-RF-concept.ipynb">Here</a></p>
+<span class="target" id="module-safemodel.classifiers.saferandomforestclassifier"></span><p>Privacy protected Random Forest classifier.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">safemodel.classifiers.saferandomforestclassifier.</span></span><span class="sig-name descname"><span class="pre">SafeRandomForestClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/safemodel/classifiers/saferandomforestclassifier.html#SafeRandomForestClassifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier" title="Permalink to this definition"></a></dt>
+<dd><p>Privacy protected Random Forest classifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_importances_</span></code></dt><dd><p>The impurity-based feature importances.</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">n_features_</span></code></dt><dd><p>DEPRECATED: Attribute <cite>n_features_</cite> was deprecated in version 1.0 and will be removed in 1.2.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.additional_checks" title="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.additional_checks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">additional_checks</span></code></a>(curr_separate, saved_separate)</p></td>
+<td><p>Random Forest-specific checks</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(X)</p></td>
+<td><p>Apply trees in the forest to X, return leaf indices.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">decision_path</span></code>(X)</p></td>
+<td><p>Return the decision path in the forest.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.fit" title="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code></a>(x, y)</p></td>
+<td><p>Do fit and then store model dict</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity" title="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_k_anonymity</span></code></a>(x)</p></td>
+<td><p>calculate the k-anonymity of a random forest model as the minimum of the anonymity for each record.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_params</span></code>([deep])</p></td>
+<td><p>Get parameters for this estimator.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">posthoc_check</span></code>()</p></td>
+<td><p>Checks whether model has been interfered with since fit() was last run</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code>(X)</p></td>
+<td><p>Predict class for X.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_log_proba</span></code>(X)</p></td>
+<td><p>Predict class log-probabilities for X.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_proba</span></code>(X)</p></td>
+<td><p>Predict class probabilities for X.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">preliminary_check</span></code>([verbose, apply_constraints])</p></td>
+<td><p>Checks whether current model parameters violate the safe rules.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">request_release</span></code>([filename])</p></td>
+<td><p>Saves model to filename specified and creates a report for the TRE output checkers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code>([name])</p></td>
+<td><p>Writes model to file in appropriate format.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">score</span></code>(X, y[, sample_weight])</p></td>
+<td><p>Return the mean accuracy on the given test data and labels.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_params</span></code>(**params)</p></td>
+<td><p>Set the parameters of this estimator.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.additional_checks">
+<span class="sig-name descname"><span class="pre">additional_checks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">curr_separate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saved_separate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/safemodel/classifiers/saferandomforestclassifier.html#SafeRandomForestClassifier.additional_checks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.additional_checks" title="Permalink to this definition"></a></dt>
+<dd><p>Random Forest-specific checks</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/safemodel/classifiers/saferandomforestclassifier.html#SafeRandomForestClassifier.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Do fit and then store model dict</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity">
+<span class="sig-name descname"><span class="pre">get_k_anonymity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/safemodel/classifiers/saferandomforestclassifier.html#SafeRandomForestClassifier.get_k_anonymity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity" title="Permalink to this definition"></a></dt>
+<dd><p>calculate the k-anonymity of a random forest model
+as the minimum of the anonymity for each record.
+That is defined as the size of the set of records which
+appear in the same leaf as the record in every tree.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="safedecisiontree.html" class="btn btn-neutral float-left" title="SafeDecisionTree" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, GRAIMATTER Project Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

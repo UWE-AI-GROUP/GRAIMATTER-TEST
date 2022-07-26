@@ -23,7 +23,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="SafeRandomForest" href="saferandomforest.html" />
-    <link rel="prev" title="Base Class" href="baseclass.html" /> 
+    <link rel="prev" title="Base Class" href="safemodel.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -44,9 +44,11 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="attacks.html">Attacks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="baseclass.html">Base Class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="safemodel.html">Base Class</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SafeDecisionTree</a></li>
 <li class="toctree-l1"><a class="reference internal" href="saferandomforest.html">SafeRandomForest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="safesvc.html">SafeSVC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="safekeras.html">SafeKeras</a></li>
 </ul>
 
         </div>
@@ -73,12 +75,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-safedecisiontreeclassifier">
-<span id="safedecisiontree"></span><h1>SafeDecisionTree<a class="headerlink" href="#module-safedecisiontreeclassifier" title="Permalink to this headline"></a></h1>
-<p>Privacy protected Decision Tree classifier.</p>
+  <section id="safedecisiontree">
+<h1>SafeDecisionTree<a class="headerlink" href="#safedecisiontree" title="Permalink to this headline"></a></h1>
+<p>An example Python Notebook is available  <a class="reference external" href="https://github.com/jim-smith/GRAIMatter/blob/main/WP2/wrapper/wrapper-concept.ipynb">Here</a></p>
+<span class="target" id="module-safemodel.classifiers.safedecisiontreeclassifier"></span><p>Privacy protected Decision Tree classifier.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="safedecisiontreeclassifier.SafeDecisionTreeClassifier">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">safedecisiontreeclassifier.</span></span><span class="sig-name descname"><span class="pre">SafeDecisionTreeClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/safedecisiontreeclassifier.html#SafeDecisionTreeClassifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safedecisiontreeclassifier.SafeDecisionTreeClassifier" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="safemodel.classifiers.safedecisiontreeclassifier.SafeDecisionTreeClassifier">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">safemodel.classifiers.safedecisiontreeclassifier.</span></span><span class="sig-name descname"><span class="pre">SafeDecisionTreeClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/safemodel/classifiers/safedecisiontreeclassifier.html#SafeDecisionTreeClassifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.safedecisiontreeclassifier.SafeDecisionTreeClassifier" title="Permalink to this definition"></a></dt>
 <dd><p>Privacy protected Decision Tree classifier.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes</dt>
@@ -97,7 +100,7 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#safedecisiontreeclassifier.SafeDecisionTreeClassifier.additional_checks" title="safedecisiontreeclassifier.SafeDecisionTreeClassifier.additional_checks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">additional_checks</span></code></a>(curr_separate, saved_separate)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#safemodel.classifiers.safedecisiontreeclassifier.SafeDecisionTreeClassifier.additional_checks" title="safemodel.classifiers.safedecisiontreeclassifier.SafeDecisionTreeClassifier.additional_checks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">additional_checks</span></code></a>(curr_separate, saved_separate)</p></td>
 <td><p>Decision Tree-specific checks</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(X[, check_input])</p></td>
@@ -109,7 +112,7 @@
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">decision_path</span></code>(X[, check_input])</p></td>
 <td><p>Return the decision path in the tree.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#safedecisiontreeclassifier.SafeDecisionTreeClassifier.fit" title="safedecisiontreeclassifier.SafeDecisionTreeClassifier.fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code></a>(x, y)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#safemodel.classifiers.safedecisiontreeclassifier.SafeDecisionTreeClassifier.fit" title="safemodel.classifiers.safedecisiontreeclassifier.SafeDecisionTreeClassifier.fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code></a>(x, y)</p></td>
 <td><p>Do fit and then store k-anonymity and  model dict</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_depth</span></code>()</p></td>
@@ -151,29 +154,29 @@
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="safedecisiontreeclassifier.SafeDecisionTreeClassifier.additional_checks">
-<span class="sig-name descname"><span class="pre">additional_checks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">curr_separate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saved_separate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/safedecisiontreeclassifier.html#SafeDecisionTreeClassifier.additional_checks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safedecisiontreeclassifier.SafeDecisionTreeClassifier.additional_checks" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="safemodel.classifiers.safedecisiontreeclassifier.SafeDecisionTreeClassifier.additional_checks">
+<span class="sig-name descname"><span class="pre">additional_checks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">curr_separate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saved_separate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/safemodel/classifiers/safedecisiontreeclassifier.html#SafeDecisionTreeClassifier.additional_checks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.safedecisiontreeclassifier.SafeDecisionTreeClassifier.additional_checks" title="Permalink to this definition"></a></dt>
 <dd><p>Decision Tree-specific checks</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="safedecisiontreeclassifier.SafeDecisionTreeClassifier.fit">
-<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/safedecisiontreeclassifier.html#SafeDecisionTreeClassifier.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safedecisiontreeclassifier.SafeDecisionTreeClassifier.fit" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="safemodel.classifiers.safedecisiontreeclassifier.SafeDecisionTreeClassifier.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/safemodel/classifiers/safedecisiontreeclassifier.html#SafeDecisionTreeClassifier.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.safedecisiontreeclassifier.SafeDecisionTreeClassifier.fit" title="Permalink to this definition"></a></dt>
 <dd><p>Do fit and then store k-anonymity and  model dict</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="safedecisiontreeclassifier.decision_tree_internal_trees_are_equal">
-<span class="sig-prename descclassname"><span class="pre">safedecisiontreeclassifier.</span></span><span class="sig-name descname"><span class="pre">decision_tree_internal_trees_are_equal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree1_tree</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">sklearn.tree._tree.Tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree2_tree</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">sklearn.tree._tree.Tree</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/safedecisiontreeclassifier.html#decision_tree_internal_trees_are_equal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safedecisiontreeclassifier.decision_tree_internal_trees_are_equal" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="safemodel.classifiers.safedecisiontreeclassifier.decision_tree_internal_trees_are_equal">
+<span class="sig-prename descclassname"><span class="pre">safemodel.classifiers.safedecisiontreeclassifier.</span></span><span class="sig-name descname"><span class="pre">decision_tree_internal_trees_are_equal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree1_tree</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">sklearn.tree._tree.Tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree2_tree</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">sklearn.tree._tree.Tree</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/safemodel/classifiers/safedecisiontreeclassifier.html#decision_tree_internal_trees_are_equal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.safedecisiontreeclassifier.decision_tree_internal_trees_are_equal" title="Permalink to this definition"></a></dt>
 <dd><p>Tests for equality of the internal structures in a sklearn.tree._tree
 e.g. the structure, feature and threshold in each internal node etc</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="safedecisiontreeclassifier.decision_trees_are_equal">
-<span class="sig-prename descclassname"><span class="pre">safedecisiontreeclassifier.</span></span><span class="sig-name descname"><span class="pre">decision_trees_are_equal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree1</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">sklearn.tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree2</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">sklearn.tree</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/safedecisiontreeclassifier.html#decision_trees_are_equal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safedecisiontreeclassifier.decision_trees_are_equal" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="safemodel.classifiers.safedecisiontreeclassifier.decision_trees_are_equal">
+<span class="sig-prename descclassname"><span class="pre">safemodel.classifiers.safedecisiontreeclassifier.</span></span><span class="sig-name descname"><span class="pre">decision_trees_are_equal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree1</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">sklearn.tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree2</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">sklearn.tree</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/safemodel/classifiers/safedecisiontreeclassifier.html#decision_trees_are_equal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.safedecisiontreeclassifier.decision_trees_are_equal" title="Permalink to this definition"></a></dt>
 <dd><p>Compares two estimators of type sklearn.tree
 e.g. two decisionTreeClassifiers</p>
 </dd></dl>
@@ -184,7 +187,7 @@ e.g. two decisionTreeClassifiers</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="baseclass.html" class="btn btn-neutral float-left" title="Base Class" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="safemodel.html" class="btn btn-neutral float-left" title="Base Class" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="saferandomforest.html" class="btn btn-neutral float-right" title="SafeRandomForest" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

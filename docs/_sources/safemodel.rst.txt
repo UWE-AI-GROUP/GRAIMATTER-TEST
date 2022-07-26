@@ -1,7 +1,7 @@
 Base Class 
 ==========
 
-.. automodule:: safemodel
+.. automodule:: safemodel.safemodel
    :members:
    :special-members:
    :private-members:

@@ -43,7 +43,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="attacks.html">Attacks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="baseclass.html">Base Class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="safemodel.html">Base Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="safedecisiontree.html">SafeDecisionTree</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SafeRandomForest</a></li>
 </ul>
@@ -72,12 +72,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-saferandomforestclassifier">
-<span id="saferandomforest"></span><h1>SafeRandomForest<a class="headerlink" href="#module-saferandomforestclassifier" title="Permalink to this headline"></a></h1>
-<p>Privacy protected Random Forest classifier.</p>
+  <section id="saferandomforest">
+<h1>SafeRandomForest<a class="headerlink" href="#saferandomforest" title="Permalink to this headline"></a></h1>
+<p>An example Python Notebook is available  <a class="reference external" href="https://github.com/jim-smith/GRAIMatter/blob/main/WP2/wrapper/wrapper-RF-concept.ipynb">Here</a></p>
+<span class="target" id="module-safemodel.classifiers.saferandomforestclassifier"></span><p>Privacy protected Random Forest classifier.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="saferandomforestclassifier.SafeRandomForestClassifier">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">saferandomforestclassifier.</span></span><span class="sig-name descname"><span class="pre">SafeRandomForestClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/saferandomforestclassifier.html#SafeRandomForestClassifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#saferandomforestclassifier.SafeRandomForestClassifier" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">safemodel.classifiers.saferandomforestclassifier.</span></span><span class="sig-name descname"><span class="pre">SafeRandomForestClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/safemodel/classifiers/saferandomforestclassifier.html#SafeRandomForestClassifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier" title="Permalink to this definition"></a></dt>
 <dd><p>Privacy protected Random Forest classifier.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes</dt>
@@ -96,7 +97,7 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#saferandomforestclassifier.SafeRandomForestClassifier.additional_checks" title="saferandomforestclassifier.SafeRandomForestClassifier.additional_checks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">additional_checks</span></code></a>(curr_separate, saved_separate)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.additional_checks" title="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.additional_checks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">additional_checks</span></code></a>(curr_separate, saved_separate)</p></td>
 <td><p>Random Forest-specific checks</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply</span></code>(X)</p></td>
@@ -105,10 +106,10 @@
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">decision_path</span></code>(X)</p></td>
 <td><p>Return the decision path in the forest.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#saferandomforestclassifier.SafeRandomForestClassifier.fit" title="saferandomforestclassifier.SafeRandomForestClassifier.fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code></a>(x, y)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.fit" title="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code></a>(x, y)</p></td>
 <td><p>Do fit and then store model dict</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity" title="saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_k_anonymity</span></code></a>(x)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity" title="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_k_anonymity</span></code></a>(x)</p></td>
 <td><p>calculate the k-anonymity of a random forest model as the minimum of the anonymity for each record.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_params</span></code>([deep])</p></td>
@@ -144,20 +145,20 @@
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="saferandomforestclassifier.SafeRandomForestClassifier.additional_checks">
-<span class="sig-name descname"><span class="pre">additional_checks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">curr_separate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saved_separate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/saferandomforestclassifier.html#SafeRandomForestClassifier.additional_checks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#saferandomforestclassifier.SafeRandomForestClassifier.additional_checks" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.additional_checks">
+<span class="sig-name descname"><span class="pre">additional_checks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">curr_separate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saved_separate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/safemodel/classifiers/saferandomforestclassifier.html#SafeRandomForestClassifier.additional_checks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.additional_checks" title="Permalink to this definition"></a></dt>
 <dd><p>Random Forest-specific checks</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="saferandomforestclassifier.SafeRandomForestClassifier.fit">
-<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/saferandomforestclassifier.html#SafeRandomForestClassifier.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#saferandomforestclassifier.SafeRandomForestClassifier.fit" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/safemodel/classifiers/saferandomforestclassifier.html#SafeRandomForestClassifier.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.fit" title="Permalink to this definition"></a></dt>
 <dd><p>Do fit and then store model dict</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity">
-<span class="sig-name descname"><span class="pre">get_k_anonymity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/saferandomforestclassifier.html#SafeRandomForestClassifier.get_k_anonymity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity">
+<span class="sig-name descname"><span class="pre">get_k_anonymity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/safemodel/classifiers/saferandomforestclassifier.html#SafeRandomForestClassifier.get_k_anonymity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#safemodel.classifiers.saferandomforestclassifier.SafeRandomForestClassifier.get_k_anonymity" title="Permalink to this definition"></a></dt>
 <dd><p>calculate the k-anonymity of a random forest model
 as the minimum of the anonymity for each record.
 That is defined as the size of the set of records which

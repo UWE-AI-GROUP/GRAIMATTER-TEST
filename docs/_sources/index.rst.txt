@@ -15,10 +15,13 @@ This is the class and function reference for safemodel.
    :maxdepth: 2
    :caption: Contents:
    
+   introduction
    attacks
    safemodel
    safedecisiontree
    saferandomforest
+   safesvc
+   safekeras
 
 
 Indices and tables

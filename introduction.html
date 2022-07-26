@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Python Module Index &mdash; GRAIMATTER 1.0.0 documentation</title>
+  <title>Introduction &mdash; GRAIMATTER 1.0.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/sg_gallery.css" type="text/css" />
@@ -21,9 +22,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
- 
-
-
+    <link rel="next" title="Attacks" href="attacks.html" />
+    <link rel="prev" title="Welcome to GRAIMATTER-TEST’s documentation!" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,8 +42,11 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-safemodel">What is safemodel?</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="attacks.html">Attacks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="safemodel.html">Base Class</a></li>
 <li class="toctree-l1"><a class="reference internal" href="safedecisiontree.html">SafeDecisionTree</a></li>
@@ -66,8 +69,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Python Module Index</li>
+      <li>Introduction</li>
       <li class="wy-breadcrumbs-aside">
+            <a href="_sources/introduction.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -75,58 +79,40 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-
-   <h1>Python Module Index</h1>
-
-   <div class="modindex-jumpbox">
-   <a href="#cap-e"><strong>e</strong></a> | 
-   <a href="#cap-s"><strong>s</strong></a>
-   </div>
-
-   <table class="indextable modindextable">
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-e"><td></td><td>
-       <strong>e</strong></td><td></td></tr>
-     <tr>
-       <td></td>
-       <td>
-       <a href="attacks.html#module-experiments"><code class="xref">experiments</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-s"><td></td><td>
-       <strong>s</strong></td><td></td></tr>
-     <tr>
-       <td><img src="_static/minus.png" class="toggler"
-              id="toggle-1" style="display: none" alt="-" /></td>
-       <td>
-       <code class="xref">safemodel</code></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="safedecisiontree.html#module-safemodel.classifiers.safedecisiontreeclassifier"><code class="xref">safemodel.classifiers.safedecisiontreeclassifier</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="saferandomforest.html#module-safemodel.classifiers.saferandomforestclassifier"><code class="xref">safemodel.classifiers.saferandomforestclassifier</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="safesvc.html#module-safemodel.classifiers.safesvc"><code class="xref">safemodel.classifiers.safesvc</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="safemodel.html#module-safemodel.safemodel"><code class="xref">safemodel.safemodel</code></a></td><td>
-       <em></em></td></tr>
-   </table>
+  <section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h1>
+<section id="what-is-safemodel">
+<h2>What is safemodel?<a class="headerlink" href="#what-is-safemodel" title="Permalink to this headline"></a></h2>
+<p>The safemodel package is an opensource wrapper for common machine learning
+models. It is designed for use by researchers in Trusted Research Environments (TREs) where disclosure control methods  must be implemented.</p>
+<p>Safemodel aims to give researchers greater confidence that theeir models are compliant with disclosure control.</p>
+<p>Safemodel provides feedback to the researcher through a JSON parseable
+‘checkfile’ report:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;researcher&quot;</span><span class="p">:</span> <span class="s2">&quot;andy&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;model_type&quot;</span><span class="p">:</span> <span class="s2">&quot;DecisionTreeClassifier&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;model_save_file&quot;</span><span class="p">:</span> <span class="s2">&quot;unsafe.pkl&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;details&quot;</span><span class="p">:</span> <span class="s2">&quot;WARNING: model parameters may present a disclosure risk:\n- para</span>
+<span class="s2">meter min_samples_leaf = 1 identified as less than the recommended min value of</span>
+<span class="s2">5.&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;recommendation&quot;</span><span class="p">:</span> <span class="s2">&quot;Do not allow release&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;WARNING: model parameters may present a disclosure risk:\n- param</span>
+<span class="s2">eter min_samples_leaf = 1 identified as less than the recommended min value of 5</span>
+<span class="s2">.Error: user has not called fit() method or has deleted saved values.Recommendat</span>
+<span class="s2">ion: Do not release.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
 
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to GRAIMATTER-TEST’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="attacks.html" class="btn btn-neutral float-right" title="Attacks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
